@@ -6,12 +6,12 @@
  * Time: 12:49
  */
 
-namespace Pixidos\GPWebPay\Logger;
-use Pixidos\GPWebPay\Exceptions\GPWebPayException;
+namespace Granam\GpWebPay\Logger;
+use Granam\GpWebPay\Exceptions\GPWebPayException;
 
 /**
  * Class Logger
- * @package Pixidos\GPWebPay\Logger
+ * @package Granam\GpWebPay\Logger
  * @author Ondra Votava <ondra.votava@pixidos.com>
  *
  * @method onMail($this)

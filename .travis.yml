@@ -1,15 +1,21 @@
 language: php
-
 php:
-  - 5.6
+  - hhvm
+  - nightly
+  - 7.1
   - 7.0
-
-script: ./vendor/bin/tester -c ./tests/php-unix.ini ./tests/GPWebPayTests/
+  - 5.6
+matrix:
+  allow_failures:
+    - php: nightly
 
 before_script:
-  - composer self-update
-  - composer install --no-interaction --prefer-source --dev
+  - composer selfupdate
+  - composer update --no-interaction --prefer-dist
+  - composer require codeclimate/php-test-reporter:dev-master --dev
 
-after_failure:
-  - for i in $(find tests -name \*.actual); do echo "--- $i"; cat $i; echo; echo; done
+script:
+  - ./vendor/phpunit/phpunit/phpunit -v --coverage-clover build/logs/clover.xml
 
+after_script:
+  - CODECLIMATE_REPO_TOKEN= ./vendor/bin/test-reporter

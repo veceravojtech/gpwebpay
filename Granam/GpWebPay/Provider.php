@@ -6,15 +6,15 @@
  * Time: 11:42
  */
 
-namespace Pixidos\GPWebPay;
+namespace Granam\GpWebPay;
 
-use Pixidos\GPWebPay\Exceptions\GPWebPayException;
-use Pixidos\GPWebPay\Exceptions\GPWebPayResultException;
-use Pixidos\GPWebPay\Exceptions\SignerException;
+use Granam\GpWebPay\Exceptions\GPWebPayException;
+use Granam\GpWebPay\Exceptions\GPWebPayResultException;
+use Granam\GpWebPay\Exceptions\SignerException;
 
 /**
  * Class Provider
- * @package Pixidos\GPWebPay
+ * @package Granam\GpWebPay
  * @author Ondra Votava <ondra.votava@pixidos.com>
  */
 class Provider

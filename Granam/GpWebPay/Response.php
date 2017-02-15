@@ -6,11 +6,11 @@
  * Time: 11:48
  */
 
-namespace Pixidos\GPWebPay;
+namespace Granam\GpWebPay;
 
 /**
  * Class Response
- * @package Pixidos\GPWebPay
+ * @package Granam\GpWebPay
  * @author Ondra Votava <ondra.votava@pixidos.com>
  */
 

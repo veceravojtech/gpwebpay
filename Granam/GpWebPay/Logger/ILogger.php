@@ -6,11 +6,11 @@
  * Time: 12:52
  */
 
-namespace Pixidos\GPWebPay\Logger;
+namespace Granam\GpWebPay\Logger;
 
 /**
  * Interface ILogger
- * @package Pixidos\GPWebPay\Logger
+ * @package Granam\GpWebPay\Logger
  * @author Ondra Votava <ondra.votava@pixidos.com>
  */
 

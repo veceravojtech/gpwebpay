@@ -6,14 +6,14 @@
  * Time: 16:05
  */
 
-namespace Pixidos\GPWebPay\Components;
+namespace Granam\GpWebPay\Components;
 
-use Pixidos\GPWebPay\Provider;
-use Pixidos\GPWebPay\Operation;
+use Granam\GpWebPay\Provider;
+use Granam\GpWebPay\Operation;
 
 /**
  * Class GPWebPayControlFactory
- * @package Pixidos\GPWebPay\Componets
+ * @package Granam\GpWebPay\Componets
  * @author Ondra Votava <ondra.votava@pixidos.com>
  */
 

@@ -6,13 +6,13 @@
  * Time: 11:13
  */
 
-namespace Pixidos\GPWebPay;
+namespace Granam\GpWebPay;
 
-use Pixidos\GPWebPay\Exceptions\InvalidArgumentException;
+use Granam\GpWebPay\Exceptions\InvalidArgumentException;
 
 /**
  * Class Request
- * @package Pixidos\GPWebPay
+ * @package Granam\GpWebPay
  * @author Ondra Votava <ondra.votava@pixidos.com>
  */
 class Request

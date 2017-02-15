@@ -6,22 +6,22 @@
  * Time: 15:09
  */
 
-namespace Pixidos\GPWebPay\Components;
+namespace Granam\GpWebPay\Components;
 
 use Nette\Application\UI;
 use Nette\Bridges\ApplicationLatte\Template;
 use Nette\ComponentModel\IContainer;
 
-use Pixidos\GPWebPay\Exceptions\GPWebPayException;
-use Pixidos\GPWebPay\Operation;
-use Pixidos\GPWebPay\Provider;
-use Pixidos\GPWebPay\Response;
-use Pixidos\GPWebPay\Request;
+use Granam\GpWebPay\Exceptions\GPWebPayException;
+use Granam\GpWebPay\Operation;
+use Granam\GpWebPay\Provider;
+use Granam\GpWebPay\Response;
+use Granam\GpWebPay\Request;
 
 
 /**
  * Class GPWebPayControl
- * @package Pixidos\GPWebPay\Components
+ * @package Granam\GpWebPay\Components
  * @author Ondra Votava <ondra.votava@pixidos.com>
  *
  * @method onCheckout(GPWebPayControl $control, Request $request)

@@ -1,4 +1,4 @@
-
-tests/tmp/
 vendor/
 .idea/
+composer.lock
+phpunit_log

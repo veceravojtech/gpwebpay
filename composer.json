@@ -1,10 +1,21 @@
 {
-  "name": "pixidos/gpwebpay",
+  "name": "granam/gpwebpay",
   "type": "library",
-  "description": "GP WepPay integration for Nette Framework",
-  "keywords": ["nette", "gp", "gp webpay","webpay", "pay", "checkout", "payment"],
-  "homepage": "https://github.com/pixidos",
-  "license": ["BSD-3-Clause", "GPL-2.0", "GPL-3.0"],
+  "description": "GP WepPay orders controller",
+  "keywords": [
+    "gp",
+    "gp webpay",
+    "webpay",
+    "pay",
+    "checkout",
+    "payment"
+  ],
+  "homepage": "https://github.com/jaroslavtyc/gpwebpay",
+  "license": [
+    "BSD-3-Clause",
+    "GPL-2.0",
+    "GPL-3.0"
+  ],
   "authors": [
     {
       "name": "PIXDOS LTD",
@@ -13,39 +24,28 @@
     {
       "name": "Ondra Votava",
       "email": "ondra.votava@pixidos.com"
+    },
+    {
+      "name": "Jaroslav Týc",
+      "email": "mail@jaroslavtyc.com"
     }
   ],
   "support": {
-    "email": "dev@pixidos.com",
-    "issues": "https://github.com/Pixidos/GPWebPay/issues"
+    "email": "mail@jaroslavtyc.com",
+    "issues": "https://github.com/jaroslavtyc/gpwebpay/issues"
   },
   "require": {
     "php": ">=5.6.0",
     "ext-openssl": "*",
-    "nette/di": "^2.3",
-    "nette/application": "^2.3",
-    "nette/utils": "^2.3"
+    "roave/security-advisories": "dev-master"
   },
   "require-dev": {
-
-    "nette/bootstrap": "^2.3",
-    "nette/caching": "^2.3",
-    "nette/database": "^2.3",
-
-    "nette/finder": "^2.3",
-    "nette/forms": "^2.3",
-    "nette/http": "^2.3",
-    "nette/mail": "^2.3",
-    "nette/robot-loader": "^2.3",
-    "nette/safe-stream": "^2.3",
-    "nette/security": "^2.3",
-    "latte/latte": "^2.3",
-    "tracy/tracy": "^2.3",
-    "nette/tester": "^1.4"
+    "phpunit/phpunit": ">=5.0",
+    "mockery/mockery": ">=0.9"
   },
   "autoload": {
-    "psr-0": {
-      "Pixidos\\GPWebPay\\": "src/"
+    "psr-4": {
+      "Granam\\": "Granam/"
     }
   }
 }

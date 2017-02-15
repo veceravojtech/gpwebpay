@@ -6,13 +6,13 @@
  * Time: 13:10
  */
 
-namespace Pixidos\GPWebPay\DI;
+namespace Granam\GpWebPay\DI;
 use Nette;
 use Nette\Utils\Validators;
 
 /**
  * Class GPWebPayExtension
- * @package Pixidos\GPWebPay\DI
+ * @package Granam\GpWebPay\DI
  * @author Ondra Votava <ondra.votava@pixidos.com>
  */
 
@@ -43,7 +43,7 @@ class GPWebPayExtension extends Nette\DI\CompilerExtension
         $builder = $this->getContainerBuilder();
 
         $builder->addDefinition($this->prefix('settings'))
-            ->setClass('Pixidos\GPWebPay\Settings', array(
+            ->setClass('Granam\GpWebPay\Settings', array(
                 "privateKey" => $config["privateKey"],
                 "privateKeyPassword" => $config['privateKeyPassword'],
                 'publicKey' => $config['publicKey'],
@@ -54,10 +54,10 @@ class GPWebPayExtension extends Nette\DI\CompilerExtension
             ));
 
         $builder->addDefinition($this->prefix('provider'))
-            ->setClass('Pixidos\GPWebPay\Provider', array($this->prefix('@settings')));
+            ->setClass('Granam\GpWebPay\Provider', array($this->prefix('@settings')));
 
         $builder->addDefinition($this->prefix('controlFactory'))
-            ->setClass('Pixidos\GPWebPay\Components\GPWebPayControlFactory', array($this->prefix('@provider')));
+            ->setClass('Granam\GpWebPay\Components\GPWebPayControlFactory', array($this->prefix('@provider')));
 
     }
 

@@ -6,14 +6,14 @@
  * Time: 11:18
  */
 
-namespace Pixidos\GPWebPay;
+namespace Granam\GpWebPay;
 
-use Pixidos\GPWebPay\Exceptions\GPWebPayException;
-use Pixidos\GPWebPay\Exceptions\InvalidArgumentException;
+use Granam\GpWebPay\Exceptions\GPWebPayException;
+use Granam\GpWebPay\Exceptions\InvalidArgumentException;
 
 /**
  * Class Operation
- * @package Pixidos\GPWebPay
+ * @package Granam\GpWebPay
  * @author Ondra Votava <ondra.votava@pixidos.com>
  */
 class Operation
@@ -317,7 +317,7 @@ class Operation
 	/**
 	 *
 	 * @param string $lang max. length is 2
-	 * @return \Pixidos\GPWebPay\Operation
+	 * @return \Granam\GpWebPay\Operation
 	 * @throws GPWebPayException
 	 */
 	public function setLang($lang)
