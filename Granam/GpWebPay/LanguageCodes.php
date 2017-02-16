@@ -4,7 +4,9 @@ namespace Granam\GpWebPay;
 use Granam\Strict\Object\StrictObject;
 
 /**
- * @link http://www.gpwebpay.cz/en/Faq
+ * For list of supported languages see @link http://www.gpwebpay.cz/en/Faq
+ * Supported formats of languages are ISO 639-1:2002, ISO 639-2:1998, RFC 3066
+ * listed in GP_webpay_HTTP_EN.pdf / GP_webpay_HTTP.pdf
  */
 class LanguageCodes extends StrictObject implements Codes
 {

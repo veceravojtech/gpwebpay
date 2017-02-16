@@ -39,9 +39,10 @@ class Operation extends StrictObject
     private $fastPayId;
 
     /**
-     * @param int $orderNumber max. length is 15
+     * @param int $orderNumber with max length of 15
      * @param float $amount
-     * @param int $currencyCode max. length is 3
+     * @param int $currencyCode
+     * @param CurrencyCodes $currencyCodes
      * @param string $gatewayKey
      * @param string $responseUrl
      * @throws \Granam\GpWebPay\Exceptions\InvalidArgumentException
@@ -50,6 +51,7 @@ class Operation extends StrictObject
         int $orderNumber,
         float $amount,
         int $currencyCode,
+        CurrencyCodes $currencyCodes,
         string $gatewayKey = null,
         string $responseUrl = null
     )
@@ -57,7 +59,7 @@ class Operation extends StrictObject
 
         $this->setOrderNumber($orderNumber);
         $this->setAmount($amount);
-        $this->setCurrency($currencyCode);
+        $this->setCurrency($currencyCode, $currencyCodes);
         if (is_string($gatewayKey)) {
             $gatewayKey = trim($gatewayKey);
         }
@@ -97,15 +99,15 @@ class Operation extends StrictObject
 
     /**
      * @param int $currencyCode
+     * @param CurrencyCodes $currencyCodes
      * @return Operation
      * @throws \Granam\GpWebPay\Exceptions\InvalidArgumentException
      */
-    private function setCurrency(int $currencyCode)
+    private function setCurrency(int $currencyCode, CurrencyCodes $currencyCodes)
     {
-        if (!CurrencyCodes::isCurrencyCode($currencyCode)) {
+        if ($currencyCodes->isCurrencyNumericCode($currencyCode)) {
             throw new Exceptions\InvalidArgumentException(
-                'Unknown ' . RequestDigestKeys::CURRENCY . " code given, got '{$currencyCode}', expected one of "
-                . implode(',', CurrencyCodes::getCurrencyCodes())
+                'Unknown ' . RequestDigestKeys::CURRENCY . " code given, got '{$currencyCode}', expected one of those defined by ISO 4217"
             );
         }
         $this->currency = $currencyCode;
@@ -262,6 +264,13 @@ class Operation extends StrictObject
         return $this->merchantOrderNumber;
     }
 
+    /*
+     * Some banks uses shorter MEMORDERNUM (rest is truncated)
+     * Komerční banka 16
+     * Raiffiesen bank 10
+     * UniCredit bank 12
+     * (others are unknown - see GP_webpay_HTTP_EN.pdf / GP_webpay_HTTP.pdf)
+     */
     const MAXIMAL_LENGTH_OF_MERORDERNUM = 30;
 
     /**
