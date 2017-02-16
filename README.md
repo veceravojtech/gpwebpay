@@ -4,13 +4,8 @@
 GPWebPay is a PHP library for online payments via [GPWebPay service](http://www.gpwebpay.cz/)
 ![GPWEbPay logo](http://www.gpwebpay.cz/Content/imgs/logo_header@2.png | width=100)
 
-## Credits
-This library originates from [Pixidos/GPWebPay](https://github.com/Pixidos/GPWebPay) library, which has same
-functionality but can be used **only** as a [Nette framework](https://nette.org/en/) extension.
-All credits belongs to the author Ondra Votava from Pixidos.
-
-Nevertheless I am grateful to to share that library publicly,
-please more of such people.
+If your are using [Nette framework](https://nette.org/en/), you may want
+[Pixidos/GPWebPay](https://github.com/Pixidos/GPWebPay) Nette extension instead.
 
 ## Quickstart
 
@@ -122,3 +117,10 @@ Installation
 composer require granam/gpwebpay
 ```
 *(requires PHP 5.6+)*
+
+## Credits
+This library originates from [Pixidos/GPWebPay](https://github.com/Pixidos/GPWebPay) library, which has same
+functionality but can be used **only** as a [Nette framework](https://nette.org/en/) extension.
+All credits belongs to the author Ondra Votava from Pixidos.
+
+Nevertheless I am grateful to him for sharing that library publicly. Please more of such people.

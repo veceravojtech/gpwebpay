@@ -1,116 +1,128 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Ondra Votava
- * Date: 21.10.2015
- * Time: 10:38
- */
-
 namespace Granam\GpWebPay;
 
-use Granam\GpWebPay\Exceptions\SignerException;
+use Granam\Strict\Object\StrictObject;
 
-/**
- * Class Signer
- * @package Granam\GpWebPay
- * @author Ondra Votava <ondra.votava@pixidos.com>
- */
-
-class Signer
+class Signer extends StrictObject
 {
 
     /** @var string */
-    private $privateKey;
-
+    private $privateKeyPath;
     /** @var resource */
     private $privateKeyResource;
-
     /** @var string */
     private $privateKeyPassword;
-
     /** @var string */
-    private $publicKey;
-
+    private $publicKeyPath;
     /** @var resource */
     private $publicKeyResource;
 
     /**
-     * @param $privateKey
-     * @param $privateKeyPassword
-     * @param $publicKey
-     * @throws SignerException
+     * @param string $publicKeyPath
+     * @param string $privateKeyPath
+     * @param string $privateKeyPassword
+     * @throws \Granam\GpWebPay\Exceptions\SignerException
      */
-    public function __construct($privateKey, $privateKeyPassword, $publicKey) {
-
-        if (!file_exists($privateKey)) {
-            throw new SignerException("Private key ({$privateKey}) not exists or not readable!");
-        }
-        if(!is_readable($privateKey)){
-            throw new SignerException("Private key ({$privateKey}) not readable!");
-        }
-
-        if (!file_exists($publicKey) || !is_readable($publicKey)) {
-            throw new SignerException("Public key ({$publicKey}) not exists or not readable!");
+    public function __construct(string $publicKeyPath, string $privateKeyPath, string $privateKeyPassword = '')
+    {
+        $privateKeyPath = trim($privateKeyPath);
+        if (!is_readable($privateKeyPath)) {
+            throw new Exceptions\SignerException(
+                "Private key '{$privateKeyPath} 'can not be read. Ensure that it exists and with correct rights."
+            );
         }
 
-        $this->privateKey = $privateKey;
+        $publicKeyPath = trim($publicKeyPath);
+        if (!is_readable($publicKeyPath)) {
+            throw new Exceptions\SignerException(
+                "Public key '{$publicKeyPath}' can not be read. Ensure that it exists and with correct rights."
+            );
+        }
+
+        $this->privateKeyPath = $privateKeyPath;
         $this->privateKeyPassword = $privateKeyPassword;
-        $this->publicKey = $publicKey;
+        $this->publicKeyPath = $publicKeyPath;
     }
+
     /**
      * @return resource
-     * @throws SignerException
+     * @throws \Granam\GpWebPay\Exceptions\SignerException
      */
-    private function getPrivateKeyResource() {
-        if ($this->privateKeyResource) {
+    private function getPrivateKeyResource()
+    {
+        if (is_resource($this->privateKeyResource)) {
             return $this->privateKeyResource;
         }
-        $key = file_get_contents($this->privateKey);
+        $key = file_get_contents($this->privateKeyPath);
         if (!($this->privateKeyResource = openssl_pkey_get_private($key, $this->privateKeyPassword))) {
-            throw new SignerException("'{$this->privateKey}' is not valid PEM private key (or password is incorrect).");
+            throw new Exceptions\SignerException(
+                "'{$this->privateKeyPath}' is not valid PEM private key or the password is incorrect."
+            );
         }
+
         return $this->privateKeyResource;
     }
-    /**
-     * @param array $params
-     * @return string
-     */
-    public function sign(array $params) {
-        $digestText = implode('|', $params);
-        openssl_sign($digestText, $digest, $this->getPrivateKeyResource());
-        $digest = base64_encode($digest);
-        return $digest;
+
+    public function __destruct()
+    {
+        if (is_resource($this->privateKeyResource)) {
+            fclose($this->privateKeyResource);
+        }
+        if (is_resource($this->publicKeyResource)) {
+            fclose($this->publicKeyResource);
+        }
     }
 
     /**
-     * @param array $params
-     * @param $digest
-     * @return int
-     * @throws SignerException
+     * @param array|string[] $partsOfDigest
+     * @return string Digest as encrypted content of the request for its validation on GpWebPay side
+     * @throws \Granam\GpWebPay\Exceptions\SignerException
      */
-    public function verify(array $params, $digest) {
-        $data = implode('|', $params);
-        $digest = base64_decode($digest);
-        $ok = openssl_verify($data, $digest, $this->getPublicKeyResource());
-        if ($ok !== 1) {
-            throw new SignerException("Digest is not correct!");
+    public function sign(array $partsOfDigest)
+    {
+        $digestText = implode('|', $partsOfDigest);
+        if (!openssl_sign($digestText, $digest, $this->getPrivateKeyResource())) {
+            throw new Exceptions\SignerException('Could not sign ' . $digestText);
         }
-        return $ok;
+
+        return base64_encode($digest);
     }
+
+    /**
+     * @param array|string[] $expectedPartsOfDigest
+     * @param string $digest
+     * @return bool
+     * @throws Exceptions\SignerException
+     */
+    public function verify(array $expectedPartsOfDigest, string $digest)
+    {
+        $expectedDigest = implode('|', $expectedPartsOfDigest);
+        $digest = base64_decode($digest);
+        if (openssl_verify($expectedDigest, $digest, $this->getPublicKeyResource()) !== 1) {
+            throw new Exceptions\SignerException('Digest does not match expected ' . $expectedDigest);
+        }
+
+        return true;
+    }
+
     /**
      * @return resource
-     * @throws SignerException
+     * @throws \Granam\GpWebPay\Exceptions\SignerException
      */
-    private function getPublicKeyResource() {
-        if ($this->publicKeyResource) {
+    private function getPublicKeyResource()
+    {
+        if (is_resource($this->publicKeyResource)) {
             return $this->publicKeyResource;
         }
-        $fp = fopen($this->publicKey, "r");
-        $key = fread($fp, filesize($this->publicKey));
-        fclose($fp);
-        if (!($this->publicKeyResource = openssl_pkey_get_public($key))) {
-            throw new SignerException("'{$this->publicKey}' is not valid PEM public key.");
+        if (!($fp = fopen($this->publicKeyPath, 'rb'))) {
+            throw new Exceptions\SignerException("Could not open '{$this->publicKeyPath}' for reading.");
         }
+        $publicKey = fread($fp, filesize($this->publicKeyPath));
+        fclose($fp);
+        if (!($this->publicKeyResource = openssl_pkey_get_public($publicKey))) {
+            throw new Exceptions\SignerException("'{$this->publicKeyPath}' is not valid PEM public key.");
+        }
+
         return $this->publicKeyResource;
     }
 }

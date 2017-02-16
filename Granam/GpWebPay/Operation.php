@@ -1,542 +1,511 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Ondra Votava
- * Date: 21.10.2015
- * Time: 11:18
- */
-
 namespace Granam\GpWebPay;
 
-use Granam\GpWebPay\Exceptions\GPWebPayException;
-use Granam\GpWebPay\Exceptions\InvalidArgumentException;
+use Granam\Strict\Object\StrictObject;
 
-/**
- * Class Operation
- * @package Granam\GpWebPay
- * @author Ondra Votava <ondra.votava@pixidos.com>
- */
-class Operation
+class Operation extends StrictObject
 {
-
-	const EUR = 978;
-	const CZK = 203;
-
-	/**
-	 * @var int $orderNumber
-	 */
-	private $orderNumber;
-
-	/**
-	 * @var int $amount
-	 */
-	private $amount;
-
-	/**
-	 * @var int $currency
-	 */
-	private $currency;
-
-	/**
-	 * @var  string $description
-	 */
-	private $description;
-	/**
-	 * @var  string $md
-	 */
-	private $md;
-	/**
-	 * @var  int $merordernum
-	 */
-	private $merordernum;
-	/**
-	 * @var null $responseUrl
-	 */
-	private $responseUrl;
-
-	/**
-	 * @var string $gatewayKey
-	 */
-	private $gatewayKey = NULL;
-
-	/**
-	 * @var string $lang
-	 */
-	private $lang;
-
-	/**
-	 * @var  string $userParam1
-	 */
-	private $userParam1 = NULL;
-	/**
-	 * @var  string $payMethod
-	 */
-	private $payMethod = NULL;
-	/**
-	 * @var  string $disablePayMethod
-	 */
-	private $disablePayMethod = NULL;
-	/**
-	 * @var  array $payMethods
-	 */
-	private $payMethods = [];
-	/**
-	 * @var  string $email
-	 */
-	private $email = NULL;
-	/**
-	 * @var  string $referenceNumber
-	 */
-	private $referenceNumber = NULL;
-
-	/**
-	 * @var int fastPayId
-	 */
-	private $fastPayId = NULL;
-
-	private $payMethodSupportedVal = [
-		'CRD',
-		'MCM',
-		'MPS',
-		'BTNCS',
-	];
-
-
-	/**
-	 * Operation constructor.
-	 * @param string $orderNumber max. length is 15
-	 * @param int $amount
-	 * @param int $currency max. length is 3
-	 * @param null $gatewayKey
-	 * @param null $responseUrl
-	 * @throws InvalidArgumentException
-	 */
-	public function __construct($orderNumber, $amount, $currency, $gatewayKey = NULL, $responseUrl = NULL)
-	{
-
-		$this->setOrderNumber($orderNumber);
-		$this->setAmount($amount);
-		$this->setCurrency($currency);
-
-		$this->gatewayKey = $gatewayKey;
-
-		$this->md = $gatewayKey;
-
-		if ($responseUrl) {
-			$this->responseUrl = $responseUrl;
-		}
-
-
-	}
-
-	/**
-	 * @param int $orderNumber
-	 * @throws InvalidArgumentException
-	 */
-	private function setOrderNumber($orderNumber)
-	{
-		if (strlen($orderNumber) > 15) {
-			throw new InvalidArgumentException('ORDERNUMBER max. length is 15! ' . strlen($orderNumber) . ' given');
-		}
-		if (!is_numeric($orderNumber)) {
-			throw new InvalidArgumentException('ORDERNUMBER must by type of numeric ' . gettype($orderNumber) . ' given');
-		}
-		$this->orderNumber = $orderNumber;
-	}
-
-	/**
-	 * @param int | float $amount
-	 * @return $this
-	 * @throws InvalidArgumentException
-	 */
-	private function setAmount($amount)
-	{
-		if (!is_int($amount)) {
-			if (!is_float($amount)) {
-				throw new InvalidArgumentException('AMOUNT must by type of INT or FLOAT !' . gettype($amount) . ' given');
-			}
-		}
-		$this->amount = $amount * 100;
-
-		return $this;
-	}
-
-	/**
-	 * @param $currency
-	 * @throws GPWebPayException
-	 */
-	private function setCurrency($currency)
-	{
-		if (!is_int($currency)) {
-			throw new InvalidArgumentException('CURRENCY must by INT ! ' . gettype($currency) . ' given');
-		}
-		if (strlen($currency) > 15) {
-			throw new InvalidArgumentException('CURRENCY code max. length is 3! ' . strlen($currency) . ' given');
-		}
-
-		$this->currency = $currency;
-	}
-
-	public function getOrderNumber()
-	{
-		return $this->orderNumber;
-	}
-
-	/**
-	 * @return int
-	 */
-	public function getAmount()
-	{
-		return $this->amount;
-	}
-
-	/**
-	 * @return int
-	 */
-	public function getCurrency()
-	{
-		return $this->currency;
-	}
-
-	/**
-	 * @return null | string
-	 */
-	public function getResponseUrl()
-	{
-		return ($this->responseUrl)
-			? $this->responseUrl
-			: NULL;
-	}
-
-	/**
-	 * @param string $url max. lenght is 300
-	 * @return $this
-	 * @throws GPWebPayException
-	 * @throws InvalidArgumentException
-	 */
-	public function setResponseUrl($url)
-	{
-		if (!filter_var($url, FILTER_VALIDATE_URL)) {
-			throw new InvalidArgumentException('URL is Invalid');
-		}
-
-		if (strlen($url) > 300) {
-			throw new GPWebPayException('URL max. length is 300! ' . strlen($url) . ' given');
-		}
-
-		$this->responseUrl = $url;
-
-		return $this;
-	}
-
-	/**
-	 * @return null | string
-	 */
-	public function getMd()
-	{
-		return ($this->md)
-			? $this->md
-			: NULL;
-	}
-
-	/**
-	 * @param string $md max. length is 255!
-	 * @return $this
-	 * @throws GPWebPayException
-	 */
-	public function setMd($md)
-	{
-		if ((strlen((string)$this->md) + strlen($md)) > 250) {
-			throw new GPWebPayException('MD max. length is 250! ' . strlen($md) . ' given');
-		}
-
-		$this->md .= '|' . $md;
-
-		return $this;
-	}
-
-	/**
-	 * @return null | string
-	 */
-	public function getDescription()
-	{
-		return ($this->description)
-			? $this->description
-			: NULL;
-	}
-
-	/**
-	 * @param string $description max. length is 255
-	 * @return $this
-	 * @throws GPWebPayException
-	 */
-	public function setDescription($description)
-	{
-		if (strlen($description) > 255) {
-			throw new GPWebPayException('DESCRIPTION max. length is 255! ' . strlen($description) . ' given');
-		}
-
-		$this->description = $description;
-
-		return $this;
-	}
-
-	/**
-	 * @return int|null
-	 */
-	public function getMerOrderNum()
-	{
-		return ($this->merordernum)
-			? $this->merordernum
-			: NULL;
-	}
-
-	/**
-	 * @param string $merordernum max. length is 30
-	 * @return $this
-	 * @throws GPWebPayException
-	 */
-	public function setMerOrderNum($merordernum)
-	{
-		if (strlen($merordernum) > 30) {
-			throw new GPWebPayException('MERORDERNUM max. length is 30! ' . strlen($merordernum) . ' given');
-		}
-		$this->merordernum = $merordernum;
-
-		return $this;
-	}
-
-	/**
-	 * @return null|string
-	 */
-	public function getGatewayKey()
-	{
-		return $this->gatewayKey;
-	}
-
-	/**
-	 *
-	 * @param string $lang max. length is 2
-	 * @return \Granam\GpWebPay\Operation
-	 * @throws GPWebPayException
-	 */
-	public function setLang($lang)
-	{
-		if (strlen($lang) > 2) {
-			throw new GPWebPayException('LANG max. length is 2! ' . strlen($lang) . ' given');
-		}
-		$this->lang = (string)$lang;
-
-		return $this;
-	}
-
-	/**
-	 *
-	 * @return null|string
-	 */
-	public function getLang()
-	{
-		return $this->lang;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getUserParam1()
-	{
-		return $this->userParam1;
-	}
-
-	/**
-	 * @param string $userParam1 max. length is 255
-	 * @return Operation
-	 * @throws GPWebPayException
-	 */
-	public function setUserParam1($userParam1)
-	{
-		if (strlen((string)$userParam1) > 255) {
-			throw new GPWebPayException('USERPARAM1 max. length is 255! ' . strlen((string)$userParam1) . ' given');
-		}
-		$this->userParam1 = $userParam1;
-		return $this;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getPayMethod()
-	{
-		return $this->payMethod;
-	}
-
-	/**
-	 * @param string $payMethod supported val: CRD – payment card | MCM – MasterCard Mobile | MPS – MasterPass | BTNCS - PLATBA 24
-	 * @return Operation
-	 * @throws GPWebPayException
-	 */
-	public function setPayMethod($payMethod)
-	{
-
-		if (strlen((string)$payMethod) > 255) {
-			throw new GPWebPayException('PAYMETHOD max. length is 255! ' . strlen((string)$payMethod) . ' given');
-		}
-
-		$payMethod = strtoupper($payMethod);
-		if (!in_array($payMethod, $this->payMethodSupportedVal)) {
-			throw new GPWebPayException('PAYMETHOD supported values: '
-				. implode(", ", $this->payMethodSupportedVal) . ' given: ' . strtoupper($payMethod));
-		}
-
-		$this->payMethod = $payMethod;
-		return $this;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getDisablePayMethod()
-	{
-		return $this->disablePayMethod;
-	}
-
-	/**
-	 * Supported Values:
-	 * CRD – payment card
-	 * MCM – MasterCard Mobile
-	 * MPS – MasterPass
-	 * BTNCS - PLATBA 24
-	 * @param string $disablePayMethod supported val: CRD, MCM, MPS, BTNCS
-	 * @return Operation
-	 * @throws GPWebPayException
-	 */
-	public function setDisablePayMethod($disablePayMethod)
-	{
-
-		if (strlen((string)$disablePayMethod) > 255) {
-			throw new GPWebPayException('DISABLEPAYMETHOD max. length is 255! ' . strlen((string)$disablePayMethod) . ' given');
-		}
-
-		if (!in_array(strtoupper($disablePayMethod), $this->payMethodSupportedVal)) {
-			throw new GPWebPayException('DISABLEPAYMETHOD supported values: '
-				. implode(", ", $this->payMethodSupportedVal) . ' given: ' . strtoupper($disablePayMethod));
-		}
-
-		$this->disablePayMethod = $disablePayMethod;
-		return $this;
-	}
-
-	/**
-	 * @return mixed
-	 */
-	public function getPayMethods()
-	{
-		return $this->payMethods;
-	}
-
-	/**
-	 * List of allowed payment methods.
-	 * Supported Values:
-	 * CRD – payment card
-	 * MCM – MasterCard Mobile
-	 * MPS – MasterPass
-	 * BTNCS - PLATBA 24
-	 * @param array $payMethods supported val: [CRD, MCM, MPS, BTNCS]
-	 * @return Operation
-	 * @throws GPWebPayException
-	 */
-	public function setPayMethods($payMethods)
-	{
-		$suppValImplode = implode(", ", $this->payMethodSupportedVal);
-
-		foreach ($payMethods as $key => $val) {
-			$val = strtoupper($val);
-			$payMethods[$key] = $val;
-			if (!in_array($val, $this->payMethodSupportedVal)) {
-				throw new GPWebPayException('PAYMETHODS supported values: '
-					. $suppValImplode . ' given: ' . strtoupper($val));
-			}
-		}
-
-		$str = implode(",", $payMethods);
-		if (strlen($str) > 255) {
-			throw new GPWebPayException('PAYMETHODS max. length is 255! ' . strlen($str) . ' given');
-		}
-
-		$this->payMethods = $str;
-		return $this;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getEmail()
-	{
-		return $this->email;
-	}
-
-	/**
-	 * @param string $email max. lenght is 255
-	 * @return Operation
-	 * @throws GPWebPayException
-	 */
-	public function setEmail($email)
-	{
-		if (strlen((string)$email) > 255) {
-			throw new GPWebPayException('EMAIL max. length is 255! ' . strlen($email) . ' given');
-		}
-
-		$this->email = $email;
-		return $this;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getReferenceNumber()
-	{
-		return $this->referenceNumber;
-	}
-
-	/**
-	 * @param string $referenceNumber max. lenght is 20
-	 * @return Operation
-	 * @throws GPWebPayException
-	 */
-	public function setReferenceNumber($referenceNumber)
-	{
-		if (strlen((string)$referenceNumber) > 20) {
-			throw new GPWebPayException('REFERENCENUMBER max. length is 20! ' . strlen($referenceNumber) . ' given');
-		}
-		$this->referenceNumber = $referenceNumber;
-		return $this;
-	}
-
-	/**
-	 * @return null
-	 */
-	public function getFastPayId()
-	{
-		return $this->fastPayId;
-	}
-
-	/**
-	 * @param int $fastPayId max. lenght is 15
-	 * @return Operation
-	 * @throws GPWebPayException
-	 */
-	public function setFastPayId($fastPayId)
-	{
-		if (strlen((string)$fastPayId) > 15) {
-			throw new GPWebPayException('FASTPAYID max. length is 15! ' . strlen($fastPayId) . ' given');
-		}
-
-		if (!is_int($fastPayId)) {
-			throw new GPWebPayException('FASTPAYID must by numeric! ' . gettype($fastPayId) . ' given');
-		}
-
-		$this->fastPayId = $fastPayId;
-		return $this;
-	}
-
+    /** @var int $orderNumber */
+    private $orderNumber;
+    /** @var int $amount */
+    private $amount;
+    /** @var int $currency */
+    private $currency;
+    /** @var null|string $gatewayKey */
+    private $gatewayKey;
+    /** @var string|null $md as merchant data (note) */
+    private $md;
+    /** @var null|string $responseUrl */
+    private $responseUrl;
+    /** @var string|null $description */
+    private $description;
+    /** @var int|null $merchantOrderNumber */
+    private $merchantOrderNumber;
+    /** @var string|null $lang */
+    private $lang;
+    /** @var string|null $userParam1 */
+    private $userParam1;
+    /** @var string|null $payMethod */
+    private $payMethod;
+    /** @var string|null $disablePayMethod */
+    private $disablePayMethod;
+    /** @var array|string[] $payMethods */
+    private $payMethods = [];
+    /** @var string|null $email */
+    private $email;
+    /** @var string|null $referenceNumber */
+    private $referenceNumber;
+    /** @var int|null fastPayId */
+    private $fastPayId;
+
+    /**
+     * @param int $orderNumber max. length is 15
+     * @param float $amount
+     * @param int $currencyCode max. length is 3
+     * @param string $gatewayKey
+     * @param string $responseUrl
+     * @throws \Granam\GpWebPay\Exceptions\InvalidArgumentException
+     */
+    public function __construct(
+        int $orderNumber,
+        float $amount,
+        int $currencyCode,
+        string $gatewayKey = null,
+        string $responseUrl = null
+    )
+    {
+
+        $this->setOrderNumber($orderNumber);
+        $this->setAmount($amount);
+        $this->setCurrency($currencyCode);
+        if (is_string($gatewayKey)) {
+            $gatewayKey = trim($gatewayKey);
+        }
+        $this->gatewayKey = $gatewayKey;
+        $this->md = $gatewayKey;
+        if (is_string($responseUrl)) {
+            $responseUrl = trim($responseUrl);
+        }
+        $this->responseUrl = $responseUrl;
+    }
+
+    /**
+     * @param int $orderNumber
+     * @throws \Granam\GpWebPay\Exceptions\InvalidArgumentException
+     */
+    private function setOrderNumber(int $orderNumber)
+    {
+        if (strlen($orderNumber) > 15) {
+            throw new Exceptions\InvalidArgumentException(
+                DigestKeys::ORDERNUMBER . " maximal length is 15, got '{$orderNumber}' with length of "
+                . strlen($orderNumber)
+            );
+        }
+        $this->orderNumber = $orderNumber;
+    }
+
+    /**
+     * @param float $amount
+     * @return Operation
+     */
+    private function setAmount(float $amount)
+    {
+        $this->amount = $amount * 100;
+
+        return $this;
+    }
+
+    /**
+     * @param int $currencyCode
+     * @return Operation
+     * @throws \Granam\GpWebPay\Exceptions\InvalidArgumentException
+     */
+    private function setCurrency(int $currencyCode)
+    {
+        if (!CurrencyCodes::isCurrencyCode($currencyCode)) {
+            throw new Exceptions\InvalidArgumentException(
+                'Unknown ' . DigestKeys::CURRENCY . " code given, got '{$currencyCode}', expected one of "
+                . implode(',', CurrencyCodes::getCurrencyCodes())
+            );
+        }
+        $this->currency = $currencyCode;
+
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getOrderNumber()
+    {
+        return $this->orderNumber;
+    }
+
+    /**
+     * @return int
+     */
+    public function getAmount()
+    {
+        return $this->amount;
+    }
+
+    /**
+     * @return int
+     */
+    public function getCurrency()
+    {
+        return $this->currency;
+    }
+
+    /**
+     * @return null|string
+     */
+    public function getResponseUrl()
+    {
+        return $this->responseUrl;
+    }
+
+    const MAXIMAL_LENGTH_OF_URL = 300;
+
+    /**
+     * @param string $responseUrl with maximal length of 300 characters
+     * @return Operation
+     * @throws \Granam\GpWebPay\Exceptions\InvalidUrl
+     * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
+     */
+    public function setResponseUrl(string $responseUrl)
+    {
+        $responseUrl = trim($responseUrl);
+        if (!filter_var($responseUrl, FILTER_VALIDATE_URL)) {
+            throw new Exceptions\InvalidUrl('Given ' . DigestKeys::URL . " is not valid: '{$responseUrl}'");
+        }
+        $this->guardMaximalLength($responseUrl, self::MAXIMAL_LENGTH_OF_URL, DigestKeys::URL);
+
+        $this->responseUrl = $responseUrl;
+
+        return $this;
+    }
+
+    /**
+     * @param int|float|string $value
+     * @param int $maximalLength
+     * @param string $name
+     * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
+     */
+    private function guardMaximalLength($value, int $maximalLength, string $name)
+    {
+        if (strlen((string)$value) > $maximalLength) {
+            throw new Exceptions\ValueTooLong(
+                "Maximal length of {$name} is {$maximalLength}, got one with length of "
+                . strlen((string)$value) . " and value '{$value}'"
+            );
+        }
+    }
+
+    /**
+     * Gives merchant data (note), if any
+     *
+     * @return string|string
+     */
+    public function getMd()
+    {
+        return $this->md;
+    }
+
+    const MAXIMAL_LENGTH_OF_MD = 255;
+
+    /**
+     * @param string $merchantNote with maximal length of 255 and ASCII characters in range of 0x20–0x7E
+     * @return Operation
+     * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
+     * @throws \Granam\GpWebPay\Exceptions\InvalidAsciiRange
+     */
+    public function setMd(string $merchantNote = '')
+    {
+        $merchantNote = trim($merchantNote);
+        $this->guardMaximalLength($merchantNote, self::MAXIMAL_LENGTH_OF_MD, DigestKeys::MD . ' (merchant note)');
+        $this->guardAsciiRange($merchantNote, DigestKeys::MD . ' (merchant note)');
+
+        $this->md = $merchantNote;
+
+        return $this;
+    }
+
+    /**
+     * @param string $value
+     * @param string $name
+     * @throws \Granam\GpWebPay\Exceptions\InvalidAsciiRange
+     */
+    private function guardAsciiRange(string $value, string $name)
+    {
+        if (preg_match('~(?<outOfRange>[^0x20–0x7E])~', $value, $matches)) {
+            throw new Exceptions\InvalidAsciiRange(
+                $name . ' can contains only ASCII characters in range of 0x20 – 0x7E'
+                . ', got a value with ' . count($matches['outOfRange'])
+                . " non-matching characters in string '{$value}'"
+            );
+        }
+    }
+
+    /**
+     * @return null|string
+     */
+    public function getDescription()
+    {
+        return $this->description;
+    }
+
+    const MAXIMAL_LENGTH_OF_DESCRIPTION = 255;
+
+    /**
+     * @param string $description with maximal length of 255 and ASCII characters in range of 0x20–0x7E
+     * @return Operation
+     * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
+     * @throws \Granam\GpWebPay\Exceptions\InvalidAsciiRange
+     */
+    public function setDescription(string $description)
+    {
+        $description = trim($description);
+        $this->guardMaximalLength($description, self::MAXIMAL_LENGTH_OF_DESCRIPTION, DigestKeys::DESCRIPTION);
+        $this->guardAsciiRange($description, DigestKeys::DESCRIPTION);
+
+        $this->description = $description;
+
+        return $this;
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getMerchantOrderNumber()
+    {
+        return $this->merchantOrderNumber;
+    }
+
+    const MAXIMAL_LENGTH_OF_MERORDERNUM = 30;
+
+    /**
+     * @param int $merchantOrderNumber with maximal length of 30 characters
+     * @return $this
+     * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
+     */
+    public function setMerchantOrderNumber(int $merchantOrderNumber)
+    {
+        $this->guardMaximalLength($merchantOrderNumber, self::MAXIMAL_LENGTH_OF_MERORDERNUM, DigestKeys::MERORDERNUM);
+        $this->merchantOrderNumber = $merchantOrderNumber;
+
+        return $this;
+    }
+
+    /**
+     * @return null|string
+     */
+    public function getGatewayKey()
+    {
+        return $this->gatewayKey;
+    }
+
+    /**
+     * @param string $lang
+     * @return Operation
+     * @throws \Granam\GpWebPay\Exceptions\UnsupportedLanguage
+     */
+    public function setLang(string $lang)
+    {
+        $lang = trim($lang);
+        if (!LanguageCodes::isLanguageSupported($lang)) {
+            throw new Exceptions\UnsupportedLanguage(
+                "Given language code is not supported '{$lang}', use on of "
+                . implode(',', LanguageCodes::getLanguageCodes())
+            );
+        }
+        $this->lang = $lang;
+
+        return $this;
+    }
+
+    /**
+     * @return null|string
+     */
+    public function getLang()
+    {
+        return $this->lang;
+    }
+
+    /**
+     * @return string
+     */
+    public function getUserParam1()
+    {
+        return $this->userParam1;
+    }
+
+    const MAXIMAL_LENGTH_OF_USERPARAM1 = 64;
+
+    /**
+     * @param string $userParam1 max. length is 255
+     * @return Operation
+     * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
+     */
+    public function setUserParam1(string $userParam1)
+    {
+        $userParam1 = trim($userParam1);
+        $this->guardMaximalLength($userParam1, self::MAXIMAL_LENGTH_OF_USERPARAM1, DigestKeys::USERPARAM1);
+        $this->userParam1 = $userParam1;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getPayMethod()
+    {
+        return $this->payMethod;
+    }
+
+    /**
+     * @param string $payMethod supported val: CRD – payment card | MCM – MasterCard Mobile | MPS – MasterPass | BTNCS - PLATBA 24
+     * @return Operation
+     * @throws \Granam\GpWebPay\Exceptions\UnsupportedPayMethod
+     */
+    public function setPayMethod(string $payMethod)
+    {
+        $payMethod = trim($payMethod);
+        $payMethod = strtoupper($payMethod);
+        if (PayMethodCodes::isSupportedPaymentMethod($payMethod)) {
+            throw new Exceptions\UnsupportedPayMethod(
+                'Given ' . DigestKeys::PAYMETHOD . " '{$payMethod}' is not supported, use one of "
+                . implode(',', PayMethodCodes::getPayMethodCodes())
+            );
+        }
+
+        $this->payMethod = $payMethod;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDisablePayMethod()
+    {
+        return $this->disablePayMethod;
+    }
+
+    /**
+     * Explicitly disable use of a payment method, even if is technically possible.
+     *
+     * @param string $disablePayMethod supported val: CRD – payment card | MCM – MasterCard Mobile | MPS – MasterPass | BTNCS - PLATBA 24
+     * @return Operation
+     * @throws \Granam\GpWebPay\Exceptions\UnsupportedPayMethod
+     */
+    public function setDisablePayMethod(string $disablePayMethod)
+    {
+        $disablePayMethod = trim($disablePayMethod);
+        if (!PayMethodCodes::isSupportedPaymentMethod($disablePayMethod)) {
+            throw new Exceptions\UnsupportedPayMethod(
+                'Can not disable ' . DigestKeys::DISABLEPAYMETHOD . " by unknown pay method '{$disablePayMethod}',"
+                . ' use one of ' . implode(',', PayMethodCodes::getPayMethodCodes())
+            );
+        }
+
+        $this->disablePayMethod = $disablePayMethod;
+
+        return $this;
+    }
+
+    /**
+     * @return array|string[]
+     */
+    public function getPayMethods()
+    {
+        return $this->payMethods;
+    }
+
+    /**
+     * Sets allowed pay methods, therefore disable use of non-listed payment methods, even if they are technically possible.
+     * If DISABLEPAYMETHOD is set as well than an intersection of both rules is used.
+     *
+     * @param array|string[] $payMethods supported val: CRD – payment card | MCM – MasterCard Mobile | MPS – MasterPass | BTNCS - PLATBA 24
+     * @return Operation
+     * @throws \Granam\GpWebPay\Exceptions\UnsupportedPayMethod
+     */
+    public function setPayMethods(array $payMethods)
+    {
+        foreach ($payMethods as &$payMethod) {
+            $payMethod = strtoupper(trim($payMethod));
+        }
+        unset($payMethod);
+        $unknownPayMethods = array_diff($payMethods, PayMethodCodes::getPayMethodCodes());
+        if (count($unknownPayMethods) > 0) {
+            throw new Exceptions\UnsupportedPayMethod(
+                implode(',', $unknownPayMethods) . ' as given pay methods are not supported, use only '
+                . implode(',', PayMethodCodes::getPayMethodCodes())
+            );
+        }
+
+        $this->payMethods = implode(',', $payMethods);
+
+        return $this;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getEmail()
+    {
+        return $this->email;
+    }
+
+    const MAXIMAL_LENGTH_OF_EMAIL = 255;
+
+    /**
+     * @param string $email with maximal length of 255
+     * @return Operation
+     * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
+     * @throws \Granam\GpWebPay\Exceptions\InvalidEmail
+     */
+    public function setEmail(string $email)
+    {
+        $email = trim($email);
+        $this->guardMaximalLength($email, self::MAXIMAL_LENGTH_OF_EMAIL, DigestKeys::EMAIL);
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
+            throw new Exceptions\InvalidEmail("Given email '{$email}' has invalid format");
+        }
+
+        $this->email = $email;
+
+        return $this;
+    }
+
+    /**
+     * @return string|string
+     */
+    public function getReferenceNumber()
+    {
+        return $this->referenceNumber;
+    }
+
+    const MAXIMAL_LENGTH_OF_REFERENCENUMBER = 20;
+
+    /**
+     * Merchant internal ID of an order
+     *
+     * @param string $referenceNumber with maximal length of 20
+     * @return Operation
+     * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
+     */
+    public function setReferenceNumber(string $referenceNumber)
+    {
+        $referenceNumber = trim($referenceNumber);
+        $this->guardMaximalLength($referenceNumber, self::MAXIMAL_LENGTH_OF_REFERENCENUMBER, DigestKeys::REFERENCENUMBER);
+        $this->referenceNumber = $referenceNumber;
+
+        return $this;
+    }
+
+    /**
+     * @return null|int
+     */
+    public function getFastPayId()
+    {
+        return $this->fastPayId;
+    }
+
+    const MAXIMAL_LENGTH_OF_FASTPAYID = 15;
+
+    /**
+     * @param int $fastPayId with maximal length of 15
+     * @return Operation
+     * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
+     */
+    public function setFastPayId(int $fastPayId)
+    {
+        $this->guardMaximalLength($fastPayId, self::MAXIMAL_LENGTH_OF_FASTPAYID, DigestKeys::FASTPAYID);
+        $this->fastPayId = $fastPayId;
+
+        return $this;
+    }
 
 }

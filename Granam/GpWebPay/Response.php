@@ -1,55 +1,55 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Ondra Votava
- * Date: 21.10.2015
- * Time: 11:48
- */
-
 namespace Granam\GpWebPay;
 
-/**
- * Class Response
- * @package Granam\GpWebPay
- * @author Ondra Votava <ondra.votava@pixidos.com>
- */
+use Granam\Strict\Object\StrictObject;
 
-class Response
+class Response extends StrictObject
 {
-
-    /**
-     * @var array $params
-     */
+    /** @var array $params */
     private $params;
-    /** @var  string */
+    /** @var string */
     private $digest;
-    /** @var  string */
+    /** @var string */
     private $digest1;
-
+    /** @var string */
     private $gatewayKey;
 
     /**
      * @param string $operation
-     * @param string $ordernumber
-     * @param string $merordernum
+     * @param string $orderNumber
+     * @param string $merOrderNum
      * @param string $md
-     * @param int $prcode
-     * @param int $srcode
-     * @param string $resulttext
+     * @param int $prCode
+     * @param int $srCode
+     * @param string $resultText
      * @param string $digest
      * @param string $digest1
+     * @param string $gatewayKey
      */
-    public function __construct($operation, $ordernumber, $merordernum, $md, $prcode, $srcode, $resulttext, $digest, $digest1, $gatewayKey) {
-        $this->params['OPERATION'] = $operation;
-        $this->params['ORDERNUMBER'] = $ordernumber;
-        if ($merordernum !== NULL) {
-            $this->params['MERORDERNUM'] = $merordernum;
+    public function __construct(
+        string $operation,
+        string $orderNumber,
+        string $merOrderNum,
+        string $md,
+        int $prCode,
+        int $srCode,
+        string $resultText,
+        string $digest,
+        string $digest1,
+        string $gatewayKey
+    )
+    {
+        $this->params[DigestKeys::OPERATION] = $operation;
+        $this->params[DigestKeys::ORDERNUMBER] = $orderNumber;
+        if ($merOrderNum !== null) {
+            $this->params[DigestKeys::MERORDERNUM] = $merOrderNum;
         }
-        if($md !== NULL)
-            $this->params['MD'] = $md;
-        $this->params['PRCODE'] = (int)$prcode;
-        $this->params['SRCODE'] = (int)$srcode;
-        $this->params['RESULTTEXT'] = $resulttext;
+        if ($md !== null) {
+            $this->params[DigestKeys::MD] = $md;
+        }
+        $this->params[DigestKeys::PRCODE] = $prCode;
+        $this->params[DigestKeys::SRCODE] = $srCode;
+        $this->params[DigestKeys::RESULTTEXT] = $resultText;
         $this->digest = $digest;
         $this->digest1 = $digest1;
         $this->gatewayKey = $gatewayKey;
@@ -58,38 +58,45 @@ class Response
     /**
      * @return array
      */
-    public function getParams() {
+    public function getParams()
+    {
         return $this->params;
     }
+
     /**
      * @return mixed
      */
-    public function getDigest() {
+    public function getDigest()
+    {
         return $this->digest;
     }
+
     /**
      * @return bool
      */
-    public function hasError() {
-        return (bool)$this->params['PRCODE'] || (bool)$this->params['SRCODE'];
+    public function hasError()
+    {
+        return $this->params[DigestKeys::PRCODE] || $this->params[DigestKeys::SRCODE];
     }
+
     /**
      * @return string
      */
-    public function getDigest1() {
+    public function getDigest1()
+    {
         return $this->digest1;
     }
 
     /**
-     * @return string | null
+     * @return string|null
      */
     public function getMerOrderNumber()
     {
-        if(isset($this->params['MERORDERNUM']))
-            return $this->params['MERORDERNUM'];
-        else{
-            return NULL;
+        if (isset($this->params[DigestKeys::MERORDERNUM])) {
+            return $this->params[DigestKeys::MERORDERNUM];
         }
+
+        return null;
     }
 
     /**
@@ -97,11 +104,11 @@ class Response
      */
     public function getMd()
     {
-        $explode = explode('|', $this->params['MD'], 2);
-        if(isset($explode[1])) {
+        $explode = explode('|', $this->params[DigestKeys::MD], 2);
+        if (isset($explode[1])) {
             return $explode[1];
-        } else{
-            return NULL;
+        } else {
+            return null;
         }
     }
 
@@ -118,27 +125,27 @@ class Response
      */
     public function getOrderNumber()
     {
-        return $this->params['ORDERNUMBER'];
+        return $this->params[DigestKeys::ORDERNUMBER];
     }
 
     /**
      * @return int
      */
-    public function getSrcode()
+    public function getSrCode()
     {
-        return $this->params['SRCODE'];
+        return $this->params[DigestKeys::SRCODE];
     }
 
     /**
      * @return int
      */
-    public function getPrcode()
+    public function getPrCode()
     {
-        return $this->params['PRCODE'];
+        return $this->params[DigestKeys::PRCODE];
     }
 
     public function getResultText()
     {
-        return $this->params['RESULTTEXT'];
+        return $this->params[DigestKeys::RESULTTEXT];
     }
 }
