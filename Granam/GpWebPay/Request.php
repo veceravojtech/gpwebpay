@@ -18,31 +18,6 @@ class Request extends StrictObject
     private $params;
 
     /**
-     * @var array $digestParamsKeys
-     */
-    // TODO differs from DigestKeys
-    private $digestParamsKeys = [
-        RequestPayloadKeys::MERCHANTNUMBER,
-        RequestPayloadKeys::OPERATION,
-        RequestPayloadKeys::ORDERNUMBER,
-        RequestPayloadKeys::AMOUNT,
-        RequestPayloadKeys::CURRENCY,
-        RequestPayloadKeys::DEPOSITFLAG,
-        RequestPayloadKeys::MERORDERNUM,
-        RequestPayloadKeys::URL,
-        RequestPayloadKeys::DESCRIPTION,
-        RequestPayloadKeys::MD,
-        RequestPayloadKeys::USERPARAM1,
-        RequestPayloadKeys::FASTPAYID,
-        RequestPayloadKeys::PAYMETHOD,
-        RequestPayloadKeys::DISABLEPAYMETHOD,
-        RequestPayloadKeys::PAYMETHODS,
-        RequestPayloadKeys::EMAIL,
-        RequestPayloadKeys::REFERENCENUMBER,
-        RequestPayloadKeys::ADDINFO,
-    ];
-
-    /**
      * @param Operation $operation
      * @param int $merchantNumber
      * @param string $depositFlag
@@ -127,7 +102,7 @@ class Request extends StrictObject
      */
     public function getDigestParams()
     {
-        return array_intersect_key($this->params, array_flip($this->digestParamsKeys));
+        return array_intersect_key($this->params, array_flip(RequestDigestKeys::getDigestKeys()));
     }
 
 }
