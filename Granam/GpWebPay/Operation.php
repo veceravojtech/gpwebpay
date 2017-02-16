@@ -77,7 +77,7 @@ class Operation extends StrictObject
     {
         if (strlen($orderNumber) > 15) {
             throw new Exceptions\InvalidArgumentException(
-                DigestKeys::ORDERNUMBER . " maximal length is 15, got '{$orderNumber}' with length of "
+                RequestDigestKeys::ORDERNUMBER . " maximal length is 15, got '{$orderNumber}' with length of "
                 . strlen($orderNumber)
             );
         }
@@ -104,7 +104,7 @@ class Operation extends StrictObject
     {
         if (!CurrencyCodes::isCurrencyCode($currencyCode)) {
             throw new Exceptions\InvalidArgumentException(
-                'Unknown ' . DigestKeys::CURRENCY . " code given, got '{$currencyCode}', expected one of "
+                'Unknown ' . RequestDigestKeys::CURRENCY . " code given, got '{$currencyCode}', expected one of "
                 . implode(',', CurrencyCodes::getCurrencyCodes())
             );
         }
@@ -157,9 +157,9 @@ class Operation extends StrictObject
     {
         $responseUrl = trim($responseUrl);
         if (!filter_var($responseUrl, FILTER_VALIDATE_URL)) {
-            throw new Exceptions\InvalidUrl('Given ' . DigestKeys::URL . " is not valid: '{$responseUrl}'");
+            throw new Exceptions\InvalidUrl('Given ' . RequestDigestKeys::URL . " is not valid: '{$responseUrl}'");
         }
-        $this->guardMaximalLength($responseUrl, self::MAXIMAL_LENGTH_OF_URL, DigestKeys::URL);
+        $this->guardMaximalLength($responseUrl, self::MAXIMAL_LENGTH_OF_URL, RequestDigestKeys::URL);
 
         $this->responseUrl = $responseUrl;
 
@@ -203,8 +203,8 @@ class Operation extends StrictObject
     public function setMd(string $merchantNote = '')
     {
         $merchantNote = trim($merchantNote);
-        $this->guardMaximalLength($merchantNote, self::MAXIMAL_LENGTH_OF_MD, DigestKeys::MD . ' (merchant note)');
-        $this->guardAsciiRange($merchantNote, DigestKeys::MD . ' (merchant note)');
+        $this->guardMaximalLength($merchantNote, self::MAXIMAL_LENGTH_OF_MD, RequestDigestKeys::MD . ' (merchant note)');
+        $this->guardAsciiRange($merchantNote, RequestDigestKeys::MD . ' (merchant note)');
 
         $this->md = $merchantNote;
 
@@ -246,8 +246,8 @@ class Operation extends StrictObject
     public function setDescription(string $description)
     {
         $description = trim($description);
-        $this->guardMaximalLength($description, self::MAXIMAL_LENGTH_OF_DESCRIPTION, DigestKeys::DESCRIPTION);
-        $this->guardAsciiRange($description, DigestKeys::DESCRIPTION);
+        $this->guardMaximalLength($description, self::MAXIMAL_LENGTH_OF_DESCRIPTION, RequestDigestKeys::DESCRIPTION);
+        $this->guardAsciiRange($description, RequestDigestKeys::DESCRIPTION);
 
         $this->description = $description;
 
@@ -271,7 +271,7 @@ class Operation extends StrictObject
      */
     public function setMerchantOrderNumber(int $merchantOrderNumber)
     {
-        $this->guardMaximalLength($merchantOrderNumber, self::MAXIMAL_LENGTH_OF_MERORDERNUM, DigestKeys::MERORDERNUM);
+        $this->guardMaximalLength($merchantOrderNumber, self::MAXIMAL_LENGTH_OF_MERORDERNUM, RequestDigestKeys::MERORDERNUM);
         $this->merchantOrderNumber = $merchantOrderNumber;
 
         return $this;
@@ -330,7 +330,7 @@ class Operation extends StrictObject
     public function setUserParam1(string $userParam1)
     {
         $userParam1 = trim($userParam1);
-        $this->guardMaximalLength($userParam1, self::MAXIMAL_LENGTH_OF_USERPARAM1, DigestKeys::USERPARAM1);
+        $this->guardMaximalLength($userParam1, self::MAXIMAL_LENGTH_OF_USERPARAM1, RequestDigestKeys::USERPARAM1);
         $this->userParam1 = $userParam1;
 
         return $this;
@@ -355,7 +355,7 @@ class Operation extends StrictObject
         $payMethod = strtoupper($payMethod);
         if (PayMethodCodes::isSupportedPaymentMethod($payMethod)) {
             throw new Exceptions\UnsupportedPayMethod(
-                'Given ' . DigestKeys::PAYMETHOD . " '{$payMethod}' is not supported, use one of "
+                'Given ' . RequestDigestKeys::PAYMETHOD . " '{$payMethod}' is not supported, use one of "
                 . implode(',', PayMethodCodes::getPayMethodCodes())
             );
         }
@@ -385,7 +385,7 @@ class Operation extends StrictObject
         $disablePayMethod = trim($disablePayMethod);
         if (!PayMethodCodes::isSupportedPaymentMethod($disablePayMethod)) {
             throw new Exceptions\UnsupportedPayMethod(
-                'Can not disable ' . DigestKeys::DISABLEPAYMETHOD . " by unknown pay method '{$disablePayMethod}',"
+                'Can not disable ' . RequestDigestKeys::DISABLEPAYMETHOD . " by unknown pay method '{$disablePayMethod}',"
                 . ' use one of ' . implode(',', PayMethodCodes::getPayMethodCodes())
             );
         }
@@ -449,7 +449,7 @@ class Operation extends StrictObject
     public function setEmail(string $email)
     {
         $email = trim($email);
-        $this->guardMaximalLength($email, self::MAXIMAL_LENGTH_OF_EMAIL, DigestKeys::EMAIL);
+        $this->guardMaximalLength($email, self::MAXIMAL_LENGTH_OF_EMAIL, RequestDigestKeys::EMAIL);
         if (!filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
             throw new Exceptions\InvalidEmail("Given email '{$email}' has invalid format");
         }
@@ -479,7 +479,7 @@ class Operation extends StrictObject
     public function setReferenceNumber(string $referenceNumber)
     {
         $referenceNumber = trim($referenceNumber);
-        $this->guardMaximalLength($referenceNumber, self::MAXIMAL_LENGTH_OF_REFERENCENUMBER, DigestKeys::REFERENCENUMBER);
+        $this->guardMaximalLength($referenceNumber, self::MAXIMAL_LENGTH_OF_REFERENCENUMBER, RequestDigestKeys::REFERENCENUMBER);
         $this->referenceNumber = $referenceNumber;
 
         return $this;
@@ -502,7 +502,7 @@ class Operation extends StrictObject
      */
     public function setFastPayId(int $fastPayId)
     {
-        $this->guardMaximalLength($fastPayId, self::MAXIMAL_LENGTH_OF_FASTPAYID, DigestKeys::FASTPAYID);
+        $this->guardMaximalLength($fastPayId, self::MAXIMAL_LENGTH_OF_FASTPAYID, RequestDigestKeys::FASTPAYID);
         $this->fastPayId = $fastPayId;
 
         return $this;

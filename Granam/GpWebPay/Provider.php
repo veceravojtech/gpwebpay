@@ -75,15 +75,15 @@ class Provider extends StrictObject
      */
     public function createResponse($params)
     {
-        $operation = isset ($params [DigestKeys::OPERATION]) ? $params [DigestKeys::OPERATION] : '';
-        $ordernumber = isset ($params [DigestKeys::ORDERNUMBER]) ? $params [DigestKeys::ORDERNUMBER] : '';
-        $merordernum = isset ($params [DigestKeys::MERORDERNUM]) ? $params [DigestKeys::MERORDERNUM] : null;
-        $md = isset ($params [DigestKeys::MD]) ? $params[DigestKeys::MD] : null;
-        $prcode = isset ($params [DigestKeys::PRCODE]) ? $params [DigestKeys::PRCODE] : '';
-        $srcode = isset ($params [DigestKeys::SRCODE]) ? $params [DigestKeys::SRCODE] : '';
-        $resulttext = isset ($params [DigestKeys::RESULTTEXT]) ? $params [DigestKeys::RESULTTEXT] : '';
-        $digest = isset ($params [DigestKeys::DIGEST]) ? $params [DigestKeys::DIGEST] : '';
-        $digest1 = isset ($params [DigestKeys::DIGEST1]) ? $params [DigestKeys::DIGEST1] : '';
+        $operation = isset ($params [ResponsePayloadKeys::OPERATION]) ? $params [ResponsePayloadKeys::OPERATION] : '';
+        $ordernumber = isset ($params [ResponsePayloadKeys::ORDERNUMBER]) ? $params [ResponsePayloadKeys::ORDERNUMBER] : '';
+        $merordernum = isset ($params [ResponsePayloadKeys::MERORDERNUM]) ? $params [ResponsePayloadKeys::MERORDERNUM] : null;
+        $md = isset ($params [ResponsePayloadKeys::MD]) ? $params[ResponsePayloadKeys::MD] : null;
+        $prcode = isset ($params [ResponsePayloadKeys::PRCODE]) ? $params [ResponsePayloadKeys::PRCODE] : '';
+        $srcode = isset ($params [ResponsePayloadKeys::SRCODE]) ? $params [ResponsePayloadKeys::SRCODE] : '';
+        $resulttext = isset ($params [ResponsePayloadKeys::RESULTTEXT]) ? $params [ResponsePayloadKeys::RESULTTEXT] : '';
+        $digest = isset ($params [ResponsePayloadKeys::DIGEST]) ? $params [ResponsePayloadKeys::DIGEST] : '';
+        $digest1 = isset ($params [ResponsePayloadKeys::DIGEST1]) ? $params [ResponsePayloadKeys::DIGEST1] : '';
 
         $key = explode('|', $md, 2);
 
@@ -113,7 +113,7 @@ class Provider extends StrictObject
 
         $responseParams = $response->getParams();
         $this->signer->verify($responseParams, $response->getDigest());
-        $responseParams[DigestKeys::MERCHANTNUMBER] = $this->settings->getMerchantNumber();
+        $responseParams[RequestDigestKeys::MERCHANTNUMBER] = $this->settings->getMerchantNumber();
         $this->signer->verify($responseParams, $response->getDigest1());
         // verify PRCODE and SRCODE
         if (false !== $response->hasError()) {

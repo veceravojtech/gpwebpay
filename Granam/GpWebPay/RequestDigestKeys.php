@@ -3,11 +3,11 @@ namespace Granam\GpWebPay;
 
 use Granam\Strict\Object\StrictObject;
 
-class DigestKeys extends StrictObject implements Codes
+class RequestDigestKeys extends StrictObject implements Codes
 {
+    const MERCHANTNUMBER = 'MERCHANTNUMBER';
     const OPERATION = 'OPERATION';
     const ORDERNUMBER = 'ORDERNUMBER';
-    const MERCHANTNUMBER = 'MERCHANTNUMBER';
     const AMOUNT = 'AMOUNT';
     const CURRENCY = 'CURRENCY';
     const DEPOSITFLAG = 'DEPOSITFLAG';
@@ -15,19 +15,14 @@ class DigestKeys extends StrictObject implements Codes
     const URL = 'URL';
     const DESCRIPTION = 'DESCRIPTION';
     const MD = 'MD';
-    const PRCODE = 'PRCODE';
-    const SRCODE = 'SRCODE';
-    const RESULTTEXT = 'RESULTTEXT';
-    const DIGEST = 'DIGEST';
-    const DIGEST1 = 'DIGEST1';
-    const USERPARAM1 = 'USERPARAM1';
-    const FASTPAYID = 'FASTPAYID';
     const PAYMETHOD = 'PAYMETHOD';
     const DISABLEPAYMETHOD = 'DISABLEPAYMETHOD';
     const PAYMETHODS = 'PAYMETHODS';
     const EMAIL = 'EMAIL';
     const REFERENCENUMBER = 'REFERENCENUMBER';
     const ADDINFO = 'ADDINFO';
+    const USERPARAM1 = 'USERPARAM1';
+    const FASTPAYID = 'FASTPAYID';
 
     /**
      * @return array|string[]
@@ -35,9 +30,9 @@ class DigestKeys extends StrictObject implements Codes
     public static function getDigestKeys()
     {
         return [
+            self::MERCHANTNUMBER,
             self::OPERATION,
             self::ORDERNUMBER,
-            self::MERCHANTNUMBER,
             self::AMOUNT,
             self::CURRENCY,
             self::DEPOSITFLAG,
@@ -45,19 +40,14 @@ class DigestKeys extends StrictObject implements Codes
             self::URL,
             self::DESCRIPTION,
             self::MD,
-            self::PRCODE,
-            self::SRCODE,
-            self::RESULTTEXT,
-            self::DIGEST,
-            self::DIGEST1,
-            self::USERPARAM1,
-            self::FASTPAYID,
             self::PAYMETHOD,
             self::DISABLEPAYMETHOD,
             self::PAYMETHODS,
             self::EMAIL,
             self::REFERENCENUMBER,
             self::ADDINFO,
+            self::USERPARAM1,
+            self::FASTPAYID,
         ];
     }
 }

@@ -22,24 +22,24 @@ class Request extends StrictObject
      */
     // TODO differs from DigestKeys
     private $digestParamsKeys = [
-        DigestKeys::MERCHANTNUMBER,
-        DigestKeys::OPERATION,
-        DigestKeys::ORDERNUMBER,
-        DigestKeys::AMOUNT,
-        DigestKeys::CURRENCY,
-        DigestKeys::DEPOSITFLAG,
-        DigestKeys::MERORDERNUM,
-        DigestKeys::URL,
-        DigestKeys::DESCRIPTION,
-        DigestKeys::MD,
-        DigestKeys::USERPARAM1,
-        DigestKeys::FASTPAYID,
-        DigestKeys::PAYMETHOD,
-        DigestKeys::DISABLEPAYMETHOD,
-        DigestKeys::PAYMETHODS,
-        DigestKeys::EMAIL,
-        DigestKeys::REFERENCENUMBER,
-        DigestKeys::ADDINFO,
+        RequestPayloadKeys::MERCHANTNUMBER,
+        RequestPayloadKeys::OPERATION,
+        RequestPayloadKeys::ORDERNUMBER,
+        RequestPayloadKeys::AMOUNT,
+        RequestPayloadKeys::CURRENCY,
+        RequestPayloadKeys::DEPOSITFLAG,
+        RequestPayloadKeys::MERORDERNUM,
+        RequestPayloadKeys::URL,
+        RequestPayloadKeys::DESCRIPTION,
+        RequestPayloadKeys::MD,
+        RequestPayloadKeys::USERPARAM1,
+        RequestPayloadKeys::FASTPAYID,
+        RequestPayloadKeys::PAYMETHOD,
+        RequestPayloadKeys::DISABLEPAYMETHOD,
+        RequestPayloadKeys::PAYMETHODS,
+        RequestPayloadKeys::EMAIL,
+        RequestPayloadKeys::REFERENCENUMBER,
+        RequestPayloadKeys::ADDINFO,
     ];
 
     /**
@@ -62,46 +62,46 @@ class Request extends StrictObject
 
     private function populateParams()
     {
-        $this->params[DigestKeys::MERCHANTNUMBER] = $this->merchantNumber;
-        $this->params[DigestKeys::OPERATION] = OperationCodes::CREATE_ORDER;
-        $this->params[DigestKeys::ORDERNUMBER] = $this->operation->getOrderNumber();
-        $this->params[DigestKeys::AMOUNT] = $this->operation->getAmount();
-        $this->params[DigestKeys::CURRENCY] = $this->operation->getCurrency();
-        $this->params[DigestKeys::DEPOSITFLAG] = $this->depositFlag;
+        $this->params[RequestPayloadKeys::MERCHANTNUMBER] = $this->merchantNumber;
+        $this->params[RequestPayloadKeys::OPERATION] = OperationCodes::CREATE_ORDER;
+        $this->params[RequestPayloadKeys::ORDERNUMBER] = $this->operation->getOrderNumber();
+        $this->params[RequestPayloadKeys::AMOUNT] = $this->operation->getAmount();
+        $this->params[RequestPayloadKeys::CURRENCY] = $this->operation->getCurrency();
+        $this->params[RequestPayloadKeys::DEPOSITFLAG] = $this->depositFlag;
         if ($this->operation->getMerchantOrderNumber()) {
-            $this->params[DigestKeys::MERORDERNUM] = $this->operation->getMerchantOrderNumber();
+            $this->params[RequestPayloadKeys::MERORDERNUM] = $this->operation->getMerchantOrderNumber();
         }
-        $this->params[DigestKeys::URL] = $this->url;
+        $this->params[RequestPayloadKeys::URL] = $this->url;
 
         if ($this->operation->getDescription()) {
-            $this->params[DigestKeys::DESCRIPTION] = $this->operation->getDescription();
+            $this->params[RequestPayloadKeys::DESCRIPTION] = $this->operation->getDescription();
         }
         if ($this->operation->getMd()) {
-            $this->params[DigestKeys::MD] = $this->operation->getMd();
+            $this->params[RequestPayloadKeys::MD] = $this->operation->getMd();
         }
         if ($this->operation->getLang()) {
-            $this->params[PayloadKeys::LANG] = $this->operation->getLang();
+            $this->params[RequestPayloadKeys::LANG] = $this->operation->getLang();
         }
         if ($this->operation->getUserParam1()) {
-            $this->params[DigestKeys::USERPARAM1] = $this->operation->getUserParam1();
+            $this->params[RequestPayloadKeys::USERPARAM1] = $this->operation->getUserParam1();
         }
         if ($this->operation->getPayMethod()) {
-            $this->params[DigestKeys::PAYMETHOD] = $this->operation->getPayMethod();
+            $this->params[RequestPayloadKeys::PAYMETHOD] = $this->operation->getPayMethod();
         }
         if ($this->operation->getDisablePayMethod()) {
-            $this->params[DigestKeys::DISABLEPAYMETHOD] = $this->operation->getDisablePayMethod();
+            $this->params[RequestPayloadKeys::DISABLEPAYMETHOD] = $this->operation->getDisablePayMethod();
         }
         if ($this->operation->getPayMethods()) {
-            $this->params[DigestKeys::PAYMETHODS] = $this->operation->getPayMethods();
+            $this->params[RequestPayloadKeys::PAYMETHODS] = $this->operation->getPayMethods();
         }
         if ($this->operation->getEmail()) {
-            $this->params[DigestKeys::EMAIL] = $this->operation->getEmail();
+            $this->params[RequestPayloadKeys::EMAIL] = $this->operation->getEmail();
         }
         if ($this->operation->getReferenceNumber()) {
-            $this->params[DigestKeys::REFERENCENUMBER] = $this->operation->getReferenceNumber();
+            $this->params[RequestPayloadKeys::REFERENCENUMBER] = $this->operation->getReferenceNumber();
         }
         if ($this->operation->getFastPayId()) {
-            $this->params[DigestKeys::FASTPAYID] = $this->operation->getFastPayId();
+            $this->params[RequestPayloadKeys::FASTPAYID] = $this->operation->getFastPayId();
         }
     }
 
@@ -111,7 +111,7 @@ class Request extends StrictObject
      */
     public function setDigest(string $digest)
     {
-        $this->params[DigestKeys::DIGEST] = $digest;
+        $this->params[RequestPayloadKeys::DIGEST] = $digest;
     }
 
     /**

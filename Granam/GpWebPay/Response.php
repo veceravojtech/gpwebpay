@@ -39,17 +39,17 @@ class Response extends StrictObject
         string $gatewayKey
     )
     {
-        $this->params[DigestKeys::OPERATION] = $operation;
-        $this->params[DigestKeys::ORDERNUMBER] = $orderNumber;
+        $this->params[ResponsePayloadKeys::OPERATION] = $operation;
+        $this->params[ResponsePayloadKeys::ORDERNUMBER] = $orderNumber;
         if ($merOrderNum !== null) {
-            $this->params[DigestKeys::MERORDERNUM] = $merOrderNum;
+            $this->params[ResponsePayloadKeys::MERORDERNUM] = $merOrderNum;
         }
         if ($md !== null) {
-            $this->params[DigestKeys::MD] = $md;
+            $this->params[ResponsePayloadKeys::MD] = $md;
         }
-        $this->params[DigestKeys::PRCODE] = $prCode;
-        $this->params[DigestKeys::SRCODE] = $srCode;
-        $this->params[DigestKeys::RESULTTEXT] = $resultText;
+        $this->params[ResponsePayloadKeys::PRCODE] = $prCode;
+        $this->params[ResponsePayloadKeys::SRCODE] = $srCode;
+        $this->params[ResponsePayloadKeys::RESULTTEXT] = $resultText;
         $this->digest = $digest;
         $this->digest1 = $digest1;
         $this->gatewayKey = $gatewayKey;
@@ -76,7 +76,7 @@ class Response extends StrictObject
      */
     public function hasError()
     {
-        return $this->params[DigestKeys::PRCODE] || $this->params[DigestKeys::SRCODE];
+        return $this->params[ResponsePayloadKeys::PRCODE] || $this->params[ResponsePayloadKeys::SRCODE];
     }
 
     /**
@@ -92,8 +92,8 @@ class Response extends StrictObject
      */
     public function getMerOrderNumber()
     {
-        if (isset($this->params[DigestKeys::MERORDERNUM])) {
-            return $this->params[DigestKeys::MERORDERNUM];
+        if (isset($this->params[ResponsePayloadKeys::MERORDERNUM])) {
+            return $this->params[ResponsePayloadKeys::MERORDERNUM];
         }
 
         return null;
@@ -104,7 +104,7 @@ class Response extends StrictObject
      */
     public function getMd()
     {
-        $explode = explode('|', $this->params[DigestKeys::MD], 2);
+        $explode = explode('|', $this->params[ResponsePayloadKeys::MD], 2);
         if (isset($explode[1])) {
             return $explode[1];
         } else {
@@ -125,7 +125,7 @@ class Response extends StrictObject
      */
     public function getOrderNumber()
     {
-        return $this->params[DigestKeys::ORDERNUMBER];
+        return $this->params[ResponsePayloadKeys::ORDERNUMBER];
     }
 
     /**
@@ -133,7 +133,7 @@ class Response extends StrictObject
      */
     public function getSrCode()
     {
-        return $this->params[DigestKeys::SRCODE];
+        return $this->params[ResponsePayloadKeys::SRCODE];
     }
 
     /**
@@ -141,11 +141,11 @@ class Response extends StrictObject
      */
     public function getPrCode()
     {
-        return $this->params[DigestKeys::PRCODE];
+        return $this->params[ResponsePayloadKeys::PRCODE];
     }
 
     public function getResultText()
     {
-        return $this->params[DigestKeys::RESULTTEXT];
+        return $this->params[ResponsePayloadKeys::RESULTTEXT];
     }
 }
