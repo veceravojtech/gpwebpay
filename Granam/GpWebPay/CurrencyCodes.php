@@ -23,19 +23,44 @@ class CurrencyCodes extends StrictObject implements Codes
     }
 
     /**
-     * @param int $code
+     * @param int $numericCode
      * @return bool
      */
-    public function isCurrencyNumericCode(int $code)
+    public function isCurrencyNumericCode(int $numericCode)
     {
-        $unifiedCode = sprintf("%'03d", $code);
-
+        $formattedCode = $this->formatNumericCode($numericCode);
         foreach ($this->iso4217->getAll() as $currency) {
-            if ($currency['numeric'] === $unifiedCode) {
+            if ($currency['numeric'] === $formattedCode) {
                 return true;
             }
         }
 
         return false;
+    }
+
+    /**
+     * @param int $numericCode
+     * @return string
+     */
+    private function formatNumericCode(int $numericCode)
+    {
+        return sprintf("%'03d", $numericCode);
+    }
+
+    /**
+     * @param int $numericCode
+     * @return int
+     * @throws \Granam\GpWebPay\Exceptions\UnknownCurrency
+     */
+    public function getCurrencyPrecision(int $numericCode)
+    {
+        $formattedCode = $this->formatNumericCode($numericCode);
+        foreach ($this->iso4217->getAll() as $currency) {
+            if ($currency['numeric'] === $formattedCode) {
+                return (int)$currency['exp'];
+            }
+        }
+
+        throw new Exceptions\UnknownCurrency("Given currency of numeric code {$numericCode} is not known");
     }
 }

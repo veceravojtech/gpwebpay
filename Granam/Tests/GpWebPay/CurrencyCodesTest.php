@@ -18,4 +18,14 @@ class CurrencyCodesTest extends TestCase
         self::assertTrue($currencyCodes->isCurrencyNumericCode(52 /* BBD */));
         self::assertFalse($currencyCodes->isCurrencyNumericCode(0));
     }
+
+    /**
+     * @test
+     */
+    public function I_can_get_currency_precision()
+    {
+        $currencyCodes = new CurrencyCodes(new ISO4217());
+        self::assertSame(2, $currencyCodes->getCurrencyPrecision(978 /* EUR */));
+        self::assertSame(3, $currencyCodes->getCurrencyPrecision(48 /* BHD */));
+    }
 }

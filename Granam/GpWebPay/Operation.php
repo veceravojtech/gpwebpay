@@ -40,17 +40,18 @@ class Operation extends StrictObject
 
     /**
      * @param int $orderNumber with max length of 15
-     * @param float $amount
-     * @param int $currencyCode
+     * @param float $amount real price of the order (purchase) like 3.74 EUR
+     * @param int $currencyNumericCode ISO 4217
      * @param CurrencyCodes $currencyCodes
      * @param string $gatewayKey
      * @param string $responseUrl
-     * @throws \Granam\GpWebPay\Exceptions\InvalidArgumentException
+     * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
+     * @throws \Granam\GpWebPay\Exceptions\UnknownCurrency
      */
     public function __construct(
         int $orderNumber,
         float $amount,
-        int $currencyCode,
+        int $currencyNumericCode,
         CurrencyCodes $currencyCodes,
         string $gatewayKey = null,
         string $responseUrl = null
@@ -58,8 +59,8 @@ class Operation extends StrictObject
     {
 
         $this->setOrderNumber($orderNumber);
-        $this->setAmount($amount);
-        $this->setCurrency($currencyCode, $currencyCodes);
+        $this->setAmount($amount, $currencyNumericCode, $currencyCodes);
+        $this->setCurrency($currencyNumericCode, $currencyCodes);
         if (is_string($gatewayKey)) {
             $gatewayKey = trim($gatewayKey);
         }
@@ -71,28 +72,28 @@ class Operation extends StrictObject
         $this->responseUrl = $responseUrl;
     }
 
+    const MAXIMAL_LENGTH_OF_ORDER_NUMBER = 15;
+
     /**
      * @param int $orderNumber
-     * @throws \Granam\GpWebPay\Exceptions\InvalidArgumentException
+     * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
      */
     private function setOrderNumber(int $orderNumber)
     {
-        if (strlen($orderNumber) > 15) {
-            throw new Exceptions\InvalidArgumentException(
-                RequestDigestKeys::ORDERNUMBER . " maximal length is 15, got '{$orderNumber}' with length of "
-                . strlen($orderNumber)
-            );
-        }
+        $this->guardMaximalLength($orderNumber, self::MAXIMAL_LENGTH_OF_ORDER_NUMBER, RequestDigestKeys::ORDERNUMBER);
         $this->orderNumber = $orderNumber;
     }
 
     /**
      * @param float $amount
+     * @param int $currencyCode
+     * @param CurrencyCodes $currencyCodes
      * @return Operation
+     * @throws \Granam\GpWebPay\Exceptions\UnknownCurrency
      */
-    private function setAmount(float $amount)
+    private function setAmount(float $amount, int $currencyCode, CurrencyCodes $currencyCodes)
     {
-        $this->amount = $amount * 100;
+        $this->amount = $amount * $currencyCodes->getCurrencyPrecision($currencyCode);
 
         return $this;
     }
@@ -101,13 +102,14 @@ class Operation extends StrictObject
      * @param int $currencyCode
      * @param CurrencyCodes $currencyCodes
      * @return Operation
-     * @throws \Granam\GpWebPay\Exceptions\InvalidArgumentException
+     * @throws \Granam\GpWebPay\Exceptions\UnknownCurrency
      */
     private function setCurrency(int $currencyCode, CurrencyCodes $currencyCodes)
     {
         if ($currencyCodes->isCurrencyNumericCode($currencyCode)) {
-            throw new Exceptions\InvalidArgumentException(
-                'Unknown ' . RequestDigestKeys::CURRENCY . " code given, got '{$currencyCode}', expected one of those defined by ISO 4217"
+            throw new Exceptions\UnknownCurrency(
+                'Unknown ' . RequestDigestKeys::CURRENCY
+                . " code given, got '{$currencyCode}', expected one of those defined by ISO 4217"
             );
         }
         $this->currency = $currencyCode;
