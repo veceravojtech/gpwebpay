@@ -1,7 +1,7 @@
 <?php
 namespace Granam\GpWebPay\Exceptions;
 
-interface DigestSignerException
+interface DigestSignerException extends Runtime
 {
 
 }

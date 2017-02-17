@@ -1,7 +1,7 @@
 <?php
 namespace Granam\GpWebPay\Exceptions;
 
-class KeyFileCanNotBeRead extends \RuntimeException implements Runtime, DigestSignerException
+class KeyFileCanNotBeRead extends \RuntimeException implements DigestSignerException
 {
 
 }
