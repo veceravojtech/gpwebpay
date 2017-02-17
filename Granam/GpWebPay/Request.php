@@ -29,7 +29,7 @@ class Request extends StrictObject
         $this->parameters[RequestPayloadKeys::OPERATION] = OperationCodes::CREATE_ORDER;
         $this->parameters[RequestPayloadKeys::ORDERNUMBER] = $requestValues->getOrderNumber();
         $this->parameters[RequestPayloadKeys::AMOUNT] = $requestValues->getAmount();
-        $this->parameters[RequestPayloadKeys::CURRENCY] = $requestValues->getCurrency();
+        $this->parameters[RequestPayloadKeys::CURRENCY] = $requestValues->getCurrencyCode();
         $this->parameters[RequestPayloadKeys::DEPOSITFLAG] = $settings->getDepositFlag();
         if ($requestValues->getMerchantOrderNumber()) {
             $this->parameters[RequestPayloadKeys::MERORDERNUM] = $requestValues->getMerchantOrderNumber();
@@ -50,8 +50,8 @@ class Request extends StrictObject
         if ($requestValues->getPayMethod()) {
             $this->parameters[RequestPayloadKeys::PAYMETHOD] = $requestValues->getPayMethod();
         }
-        if ($requestValues->getDisablePayMethod()) {
-            $this->parameters[RequestPayloadKeys::DISABLEPAYMETHOD] = $requestValues->getDisablePayMethod();
+        if ($requestValues->getDisabledPayMethod()) {
+            $this->parameters[RequestPayloadKeys::DISABLEPAYMETHOD] = $requestValues->getDisabledPayMethod();
         }
         if ($requestValues->getPayMethods()) {
             $this->parameters[RequestPayloadKeys::PAYMETHODS] = $requestValues->getPayMethods();
