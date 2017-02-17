@@ -10,7 +10,7 @@ class Provider extends StrictObject
     private $settings;
     /** @var Request $request */
     private $request;
-    /** @var Signer $signer */
+    /** @var DigestSigner $signer */
     private $signer;
 
     /**
@@ -23,17 +23,19 @@ class Provider extends StrictObject
 
     /**
      * @param Operation $operation
+     * @param DigestSigner $digestSigner
      * @return Provider
      */
-    public function createRequest(Operation $operation)
+    public function createRequest(Operation $operation, DigestSigner $digestSigner)
     {
         $this->request = new Request(
             $operation,
             $this->settings->getMerchantNumber(),
-            $this->settings->getDepositFlag()
+            $this->settings->getDepositFlag(),
+            $digestSigner
         );
 
-        $this->signer = new Signer(
+        $this->signer = new DigestSigner(
             $this->settings->getPrivateKey(),
             $this->settings->getPrivateKeyPassword(),
             $this->settings->getPublicKey()
@@ -51,7 +53,7 @@ class Provider extends StrictObject
     }
 
     /**
-     * @return Signer
+     * @return DigestSigner
      */
     public function getSigner()
     {
@@ -63,7 +65,6 @@ class Provider extends StrictObject
      */
     public function getRequestUrl()
     {
-        $this->request->setDigest($this->signer->createSignedDigest($this->request->getDigestParams()));
         $paymentUrl = $this->settings->getUrl() . '?' . http_build_query($this->request->getParams());
 
         return $paymentUrl;
@@ -105,7 +106,7 @@ class Provider extends StrictObject
     public function verifyPaymentResponse(Response $response)
     {
         // verify digest & digest1
-        $this->signer = new Signer(
+        $this->signer = new DigestSigner(
             $this->settings->getPrivateKey(),
             $this->settings->getPrivateKeyPassword(),
             $this->settings->getPublicKey()

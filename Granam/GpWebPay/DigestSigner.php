@@ -3,7 +3,7 @@ namespace Granam\GpWebPay;
 
 use Granam\Strict\Object\StrictObject;
 
-class Signer extends StrictObject
+class DigestSigner extends StrictObject
 {
 
     /** @var string */

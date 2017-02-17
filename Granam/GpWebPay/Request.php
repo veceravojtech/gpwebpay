@@ -21,9 +21,10 @@ class Request extends StrictObject
      * @param Operation $operation
      * @param int $merchantNumber
      * @param string $depositFlag
+     * @param DigestSigner $digestSigner
      * @throws \Granam\GpWebPay\Exceptions\InvalidArgumentException
      */
-    public function __construct(Operation $operation, int $merchantNumber, string $depositFlag)
+    public function __construct(Operation $operation, int $merchantNumber, string $depositFlag, DigestSigner $digestSigner)
     {
         if (!$this->url = $operation->getResponseUrl()) {
             throw new Exceptions\InvalidArgumentException('Response URL in Operation must by set!');
@@ -32,10 +33,13 @@ class Request extends StrictObject
         $this->merchantNumber = $merchantNumber;
         $this->depositFlag = $depositFlag;
 
-        $this->populateParams();
+        $this->populateParams($digestSigner);
     }
 
-    private function populateParams()
+    /**
+     * @param DigestSigner $digestSigner
+     */
+    private function populateParams(DigestSigner $digestSigner)
     {
         $this->params[RequestPayloadKeys::MERCHANTNUMBER] = $this->merchantNumber;
         $this->params[RequestPayloadKeys::OPERATION] = OperationCodes::CREATE_ORDER;
@@ -78,15 +82,19 @@ class Request extends StrictObject
         if ($this->operation->getFastPayId()) {
             $this->params[RequestPayloadKeys::FASTPAYID] = $this->operation->getFastPayId();
         }
+        // has to be at the very end after all other params populated
+        $this->params[RequestPayloadKeys::DIGEST] = $digestSigner->createSignedDigest(
+            $this->filterDigestParams($this->params)
+        );
     }
 
     /**
-     * @param string $digest
-     * @internal
+     * @param array
+     * @return array
      */
-    public function setDigest(string $digest)
+    private function filterDigestParams(array $params)
     {
-        $this->params[RequestPayloadKeys::DIGEST] = $digest;
+        return array_intersect_key($params, array_flip(RequestDigestKeys::getDigestKeys()));
     }
 
     /**
@@ -95,14 +103,6 @@ class Request extends StrictObject
     public function getParams()
     {
         return $this->params;
-    }
-
-    /**
-     * @return array
-     */
-    public function getDigestParams()
-    {
-        return array_intersect_key($this->params, array_flip(RequestDigestKeys::getDigestKeys()));
     }
 
 }
