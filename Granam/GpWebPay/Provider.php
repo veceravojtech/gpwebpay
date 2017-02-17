@@ -26,20 +26,20 @@ class Provider extends StrictObject
     }
 
     /**
-     * @param RequestValues $requestValues
-     * @return Request
+     * @param CardPayRequestValues $requestValues
+     * @return CardPayRequest
      * @throws \Granam\GpWebPay\Exceptions\InvalidArgumentException
      * @throws \Granam\GpWebPay\Exceptions\PrivateKeyUsageFailed
      * @throws \Granam\GpWebPay\Exceptions\CanNotSignDigest
      */
-    public function createRequest(RequestValues $requestValues)
+    public function createRequest(CardPayRequestValues $requestValues)
     {
-        return new Request($requestValues, $this->settings, $this->digestSigner);
+        return new CardPayRequest($requestValues, $this->settings, $this->digestSigner);
     }
 
     /**
      * @param array $params
-     * @return Response
+     * @return CardPayResponse
      * @throws \Granam\Scalar\Tools\Exceptions\WrongParameterType
      * @throws \Granam\Integer\Tools\Exceptions\WrongParameterType
      */
@@ -62,7 +62,7 @@ class Provider extends StrictObject
         }
 
         /** @noinspection ExceptionsAnnotatingAndHandlingInspection */
-        return new Response(
+        return new CardPayResponse(
             ToString::toString($operation),
             ToString::toString($orderNumber),
             ToString::toString($merOrderNum),
@@ -77,7 +77,7 @@ class Provider extends StrictObject
     }
 
     /**
-     * @param Response $response
+     * @param CardPayResponse $response
      * @return bool
      * @throws \Granam\GpWebPay\Exceptions\PrivateKeyFileCanNotBeRead
      * @throws \Granam\GpWebPay\Exceptions\PublicKeyFileCanNotBeRead
@@ -85,7 +85,7 @@ class Provider extends StrictObject
      * @throws \Granam\GpWebPay\Exceptions\DigestCanNotBeVerified
      * @throws \Granam\GpWebPay\Exceptions\GpWebPayResponseHasAnError
      */
-    public function verifyResponse(Response $response)
+    public function verifyResponse(CardPayResponse $response)
     {
         // verify digest & digest1
         $responseParams = $response->getParametersWithoutDigest();

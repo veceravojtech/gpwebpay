@@ -18,7 +18,6 @@ class SettingsTest extends TestCase
             $publicKeyFile = __DIR__ . '/files/testing_public_key.pub',
             $responseUrl = 'https://example.com/gp-webpay/response',
             $merchantNumber = '123456',
-            $depositFlag = 0,
             $gatewayKey = 'foo'
         );
         self::assertSame($privateKeyFile, $settings->getPrivateKeyFile());
@@ -26,7 +25,6 @@ class SettingsTest extends TestCase
         self::assertSame($publicKeyFile, $settings->getPublicKeyFile());
         self::assertSame($responseUrl, $settings->getResponseUrl());
         self::assertSame($merchantNumber, $settings->getMerchantNumber());
-        self::assertSame($depositFlag, $settings->getDepositFlag());
         self::assertSame($gatewayKey, $settings->getGatewayKey());
     }
 
@@ -43,7 +41,6 @@ class SettingsTest extends TestCase
             __DIR__ . '/files/testing_public_key.pub',
             '',
             '',
-            0,
             ''
         );
     }
@@ -60,7 +57,6 @@ class SettingsTest extends TestCase
             __DIR__ . '/files/testing_public_key.pub',
             '',
             '',
-            0,
             ''
         );
     }
@@ -78,7 +74,6 @@ class SettingsTest extends TestCase
             'in a cloud',
             '',
             '',
-            0,
             ''
         );
     }
@@ -96,7 +91,6 @@ class SettingsTest extends TestCase
             __DIR__ . '/files/testing_public_key.pub',
             '/dev/null',
             '',
-            0,
             ''
         );
     }
@@ -114,7 +108,6 @@ class SettingsTest extends TestCase
             __DIR__ . '/files/testing_public_key.pub',
             'http://example.com/' . str_repeat('u', 301 - strlen('http://example.com/')),
             '',
-            0,
             ''
         );
     }

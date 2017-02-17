@@ -16,8 +16,6 @@ class Settings extends StrictObject
     private $responseUrl;
     /** @var string */
     private $merchantNumber;
-    /** @var int */
-    private $depositFlag;
     /** @var string */
     private $gatewayKey;
 
@@ -27,7 +25,6 @@ class Settings extends StrictObject
      * @param string $publicKeyFile
      * @param string $responseUrl
      * @param string $merchantNumber
-     * @param int $depositFlag
      * @param string $gatewayKey
      * @throws \Granam\GpWebPay\Exceptions\PrivateKeyFileCanNotBeRead
      * @throws \Granam\GpWebPay\Exceptions\PrivateKeyUsageFailed
@@ -41,7 +38,6 @@ class Settings extends StrictObject
         string $publicKeyFile,
         string $responseUrl,
         string $merchantNumber,
-        int $depositFlag,
         string $gatewayKey
     )
     {
@@ -50,7 +46,6 @@ class Settings extends StrictObject
         $this->setPublicKeyFile($publicKeyFile);
         $this->setResponseUrl($responseUrl);
         $this->merchantNumber = $merchantNumber;
-        $this->depositFlag = $depositFlag;
         $this->gatewayKey = trim($gatewayKey);
     }
 
@@ -161,14 +156,6 @@ class Settings extends StrictObject
     public function getMerchantNumber(): string
     {
         return $this->merchantNumber;
-    }
-
-    /**
-     * @return int
-     */
-    public function getDepositFlag(): int
-    {
-        return $this->depositFlag;
     }
 
     /**

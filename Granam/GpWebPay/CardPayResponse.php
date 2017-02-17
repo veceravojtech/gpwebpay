@@ -5,7 +5,7 @@ use Granam\GpWebPay\Codes\ResponsePayloadKeys;
 use Granam\GpWebPay\Exceptions\GpWebPayResponseHasAnError;
 use Granam\Strict\Object\StrictObject;
 
-class Response extends StrictObject
+class CardPayResponse extends StrictObject
 {
     /** @var array $parametersWithoutDigest */
     private $parametersWithoutDigest;
@@ -41,7 +41,7 @@ class Response extends StrictObject
         string $digest1
     )
     {
-        $this->parametersWithoutDigest[ResponsePayloadKeys::OPERATION] = $operation; // string up to length of 20 (always 'FINALIZE_ORDER')
+        $this->parametersWithoutDigest[ResponsePayloadKeys::OPERATION] = $operation; // string up to length of 20 (always FINALIZE_ORDER)
         $this->parametersWithoutDigest[ResponsePayloadKeys::ORDERNUMBER] = $orderNumber; // numeric up to length of 15
         if ($merOrderNum !== null) {
             $this->parametersWithoutDigest[ResponsePayloadKeys::MERORDERNUM] = $merOrderNum; // numeric up to length of 30

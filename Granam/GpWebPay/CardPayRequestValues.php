@@ -7,7 +7,7 @@ use Granam\GpWebPay\Codes\PayMethodCodes;
 use Granam\GpWebPay\Codes\RequestDigestKeys;
 use Granam\Strict\Object\StrictObject;
 
-class RequestValues extends StrictObject
+class CardPayRequestValues extends StrictObject
 {
     // required values
     /** @var int */
@@ -15,18 +15,18 @@ class RequestValues extends StrictObject
     /** @var int */
     private $amount;
     /** @var int */
-    private $currencyCode;
+    private $currency;
+    /** @var int */
+    private $depositFlag;
     // optional values
     /** @var string|null merchant data (note) */
     private $md;
     /** @var string|null */
     private $description;
     /** @var int|null */
-    private $merchantOrderNumber;
+    private $merOrderNum;
     /** @var string|null */
     private $lang;
-    /** @var string|null */
-    private $userParam1;
     /** @var string|null */
     private $payMethod;
     /** @var string|null */
@@ -37,6 +37,8 @@ class RequestValues extends StrictObject
     private $email;
     /** @var string|null */
     private $referenceNumber;
+    /** @var string|null */
+    private $addInfo;
     /** @var int|null */
     private $fastPayId;
 
@@ -44,17 +46,18 @@ class RequestValues extends StrictObject
      * @param int $orderNumber with max length of 15
      * @param float $price real price of the order (purchase) like 3.74 EUR
      * @param int $currencyNumericCode ISO 4217
+     * @param bool $depositFlag false = instant payment not required, true = requires immediate payment
      * @param CurrencyCodes $currencyCodes list of supported currencies in ISO 4217
      * @param string $merchantNote = null
      * @param string $description = null
-     * @param int $merchantOrderNumber = null
+     * @param int $merchantOrderIdentification = null
      * @param string $lang = LanguageCodes::EN
-     * @param string $userParam1 = null
      * @param string $payMethod = null
      * @param string $disabledPayMethod = null
      * @param array $payMethods = []
-     * @param string $email = null
+     * @param string $cardHolderEmail = null
      * @param string $referenceNumber = null
+     * @param string $addInfo = null
      * @param string $fastPayId = null
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
      * @throws \Granam\GpWebPay\Exceptions\UnknownCurrency
@@ -69,33 +72,35 @@ class RequestValues extends StrictObject
         int $orderNumber,
         float $price,
         int $currencyNumericCode,
+        bool $depositFlag, // false = instant payment not required, true = requires immediate payment
         CurrencyCodes $currencyCodes,
         string $merchantNote = null,
         string $description = null,
-        int $merchantOrderNumber = null,
+        int $merchantOrderIdentification = null,
         string $lang = LanguageCodes::EN,
-        string $userParam1 = null,
         string $payMethod = null,
         string $disabledPayMethod = null,
         array $payMethods = [],
-        string $email = null,
+        string $cardHolderEmail = null,
         string $referenceNumber = null,
+        string $addInfo = null,
         string $fastPayId = null
     )
     {
         $this->setOrderNumber($orderNumber);
         $this->setPrice($price, $currencyNumericCode, $currencyCodes);
         $this->setCurrency($currencyNumericCode, $currencyCodes);
+        $this->depositFlag = (int)$depositFlag; // 0 / 1
         $this->setMd($merchantNote);
         $this->setDescription($description);
-        $this->setMerchantOrderNumber($merchantOrderNumber);
+        $this->setMerOrderNum($merchantOrderIdentification);
         $this->setLang($lang);
-        $this->setUserParam1($userParam1);
         $this->setPayMethod($payMethod);
         $this->setDisabledPayMethod($disabledPayMethod);
         $this->setPayMethods($payMethods);
-        $this->setEmail($email);
+        $this->setEmail($cardHolderEmail);
         $this->setReferenceNumber($referenceNumber);
+        $this->setAddInfo($addInfo);
         $this->setFastPayId($fastPayId);
     }
 
@@ -151,7 +156,7 @@ class RequestValues extends StrictObject
                 . " code given, got '{$currencyCode}', expected one of those defined by ISO 4217"
             );
         }
-        $this->currencyCode = $currencyCode;
+        $this->currency = $currencyCode;
     }
 
     const MAXIMAL_LENGTH_OF_MD = 255;
@@ -210,13 +215,13 @@ class RequestValues extends StrictObject
     const MAXIMAL_LENGTH_OF_MERORDERNUM = 30;
 
     /**
-     * @param int $merchantOrderNumber with maximal length of 30 characters
+     * @param int $merchantOrderIdentification with maximal length of 30 characters
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
      */
-    private function setMerchantOrderNumber(int $merchantOrderNumber)
+    private function setMerOrderNum(int $merchantOrderIdentification)
     {
-        $this->guardMaximalLength($merchantOrderNumber, self::MAXIMAL_LENGTH_OF_MERORDERNUM, RequestDigestKeys::MERORDERNUM);
-        $this->merchantOrderNumber = $merchantOrderNumber;
+        $this->guardMaximalLength($merchantOrderIdentification, self::MAXIMAL_LENGTH_OF_MERORDERNUM, RequestDigestKeys::MERORDERNUM);
+        $this->merOrderNum = $merchantOrderIdentification;
     }
 
     /**
@@ -233,19 +238,6 @@ class RequestValues extends StrictObject
             );
         }
         $this->lang = $lang;
-    }
-
-    const MAXIMAL_LENGTH_OF_USERPARAM1 = 64;
-
-    /**
-     * @param string $userParam1 max. length is 255
-     * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
-     */
-    private function setUserParam1(string $userParam1)
-    {
-        $userParam1 = trim($userParam1);
-        $this->guardMaximalLength($userParam1, self::MAXIMAL_LENGTH_OF_USERPARAM1, RequestDigestKeys::USERPARAM1);
-        $this->userParam1 = $userParam1;
     }
 
     /**
@@ -338,6 +330,21 @@ class RequestValues extends StrictObject
         $this->referenceNumber = $referenceNumber;
     }
 
+    const MAXIMAL_LENGTH_OF_ADDINFO = 24000;
+
+    /**
+     * XML schema
+     *
+     * @param string $addInfo with maximal length of 24000
+     * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
+     */
+    private function setAddInfo(string $addInfo)
+    {
+        $addInfo = trim($addInfo);
+        $this->guardMaximalLength($addInfo, self::MAXIMAL_LENGTH_OF_ADDINFO, RequestDigestKeys::ADDINFO);
+        $this->addInfo = $addInfo;
+    }
+
     const MAXIMAL_LENGTH_OF_FASTPAYID = 15;
 
     /**
@@ -369,9 +376,17 @@ class RequestValues extends StrictObject
     /**
      * @return int
      */
-    public function getCurrencyCode(): int
+    public function getCurrency(): int
     {
-        return $this->currencyCode;
+        return $this->currency;
+    }
+
+    /**
+     * @return int
+     */
+    public function getDepositFlag(): int
+    {
+        return $this->depositFlag;
     }
 
     /**
@@ -393,9 +408,9 @@ class RequestValues extends StrictObject
     /**
      * @return int|null
      */
-    public function getMerchantOrderNumber()
+    public function getMerOrderNum()
     {
-        return $this->merchantOrderNumber;
+        return $this->merOrderNum;
     }
 
     /**
@@ -404,14 +419,6 @@ class RequestValues extends StrictObject
     public function getLang()
     {
         return $this->lang;
-    }
-
-    /**
-     * @return null|string
-     */
-    public function getUserParam1()
-    {
-        return $this->userParam1;
     }
 
     /**
@@ -452,6 +459,14 @@ class RequestValues extends StrictObject
     public function getReferenceNumber()
     {
         return $this->referenceNumber;
+    }
+
+    /**
+     * @return null|string
+     */
+    public function getAddInfo()
+    {
+        return $this->addInfo;
     }
 
     /**
