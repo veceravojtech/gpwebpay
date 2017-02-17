@@ -14,56 +14,56 @@ class Request extends StrictObject
     private $settings;
 
     /**
-     * @param Operation $operation
+     * @param RequestValues $requestValues
      * @param Settings $settings
      * @param DigestSigner $digestSigner
      * @throws \Granam\GpWebPay\Exceptions\InvalidArgumentException
      * @throws \Granam\GpWebPay\Exceptions\PrivateKeyUsageFailed
      * @throws \Granam\GpWebPay\Exceptions\CanNotSignDigest
      */
-    public function __construct(Operation $operation, Settings $settings, DigestSigner $digestSigner)
+    public function __construct(RequestValues $requestValues, Settings $settings, DigestSigner $digestSigner)
     {
         $this->settings = $settings;
 
         $this->parameters[RequestPayloadKeys::MERCHANTNUMBER] = $settings->getMerchantNumber();
         $this->parameters[RequestPayloadKeys::OPERATION] = OperationCodes::CREATE_ORDER;
-        $this->parameters[RequestPayloadKeys::ORDERNUMBER] = $operation->getOrderNumber();
-        $this->parameters[RequestPayloadKeys::AMOUNT] = $operation->getAmount();
-        $this->parameters[RequestPayloadKeys::CURRENCY] = $operation->getCurrency();
+        $this->parameters[RequestPayloadKeys::ORDERNUMBER] = $requestValues->getOrderNumber();
+        $this->parameters[RequestPayloadKeys::AMOUNT] = $requestValues->getAmount();
+        $this->parameters[RequestPayloadKeys::CURRENCY] = $requestValues->getCurrency();
         $this->parameters[RequestPayloadKeys::DEPOSITFLAG] = $settings->getDepositFlag();
-        if ($operation->getMerchantOrderNumber()) {
-            $this->parameters[RequestPayloadKeys::MERORDERNUM] = $operation->getMerchantOrderNumber();
+        if ($requestValues->getMerchantOrderNumber()) {
+            $this->parameters[RequestPayloadKeys::MERORDERNUM] = $requestValues->getMerchantOrderNumber();
         }
         $this->parameters[RequestPayloadKeys::URL] = $settings->getResponseUrl();
-        if ($operation->getDescription()) {
-            $this->parameters[RequestPayloadKeys::DESCRIPTION] = $operation->getDescription();
+        if ($requestValues->getDescription()) {
+            $this->parameters[RequestPayloadKeys::DESCRIPTION] = $requestValues->getDescription();
         }
-        if ($operation->getMd()) {
-            $this->parameters[RequestPayloadKeys::MD] = $operation->getMd();
+        if ($requestValues->getMd()) {
+            $this->parameters[RequestPayloadKeys::MD] = $requestValues->getMd();
         }
-        if ($operation->getLang()) {
-            $this->parameters[RequestPayloadKeys::LANG] = $operation->getLang();
+        if ($requestValues->getLang()) {
+            $this->parameters[RequestPayloadKeys::LANG] = $requestValues->getLang();
         }
-        if ($operation->getUserParam1()) {
-            $this->parameters[RequestPayloadKeys::USERPARAM1] = $operation->getUserParam1();
+        if ($requestValues->getUserParam1()) {
+            $this->parameters[RequestPayloadKeys::USERPARAM1] = $requestValues->getUserParam1();
         }
-        if ($operation->getPayMethod()) {
-            $this->parameters[RequestPayloadKeys::PAYMETHOD] = $operation->getPayMethod();
+        if ($requestValues->getPayMethod()) {
+            $this->parameters[RequestPayloadKeys::PAYMETHOD] = $requestValues->getPayMethod();
         }
-        if ($operation->getDisablePayMethod()) {
-            $this->parameters[RequestPayloadKeys::DISABLEPAYMETHOD] = $operation->getDisablePayMethod();
+        if ($requestValues->getDisablePayMethod()) {
+            $this->parameters[RequestPayloadKeys::DISABLEPAYMETHOD] = $requestValues->getDisablePayMethod();
         }
-        if ($operation->getPayMethods()) {
-            $this->parameters[RequestPayloadKeys::PAYMETHODS] = $operation->getPayMethods();
+        if ($requestValues->getPayMethods()) {
+            $this->parameters[RequestPayloadKeys::PAYMETHODS] = $requestValues->getPayMethods();
         }
-        if ($operation->getEmail()) {
-            $this->parameters[RequestPayloadKeys::EMAIL] = $operation->getEmail();
+        if ($requestValues->getEmail()) {
+            $this->parameters[RequestPayloadKeys::EMAIL] = $requestValues->getEmail();
         }
-        if ($operation->getReferenceNumber()) {
-            $this->parameters[RequestPayloadKeys::REFERENCENUMBER] = $operation->getReferenceNumber();
+        if ($requestValues->getReferenceNumber()) {
+            $this->parameters[RequestPayloadKeys::REFERENCENUMBER] = $requestValues->getReferenceNumber();
         }
-        if ($operation->getFastPayId()) {
-            $this->parameters[RequestPayloadKeys::FASTPAYID] = $operation->getFastPayId();
+        if ($requestValues->getFastPayId()) {
+            $this->parameters[RequestPayloadKeys::FASTPAYID] = $requestValues->getFastPayId();
         }
         // has to be at the very end after all other params populated
         $this->parameters[RequestPayloadKeys::DIGEST] = $digestSigner->createSignedDigest(

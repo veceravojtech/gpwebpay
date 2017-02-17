@@ -7,7 +7,7 @@ use Granam\GpWebPay\Codes\PayMethodCodes;
 use Granam\GpWebPay\Codes\RequestDigestKeys;
 use Granam\Strict\Object\StrictObject;
 
-class Operation extends StrictObject
+class RequestValues extends StrictObject
 {
     /** @var int $orderNumber */
     private $orderNumber;
@@ -42,7 +42,7 @@ class Operation extends StrictObject
      * @param int $orderNumber with max length of 15
      * @param float $amount real price of the order (purchase) like 3.74 EUR
      * @param int $currencyNumericCode ISO 4217
-     * @param CurrencyCodes $currencyCodes
+     * @param CurrencyCodes $currencyCodes list of supported currencies in ISO 4217
      * @param Settings $settings
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
      * @throws \Granam\GpWebPay\Exceptions\UnknownCurrency
@@ -55,11 +55,10 @@ class Operation extends StrictObject
         Settings $settings
     )
     {
-
         $this->setOrderNumber($orderNumber);
         $this->setAmount($amount, $currencyNumericCode, $currencyCodes);
         $this->setCurrency($currencyNumericCode, $currencyCodes);
-        $this->md = $settings->getGatewayKey();
+        $this->md = $settings->getGatewayKey(); // merchant note is pre-filled by a gateway key as a default value
     }
 
     const MAXIMAL_LENGTH_OF_ORDER_NUMBER = 15;
@@ -94,7 +93,7 @@ class Operation extends StrictObject
      * @param float $amount
      * @param int $currencyCode
      * @param CurrencyCodes $currencyCodes
-     * @return Operation
+     * @return RequestValues
      * @throws \Granam\GpWebPay\Exceptions\UnknownCurrency
      */
     private function setAmount(float $amount, int $currencyCode, CurrencyCodes $currencyCodes)
@@ -107,7 +106,7 @@ class Operation extends StrictObject
     /**
      * @param int $currencyCode
      * @param CurrencyCodes $currencyCodes
-     * @return Operation
+     * @return RequestValues
      * @throws \Granam\GpWebPay\Exceptions\UnknownCurrency
      */
     private function setCurrency(int $currencyCode, CurrencyCodes $currencyCodes)
@@ -161,7 +160,7 @@ class Operation extends StrictObject
 
     /**
      * @param string $merchantNote with maximal length of 255 and ASCII characters in range of 0x20–0x7E
-     * @return Operation
+     * @return RequestValues
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
      * @throws \Granam\GpWebPay\Exceptions\InvalidAsciiRange
      */
@@ -204,7 +203,7 @@ class Operation extends StrictObject
 
     /**
      * @param string $description with maximal length of 255 and ASCII characters in range of 0x20–0x7E
-     * @return Operation
+     * @return RequestValues
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
      * @throws \Granam\GpWebPay\Exceptions\InvalidAsciiRange
      */
@@ -251,7 +250,7 @@ class Operation extends StrictObject
 
     /**
      * @param string $lang
-     * @return Operation
+     * @return RequestValues
      * @throws \Granam\GpWebPay\Exceptions\UnsupportedLanguage
      */
     public function setLang(string $lang)
@@ -288,7 +287,7 @@ class Operation extends StrictObject
 
     /**
      * @param string $userParam1 max. length is 255
-     * @return Operation
+     * @return RequestValues
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
      */
     public function setUserParam1(string $userParam1)
@@ -310,7 +309,7 @@ class Operation extends StrictObject
 
     /**
      * @param string $payMethod supported val: CRD – payment card | MCM – MasterCard Mobile | MPS – MasterPass | BTNCS - PLATBA 24
-     * @return Operation
+     * @return RequestValues
      * @throws \Granam\GpWebPay\Exceptions\UnsupportedPayMethod
      */
     public function setPayMethod(string $payMethod)
@@ -341,7 +340,7 @@ class Operation extends StrictObject
      * Explicitly disable use of a payment method, even if is technically possible.
      *
      * @param string $disablePayMethod supported val: CRD – payment card | MCM – MasterCard Mobile | MPS – MasterPass | BTNCS - PLATBA 24
-     * @return Operation
+     * @return RequestValues
      * @throws \Granam\GpWebPay\Exceptions\UnsupportedPayMethod
      */
     public function setDisablePayMethod(string $disablePayMethod)
@@ -372,7 +371,7 @@ class Operation extends StrictObject
      * If DISABLEPAYMETHOD is set as well than an intersection of both rules is used.
      *
      * @param array|string[] $payMethods supported val: CRD – payment card | MCM – MasterCard Mobile | MPS – MasterPass | BTNCS - PLATBA 24
-     * @return Operation
+     * @return RequestValues
      * @throws \Granam\GpWebPay\Exceptions\UnsupportedPayMethod
      */
     public function setPayMethods(array $payMethods)
@@ -406,7 +405,7 @@ class Operation extends StrictObject
 
     /**
      * @param string $email with maximal length of 255
-     * @return Operation
+     * @return RequestValues
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
      * @throws \Granam\GpWebPay\Exceptions\InvalidEmail
      */
@@ -437,7 +436,7 @@ class Operation extends StrictObject
      * Merchant internal ID of an order
      *
      * @param string $referenceNumber with maximal length of 20
-     * @return Operation
+     * @return RequestValues
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
      */
     public function setReferenceNumber(string $referenceNumber)
@@ -461,7 +460,7 @@ class Operation extends StrictObject
 
     /**
      * @param int $fastPayId with maximal length of 15
-     * @return Operation
+     * @return RequestValues
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
      */
     public function setFastPayId(int $fastPayId)

@@ -26,15 +26,15 @@ class Provider extends StrictObject
     }
 
     /**
-     * @param Operation $operation
+     * @param RequestValues $requestValues
      * @return Request
      * @throws \Granam\GpWebPay\Exceptions\InvalidArgumentException
      * @throws \Granam\GpWebPay\Exceptions\PrivateKeyUsageFailed
      * @throws \Granam\GpWebPay\Exceptions\CanNotSignDigest
      */
-    public function createRequest(Operation $operation)
+    public function createRequest(RequestValues $requestValues)
     {
-        return new Request($operation, $this->settings, $this->digestSigner);
+        return new Request($requestValues, $this->settings, $this->digestSigner);
     }
 
     /**
