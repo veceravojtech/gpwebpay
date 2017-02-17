@@ -26,6 +26,7 @@ class Request extends StrictObject
     {
         $this->settings = $settings;
 
+        // parameters HAVE TO be in this order, see GP_webpay_HTTP_EN.pdf / GP_webpay_HTTP.pdf
         $this->parametersWithoutDigest[RequestPayloadKeys::MERCHANTNUMBER] = $settings->getMerchantNumber();
         $this->parametersWithoutDigest[RequestPayloadKeys::OPERATION] = OperationCodes::CREATE_ORDER; // the only operation currently available
         $this->parametersWithoutDigest[RequestPayloadKeys::ORDERNUMBER] = $requestValues->getOrderNumber();
@@ -42,11 +43,11 @@ class Request extends StrictObject
         if ($requestValues->getMd()) {
             $this->parametersWithoutDigest[RequestPayloadKeys::MD] = $requestValues->getMd();
         }
-        if ($requestValues->getLang()) {
-            $this->parametersWithoutDigest[RequestPayloadKeys::LANG] = $requestValues->getLang();
-        }
         if ($requestValues->getUserParam1()) {
             $this->parametersWithoutDigest[RequestPayloadKeys::USERPARAM1] = $requestValues->getUserParam1();
+        }
+        if ($requestValues->getLang()) {
+            $this->parametersWithoutDigest[RequestPayloadKeys::LANG] = $requestValues->getLang();
         }
         if ($requestValues->getPayMethod()) {
             $this->parametersWithoutDigest[RequestPayloadKeys::PAYMETHOD] = $requestValues->getPayMethod();

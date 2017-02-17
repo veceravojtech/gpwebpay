@@ -88,7 +88,7 @@ class Provider extends StrictObject
     public function verifyResponse(Response $response)
     {
         // verify digest & digest1
-        $responseParams = $response->getParams();
+        $responseParams = $response->getParametersWithoutDigest();
         $this->digestSigner->verifySignedDigest($response->getDigest(), $responseParams);
         $responseParams[RequestPayloadKeys::MERCHANTNUMBER] = $this->settings->getMerchantNumber();
         $this->digestSigner->verifySignedDigest($response->getDigest1(), $responseParams);
