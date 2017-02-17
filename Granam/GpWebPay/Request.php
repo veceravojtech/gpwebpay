@@ -26,7 +26,7 @@ class Request extends StrictObject
         $this->settings = $settings;
 
         $this->parameters[RequestPayloadKeys::MERCHANTNUMBER] = $settings->getMerchantNumber();
-        $this->parameters[RequestPayloadKeys::OPERATION] = OperationCodes::CREATE_ORDER;
+        $this->parameters[RequestPayloadKeys::OPERATION] = OperationCodes::CREATE_ORDER; // the only operation currently available
         $this->parameters[RequestPayloadKeys::ORDERNUMBER] = $requestValues->getOrderNumber();
         $this->parameters[RequestPayloadKeys::AMOUNT] = $requestValues->getAmount();
         $this->parameters[RequestPayloadKeys::CURRENCY] = $requestValues->getCurrencyCode();
@@ -65,7 +65,7 @@ class Request extends StrictObject
         if ($requestValues->getFastPayId()) {
             $this->parameters[RequestPayloadKeys::FASTPAYID] = $requestValues->getFastPayId();
         }
-        // has to be at the very end after all other params populated
+        // HAS TO be at the very end after all other parameters already populated
         $this->parameters[RequestPayloadKeys::DIGEST] = $digestSigner->createSignedDigest(
             $this->filterDigestParameters($this->parameters)
         );
