@@ -6,42 +6,21 @@ use Granam\Strict\Object\StrictObject;
 class DigestSigner extends StrictObject
 {
 
-    /** @var string */
-    private $publicKeyPath;
-    /** @var string */
-    private $privateKeyPath;
-    /** @var string */
-    private $privateKeyPassword;
+    /** @var Settings */
+    private $settings;
     /** @var resource */
     private $privateKeyResource;
     /** @var resource */
     private $publicKeyResource;
 
     /**
-     * @param string $publicKeyPath
-     * @param string $privateKeyPath
-     * @param string $privateKeyPassword
+     * @param Settings $settings
      * @throws \Granam\GpWebPay\Exceptions\PrivateKeyFileCanNotBeRead
      * @throws \Granam\GpWebPay\Exceptions\PublicKeyFileCanNotBeRead
      */
-    public function __construct(string $publicKeyPath, string $privateKeyPath, string $privateKeyPassword = '')
+    public function __construct(Settings $settings)
     {
-        $publicKeyPath = trim($publicKeyPath);
-        if (!is_readable($publicKeyPath)) {
-            throw new Exceptions\PublicKeyFileCanNotBeRead(
-                "Public key '{$publicKeyPath}' can not be read. Ensure that it exists and with correct rights."
-            );
-        }
-        $privateKeyPath = trim($privateKeyPath);
-        if (!is_readable($privateKeyPath)) {
-            throw new Exceptions\PrivateKeyFileCanNotBeRead(
-                "Private key '{$privateKeyPath} 'can not be read. Ensure that it exists and with correct rights."
-            );
-        }
-
-        $this->publicKeyPath = $publicKeyPath;
-        $this->privateKeyPath = $privateKeyPath;
-        $this->privateKeyPassword = $privateKeyPassword;
+        $this->settings = $settings;
     }
 
     /**
@@ -69,10 +48,10 @@ class DigestSigner extends StrictObject
         if (is_resource($this->privateKeyResource)) {
             return $this->privateKeyResource;
         }
-        $key = file_get_contents($this->privateKeyPath);
-        if (!($this->privateKeyResource = openssl_pkey_get_private($key, $this->privateKeyPassword))) {
-            $errorMessage = "'{$this->privateKeyPath}' is not valid PEM private key";
-            if ($this->privateKeyPassword !== '') {
+        $key = file_get_contents($this->settings->getPrivateKeyFile());
+        if (!($this->privateKeyResource = openssl_pkey_get_private($key, $this->settings->getPrivateKeyPassword()))) {
+            $errorMessage = "'{$this->settings->getPrivateKeyFile()}' is not valid PEM private key";
+            if ($this->settings->getPrivateKeyPassword() !== '') {
                 $errorMessage = "Password for private key is incorrect (or $errorMessage)";
             }
             throw new Exceptions\PrivateKeyUsageFailed($errorMessage);
@@ -108,9 +87,11 @@ class DigestSigner extends StrictObject
         if (is_resource($this->publicKeyResource)) {
             return $this->publicKeyResource;
         }
-        $publicKey = file_get_contents($this->publicKeyPath);
+        $publicKey = file_get_contents($this->settings->getPublicKeyFile());
         if (!($this->publicKeyResource = openssl_pkey_get_public($publicKey))) {
-            throw new Exceptions\PublicKeyUsageFailed("'{$this->publicKeyPath}' is not valid PEM public key.");
+            throw new Exceptions\PublicKeyUsageFailed(
+                "'{$this->settings->getPublicKeyFile()}' is not valid PEM public key."
+            );
         }
 
         return $this->publicKeyResource;

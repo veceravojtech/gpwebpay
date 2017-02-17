@@ -15,12 +15,8 @@ class Operation extends StrictObject
     private $amount;
     /** @var int $currency */
     private $currency;
-    /** @var null|string $gatewayKey */
-    private $gatewayKey;
     /** @var string|null $md as merchant data (note) */
     private $md;
-    /** @var null|string $responseUrl */
-    private $responseUrl;
     /** @var string|null $description */
     private $description;
     /** @var int|null $merchantOrderNumber */
@@ -47,8 +43,7 @@ class Operation extends StrictObject
      * @param float $amount real price of the order (purchase) like 3.74 EUR
      * @param int $currencyNumericCode ISO 4217
      * @param CurrencyCodes $currencyCodes
-     * @param string $responseUrl
-     * @param string $gatewayKey
+     * @param Settings $settings
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
      * @throws \Granam\GpWebPay\Exceptions\UnknownCurrency
      */
@@ -57,23 +52,14 @@ class Operation extends StrictObject
         float $amount,
         int $currencyNumericCode,
         CurrencyCodes $currencyCodes,
-        string $responseUrl,
-        string $gatewayKey = null
+        Settings $settings
     )
     {
 
         $this->setOrderNumber($orderNumber);
         $this->setAmount($amount, $currencyNumericCode, $currencyCodes);
         $this->setCurrency($currencyNumericCode, $currencyCodes);
-        if (is_string($gatewayKey)) {
-            $gatewayKey = trim($gatewayKey);
-        }
-        $this->gatewayKey = $gatewayKey;
-        $this->md = $gatewayKey;
-        if (is_string($responseUrl)) {
-            $responseUrl = trim($responseUrl);
-        }
-        $this->responseUrl = $responseUrl;
+        $this->md = $settings->getGatewayKey();
     }
 
     const MAXIMAL_LENGTH_OF_ORDER_NUMBER = 15;
@@ -86,6 +72,22 @@ class Operation extends StrictObject
     {
         $this->guardMaximalLength($orderNumber, self::MAXIMAL_LENGTH_OF_ORDER_NUMBER, RequestDigestKeys::ORDERNUMBER);
         $this->orderNumber = $orderNumber;
+    }
+
+    /**
+     * @param int|float|string $value
+     * @param int $maximalLength
+     * @param string $name
+     * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
+     */
+    private function guardMaximalLength($value, int $maximalLength, string $name)
+    {
+        if (strlen((string)$value) > $maximalLength) {
+            throw new Exceptions\ValueTooLong(
+                "Maximal length of {$name} is {$maximalLength}, got one with length of "
+                . strlen((string)$value) . " and value '{$value}'"
+            );
+        }
     }
 
     /**
@@ -143,51 +145,6 @@ class Operation extends StrictObject
     public function getCurrency()
     {
         return $this->currency;
-    }
-
-    /**
-     * @return null|string
-     */
-    public function getResponseUrl()
-    {
-        return $this->responseUrl;
-    }
-
-    const MAXIMAL_LENGTH_OF_URL = 300;
-
-    /**
-     * @param string $responseUrl with maximal length of 300 characters
-     * @return Operation
-     * @throws \Granam\GpWebPay\Exceptions\InvalidUrl
-     * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
-     */
-    public function setResponseUrl(string $responseUrl)
-    {
-        $responseUrl = trim($responseUrl);
-        if (!filter_var($responseUrl, FILTER_VALIDATE_URL)) {
-            throw new Exceptions\InvalidUrl('Given ' . RequestDigestKeys::URL . " is not valid: '{$responseUrl}'");
-        }
-        $this->guardMaximalLength($responseUrl, self::MAXIMAL_LENGTH_OF_URL, RequestDigestKeys::URL);
-
-        $this->responseUrl = $responseUrl;
-
-        return $this;
-    }
-
-    /**
-     * @param int|float|string $value
-     * @param int $maximalLength
-     * @param string $name
-     * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
-     */
-    private function guardMaximalLength($value, int $maximalLength, string $name)
-    {
-        if (strlen((string)$value) > $maximalLength) {
-            throw new Exceptions\ValueTooLong(
-                "Maximal length of {$name} is {$maximalLength}, got one with length of "
-                . strlen((string)$value) . " and value '{$value}'"
-            );
-        }
     }
 
     /**
@@ -290,14 +247,6 @@ class Operation extends StrictObject
         $this->merchantOrderNumber = $merchantOrderNumber;
 
         return $this;
-    }
-
-    /**
-     * @return null|string
-     */
-    public function getGatewayKey()
-    {
-        return $this->gatewayKey;
     }
 
     /**

@@ -38,7 +38,7 @@
     "php": ">=7.0",
     "ext-openssl": "*",
     "roave/security-advisories": "dev-master",
-    "granam/strict-object": "^2.0",
+    "granam/strict-object": ">=2.0",
     "granam/integer": "4.0",
     "alcohol/iso4217": "^3.1"
   },

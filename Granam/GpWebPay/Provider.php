@@ -68,7 +68,7 @@ class Provider extends StrictObject
      */
     public function getRequestUrl()
     {
-        $paymentUrl = $this->settings->getUrl() . '?' . http_build_query($this->request->getParameters());
+        $paymentUrl = $this->settings->getResponseUrl() . '?' . http_build_query($this->request->getParameters());
 
         return $paymentUrl;
     }
@@ -92,7 +92,7 @@ class Provider extends StrictObject
         $digest1 = $params[ResponsePayloadKeys::DIGEST1] ?? '';
         $key = explode('|', $md, 2);
         if (empty($key[0])) {
-            $gatewayKey = $this->settings->getDefaultGatewayKey();
+            $gatewayKey = $this->settings->getGatewayKey();
         } else {
             $gatewayKey = $key[0];
         }
@@ -124,12 +124,6 @@ class Provider extends StrictObject
     public function verifyPaymentResponse(Response $response)
     {
         // verify digest & digest1
-        $this->digestSigner = new DigestSigner(
-            $this->settings->getPrivateKey(),
-            $this->settings->getPrivateKeyPassword(),
-            $this->settings->getPublicKey()
-        );
-
         $responseParams = $response->getParams();
         $this->digestSigner->verifySignedDigest($response->getDigest(), $responseParams);
         $responseParams[RequestPayloadKeys::MERCHANTNUMBER] = $this->settings->getMerchantNumber();
