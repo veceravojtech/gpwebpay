@@ -1,6 +1,10 @@
 <?php
 namespace Granam\GpWebPay;
 
+use Granam\GpWebPay\Codes\RequestPayloadKeys;
+use Granam\GpWebPay\Codes\ResponsePayloadKeys;
+use Granam\Integer\Tools\ToInteger;
+use Granam\Scalar\Tools\ToString;
 use Granam\Strict\Object\StrictObject;
 
 class Provider extends StrictObject
@@ -8,10 +12,10 @@ class Provider extends StrictObject
 
     /** @var Settings $settings */
     private $settings;
-    /** @var Request $request */
+    /** @var RequestParameters $request */
     private $request;
-    /** @var DigestSigner $signer */
-    private $signer;
+    /** @var DigestSigner $digestSigner */
+    private $digestSigner;
 
     /**
      * @param Settings $settings
@@ -25,27 +29,26 @@ class Provider extends StrictObject
      * @param Operation $operation
      * @param DigestSigner $digestSigner
      * @return Provider
+     * @throws \Granam\GpWebPay\Exceptions\InvalidArgumentException
+     * @throws \Granam\GpWebPay\Exceptions\PrivateKeyUsageFailed
+     * @throws \Granam\GpWebPay\Exceptions\CanNotSignDigest
      */
     public function createRequest(Operation $operation, DigestSigner $digestSigner)
     {
-        $this->request = new Request(
+        $this->request = new RequestParameters(
             $operation,
             $this->settings->getMerchantNumber(),
             $this->settings->getDepositFlag(),
             $digestSigner
         );
 
-        $this->signer = new DigestSigner(
-            $this->settings->getPrivateKey(),
-            $this->settings->getPrivateKeyPassword(),
-            $this->settings->getPublicKey()
-        );
+        $this->digestSigner = $digestSigner;
 
         return $this;
     }
 
     /**
-     * @return Request
+     * @return RequestParameters
      */
     public function getRequest()
     {
@@ -55,9 +58,9 @@ class Provider extends StrictObject
     /**
      * @return DigestSigner
      */
-    public function getSigner()
+    public function getDigestSigner()
     {
-        return $this->signer;
+        return $this->digestSigner;
     }
 
     /**
@@ -65,61 +68,74 @@ class Provider extends StrictObject
      */
     public function getRequestUrl()
     {
-        $paymentUrl = $this->settings->getUrl() . '?' . http_build_query($this->request->getParams());
+        $paymentUrl = $this->settings->getUrl() . '?' . http_build_query($this->request->getParameters());
 
         return $paymentUrl;
     }
 
     /**
-     * @param $params
+     * @param array $params
      * @return Response
+     * @throws \Granam\Scalar\Tools\Exceptions\WrongParameterType
+     * @throws \Granam\Integer\Tools\Exceptions\WrongParameterType
      */
-    public function createResponse($params)
+    public function createResponse(array $params)
     {
-        $operation = isset ($params [ResponsePayloadKeys::OPERATION]) ? $params [ResponsePayloadKeys::OPERATION] : '';
-        $ordernumber = isset ($params [ResponsePayloadKeys::ORDERNUMBER]) ? $params [ResponsePayloadKeys::ORDERNUMBER] : '';
-        $merordernum = isset ($params [ResponsePayloadKeys::MERORDERNUM]) ? $params [ResponsePayloadKeys::MERORDERNUM] : null;
-        $md = isset ($params [ResponsePayloadKeys::MD]) ? $params[ResponsePayloadKeys::MD] : null;
-        $prcode = isset ($params [ResponsePayloadKeys::PRCODE]) ? $params [ResponsePayloadKeys::PRCODE] : '';
-        $srcode = isset ($params [ResponsePayloadKeys::SRCODE]) ? $params [ResponsePayloadKeys::SRCODE] : '';
-        $resulttext = isset ($params [ResponsePayloadKeys::RESULTTEXT]) ? $params [ResponsePayloadKeys::RESULTTEXT] : '';
-        $digest = isset ($params [ResponsePayloadKeys::DIGEST]) ? $params [ResponsePayloadKeys::DIGEST] : '';
-        $digest1 = isset ($params [ResponsePayloadKeys::DIGEST1]) ? $params [ResponsePayloadKeys::DIGEST1] : '';
-
+        $operation = $params[ResponsePayloadKeys::OPERATION] ?? '';
+        $orderNumber = $params[ResponsePayloadKeys::ORDERNUMBER] ?? '';
+        $merOrderNum = $params[ResponsePayloadKeys::MERORDERNUM] ?? '';
+        $md = $params[ResponsePayloadKeys::MD] ?? '';
+        $prCode = $params[ResponsePayloadKeys::PRCODE] ?? '';
+        $srCode = $params[ResponsePayloadKeys::SRCODE] ?? '';
+        $resultText = $params[ResponsePayloadKeys::RESULTTEXT] ?? '';
+        $digest = $params[ResponsePayloadKeys::DIGEST] ?? '';
+        $digest1 = $params[ResponsePayloadKeys::DIGEST1] ?? '';
         $key = explode('|', $md, 2);
-
         if (empty($key[0])) {
             $gatewayKey = $this->settings->getDefaultGatewayKey();
         } else {
             $gatewayKey = $key[0];
         }
 
-        return new Response($operation, $ordernumber, $merordernum, $md, $prcode, $srcode, $resulttext, $digest,
-            $digest1, $gatewayKey);
+        /** @noinspection ExceptionsAnnotatingAndHandlingInspection */
+        return new Response(
+            ToString::toString($operation),
+            ToString::toString($orderNumber),
+            ToString::toString($merOrderNum),
+            ToString::toString($md),
+            ToInteger::toInteger($prCode),
+            ToInteger::toInteger($srCode),
+            ToString::toString($resultText),
+            ToString::toString($digest),
+            ToString::toString($digest1),
+            ToString::toString($gatewayKey)
+        );
     }
 
     /**
      * @param Response $response
      * @return bool
-     * @throws \Granam\GpWebPay\Exceptions\GPWebPayResultException
+     * @throws \Granam\GpWebPay\Exceptions\PrivateKeyFileCanNotBeRead
+     * @throws \Granam\GpWebPay\Exceptions\PublicKeyFileCanNotBeRead
+     * @throws \Granam\GpWebPay\Exceptions\PublicKeyUsageFailed
+     * @throws \Granam\GpWebPay\Exceptions\DigestCanNotBeVerified
+     * @throws \Granam\GpWebPay\Exceptions\GpWebPayResponseHasAnError
      */
     public function verifyPaymentResponse(Response $response)
     {
         // verify digest & digest1
-        $this->signer = new DigestSigner(
+        $this->digestSigner = new DigestSigner(
             $this->settings->getPrivateKey(),
             $this->settings->getPrivateKeyPassword(),
             $this->settings->getPublicKey()
         );
 
         $responseParams = $response->getParams();
-        $this->signer->verifySignedDigest($responseParams, $response->getDigest());
-        $responseParams[RequestDigestKeys::MERCHANTNUMBER] = $this->settings->getMerchantNumber();
-        $this->signer->verifySignedDigest($responseParams, $response->getDigest1());
-        // verify PRCODE and SRCODE
-        if (false !== $response->hasError()) {
-            throw new Exceptions\GPWebPayResultException(
-                'Response has an error.',
+        $this->digestSigner->verifySignedDigest($response->getDigest(), $responseParams);
+        $responseParams[RequestPayloadKeys::MERCHANTNUMBER] = $this->settings->getMerchantNumber();
+        $this->digestSigner->verifySignedDigest($response->getDigest1(), $responseParams);
+        if ($response->hasError()) { // verify PRCODE
+            throw new Exceptions\GpWebPayResponseHasAnError(
                 $response->getPrCode(),
                 $response->getSrCode(),
                 $response->getResultText()

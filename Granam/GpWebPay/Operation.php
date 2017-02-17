@@ -1,6 +1,10 @@
 <?php
 namespace Granam\GpWebPay;
 
+use Granam\GpWebPay\Codes\CurrencyCodes;
+use Granam\GpWebPay\Codes\LanguageCodes;
+use Granam\GpWebPay\Codes\PayMethodCodes;
+use Granam\GpWebPay\Codes\RequestDigestKeys;
 use Granam\Strict\Object\StrictObject;
 
 class Operation extends StrictObject
@@ -43,8 +47,8 @@ class Operation extends StrictObject
      * @param float $amount real price of the order (purchase) like 3.74 EUR
      * @param int $currencyNumericCode ISO 4217
      * @param CurrencyCodes $currencyCodes
-     * @param string $gatewayKey
      * @param string $responseUrl
+     * @param string $gatewayKey
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
      * @throws \Granam\GpWebPay\Exceptions\UnknownCurrency
      */
@@ -53,8 +57,8 @@ class Operation extends StrictObject
         float $amount,
         int $currencyNumericCode,
         CurrencyCodes $currencyCodes,
-        string $gatewayKey = null,
-        string $responseUrl = null
+        string $responseUrl,
+        string $gatewayKey = null
     )
     {
 

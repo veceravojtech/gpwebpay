@@ -1,6 +1,8 @@
 <?php
 namespace Granam\GpWebPay;
 
+use Granam\GpWebPay\Codes\ResponsePayloadKeys;
+use Granam\GpWebPay\Exceptions\GpWebPayResponseHasAnError;
 use Granam\Strict\Object\StrictObject;
 
 class Response extends StrictObject
@@ -64,7 +66,7 @@ class Response extends StrictObject
     }
 
     /**
-     * @return mixed
+     * @return string
      */
     public function getDigest()
     {
@@ -76,7 +78,7 @@ class Response extends StrictObject
      */
     public function hasError()
     {
-        return $this->params[ResponsePayloadKeys::PRCODE] || $this->params[ResponsePayloadKeys::SRCODE];
+        return GpWebPayResponseHasAnError::isErrorCode($this->params[ResponsePayloadKeys::PRCODE]);
     }
 
     /**
@@ -113,7 +115,7 @@ class Response extends StrictObject
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
     public function getGatewayKey()
     {
@@ -144,6 +146,9 @@ class Response extends StrictObject
         return $this->params[ResponsePayloadKeys::PRCODE];
     }
 
+    /**
+     * @return string|null
+     */
     public function getResultText()
     {
         return $this->params[ResponsePayloadKeys::RESULTTEXT];
