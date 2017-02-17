@@ -2,16 +2,17 @@
 namespace Granam\GpWebPay;
 
 use Granam\GpWebPay\Codes\OperationCodes;
-use Granam\GpWebPay\Codes\RequestDigestKeys;
 use Granam\GpWebPay\Codes\RequestPayloadKeys;
 use Granam\Strict\Object\StrictObject;
 
 class Request extends StrictObject
 {
-    /** @var array $parameters */
-    private $parameters;
+    /** @var array $parametersWithoutDigest */
+    private $parametersWithoutDigest;
     /** @var Settings */
     private $settings;
+    /** @var string */
+    private $digest;
 
     /**
      * @param RequestValues $requestValues
@@ -25,59 +26,48 @@ class Request extends StrictObject
     {
         $this->settings = $settings;
 
-        $this->parameters[RequestPayloadKeys::MERCHANTNUMBER] = $settings->getMerchantNumber();
-        $this->parameters[RequestPayloadKeys::OPERATION] = OperationCodes::CREATE_ORDER; // the only operation currently available
-        $this->parameters[RequestPayloadKeys::ORDERNUMBER] = $requestValues->getOrderNumber();
-        $this->parameters[RequestPayloadKeys::AMOUNT] = $requestValues->getAmount();
-        $this->parameters[RequestPayloadKeys::CURRENCY] = $requestValues->getCurrencyCode();
-        $this->parameters[RequestPayloadKeys::DEPOSITFLAG] = $settings->getDepositFlag();
+        $this->parametersWithoutDigest[RequestPayloadKeys::MERCHANTNUMBER] = $settings->getMerchantNumber();
+        $this->parametersWithoutDigest[RequestPayloadKeys::OPERATION] = OperationCodes::CREATE_ORDER; // the only operation currently available
+        $this->parametersWithoutDigest[RequestPayloadKeys::ORDERNUMBER] = $requestValues->getOrderNumber();
+        $this->parametersWithoutDigest[RequestPayloadKeys::AMOUNT] = $requestValues->getAmount();
+        $this->parametersWithoutDigest[RequestPayloadKeys::CURRENCY] = $requestValues->getCurrencyCode();
+        $this->parametersWithoutDigest[RequestPayloadKeys::DEPOSITFLAG] = $settings->getDepositFlag();
         if ($requestValues->getMerchantOrderNumber()) {
-            $this->parameters[RequestPayloadKeys::MERORDERNUM] = $requestValues->getMerchantOrderNumber();
+            $this->parametersWithoutDigest[RequestPayloadKeys::MERORDERNUM] = $requestValues->getMerchantOrderNumber();
         }
-        $this->parameters[RequestPayloadKeys::URL] = $settings->getResponseUrl();
+        $this->parametersWithoutDigest[RequestPayloadKeys::URL] = $settings->getResponseUrl();
         if ($requestValues->getDescription()) {
-            $this->parameters[RequestPayloadKeys::DESCRIPTION] = $requestValues->getDescription();
+            $this->parametersWithoutDigest[RequestPayloadKeys::DESCRIPTION] = $requestValues->getDescription();
         }
         if ($requestValues->getMd()) {
-            $this->parameters[RequestPayloadKeys::MD] = $requestValues->getMd();
+            $this->parametersWithoutDigest[RequestPayloadKeys::MD] = $requestValues->getMd();
         }
         if ($requestValues->getLang()) {
-            $this->parameters[RequestPayloadKeys::LANG] = $requestValues->getLang();
+            $this->parametersWithoutDigest[RequestPayloadKeys::LANG] = $requestValues->getLang();
         }
         if ($requestValues->getUserParam1()) {
-            $this->parameters[RequestPayloadKeys::USERPARAM1] = $requestValues->getUserParam1();
+            $this->parametersWithoutDigest[RequestPayloadKeys::USERPARAM1] = $requestValues->getUserParam1();
         }
         if ($requestValues->getPayMethod()) {
-            $this->parameters[RequestPayloadKeys::PAYMETHOD] = $requestValues->getPayMethod();
+            $this->parametersWithoutDigest[RequestPayloadKeys::PAYMETHOD] = $requestValues->getPayMethod();
         }
         if ($requestValues->getDisabledPayMethod()) {
-            $this->parameters[RequestPayloadKeys::DISABLEPAYMETHOD] = $requestValues->getDisabledPayMethod();
+            $this->parametersWithoutDigest[RequestPayloadKeys::DISABLEPAYMETHOD] = $requestValues->getDisabledPayMethod();
         }
         if ($requestValues->getPayMethods()) {
-            $this->parameters[RequestPayloadKeys::PAYMETHODS] = $requestValues->getPayMethods();
+            $this->parametersWithoutDigest[RequestPayloadKeys::PAYMETHODS] = $requestValues->getPayMethods();
         }
         if ($requestValues->getEmail()) {
-            $this->parameters[RequestPayloadKeys::EMAIL] = $requestValues->getEmail();
+            $this->parametersWithoutDigest[RequestPayloadKeys::EMAIL] = $requestValues->getEmail();
         }
         if ($requestValues->getReferenceNumber()) {
-            $this->parameters[RequestPayloadKeys::REFERENCENUMBER] = $requestValues->getReferenceNumber();
+            $this->parametersWithoutDigest[RequestPayloadKeys::REFERENCENUMBER] = $requestValues->getReferenceNumber();
         }
         if ($requestValues->getFastPayId()) {
-            $this->parameters[RequestPayloadKeys::FASTPAYID] = $requestValues->getFastPayId();
+            $this->parametersWithoutDigest[RequestPayloadKeys::FASTPAYID] = $requestValues->getFastPayId();
         }
         // HAS TO be at the very end after all other parameters already populated
-        $this->parameters[RequestPayloadKeys::DIGEST] = $digestSigner->createSignedDigest(
-            $this->filterDigestParameters($this->parameters)
-        );
-    }
-
-    /**
-     * @param array
-     * @return array
-     */
-    private function filterDigestParameters(array $params)
-    {
-        return array_intersect_key($params, array_flip(RequestDigestKeys::getDigestKeys()));
+        $this->digest = $digestSigner->createSignedDigest($this->parametersWithoutDigest);
     }
 
     /**
@@ -85,7 +75,10 @@ class Request extends StrictObject
      */
     public function getRequestUrl()
     {
-        return $this->settings->getResponseUrl() . '?' . http_build_query($this->parameters);
+        $parameters = $this->parametersWithoutDigest;
+        $parameters[RequestPayloadKeys::DIGEST] = $this->digest;
+
+        return $this->settings->getResponseUrl() . '?' . http_build_query($parameters);
     }
 
 }
