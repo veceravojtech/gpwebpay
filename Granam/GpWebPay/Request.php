@@ -6,50 +6,35 @@ use Granam\GpWebPay\Codes\RequestDigestKeys;
 use Granam\GpWebPay\Codes\RequestPayloadKeys;
 use Granam\Strict\Object\StrictObject;
 
-class RequestParameters extends StrictObject
+class Request extends StrictObject
 {
     /** @var array $parameters */
     private $parameters;
+    /** @var Settings */
+    private $settings;
 
     /**
      * @param Operation $operation
-     * @param int $merchantNumber
-     * @param string $depositFlag
+     * @param Settings $settings
      * @param DigestSigner $digestSigner
      * @throws \Granam\GpWebPay\Exceptions\InvalidArgumentException
      * @throws \Granam\GpWebPay\Exceptions\PrivateKeyUsageFailed
      * @throws \Granam\GpWebPay\Exceptions\CanNotSignDigest
      */
-    public function __construct(Operation $operation, int $merchantNumber, string $depositFlag, DigestSigner $digestSigner)
+    public function __construct(Operation $operation, Settings $settings, DigestSigner $digestSigner)
     {
-        $this->populateParameters($operation, $merchantNumber, $depositFlag, $digestSigner);
-    }
+        $this->settings = $settings;
 
-    /**
-     * @param Operation $operation
-     * @param int $merchantNumber
-     * @param string $depositFlag
-     * @param DigestSigner $digestSign
-     * @throws \Granam\GpWebPay\Exceptions\PrivateKeyUsageFailed
-     * @throws \Granam\GpWebPay\Exceptions\CanNotSignDigest
-     */
-    private function populateParameters(Operation $operation, int $merchantNumber, string $depositFlag, DigestSigner $digestSigner)
-    {
-        $this->parameters[RequestPayloadKeys::MERCHANTNUMBER] = $merchantNumber;
+        $this->parameters[RequestPayloadKeys::MERCHANTNUMBER] = $settings->getMerchantNumber();
         $this->parameters[RequestPayloadKeys::OPERATION] = OperationCodes::CREATE_ORDER;
         $this->parameters[RequestPayloadKeys::ORDERNUMBER] = $operation->getOrderNumber();
         $this->parameters[RequestPayloadKeys::AMOUNT] = $operation->getAmount();
         $this->parameters[RequestPayloadKeys::CURRENCY] = $operation->getCurrency();
-        $this->parameters[RequestPayloadKeys::DEPOSITFLAG] = $depositFlag;
+        $this->parameters[RequestPayloadKeys::DEPOSITFLAG] = $settings->getDepositFlag();
         if ($operation->getMerchantOrderNumber()) {
             $this->parameters[RequestPayloadKeys::MERORDERNUM] = $operation->getMerchantOrderNumber();
         }
-        // TODO response URL from settings instead
-        if (!$operation->getResponseUrl()) {
-            throw new Exceptions\InvalidArgumentException('Response URL in Operation must by set!');
-        }
-        $this->parameters[RequestPayloadKeys::URL] = $operation->getResponseUrl();
-
+        $this->parameters[RequestPayloadKeys::URL] = $settings->getResponseUrl();
         if ($operation->getDescription()) {
             $this->parameters[RequestPayloadKeys::DESCRIPTION] = $operation->getDescription();
         }
@@ -96,12 +81,11 @@ class RequestParameters extends StrictObject
     }
 
     /**
-     * Gives parameters for a request including signed digest
-     * @return array
+     * @return string
      */
-    public function getParameters()
+    public function getRequestUrl()
     {
-        return $this->parameters;
+        return $this->settings->getResponseUrl() . '?' . http_build_query($this->parameters);
     }
 
 }

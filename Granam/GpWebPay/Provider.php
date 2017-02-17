@@ -12,65 +12,29 @@ class Provider extends StrictObject
 
     /** @var Settings $settings */
     private $settings;
-    /** @var RequestParameters $request */
-    private $request;
     /** @var DigestSigner $digestSigner */
     private $digestSigner;
 
     /**
      * @param Settings $settings
+     * @param DigestSigner $digestSigner
      */
-    public function __construct(Settings $settings)
+    public function __construct(Settings $settings, DigestSigner $digestSigner)
     {
         $this->settings = $settings;
+        $this->digestSigner = $digestSigner;
     }
 
     /**
      * @param Operation $operation
-     * @param DigestSigner $digestSigner
-     * @return Provider
+     * @return Request
      * @throws \Granam\GpWebPay\Exceptions\InvalidArgumentException
      * @throws \Granam\GpWebPay\Exceptions\PrivateKeyUsageFailed
      * @throws \Granam\GpWebPay\Exceptions\CanNotSignDigest
      */
-    public function createRequest(Operation $operation, DigestSigner $digestSigner)
+    public function createRequest(Operation $operation)
     {
-        $this->request = new RequestParameters(
-            $operation,
-            $this->settings->getMerchantNumber(),
-            $this->settings->getDepositFlag(),
-            $digestSigner
-        );
-
-        $this->digestSigner = $digestSigner;
-
-        return $this;
-    }
-
-    /**
-     * @return RequestParameters
-     */
-    public function getRequest()
-    {
-        return $this->request;
-    }
-
-    /**
-     * @return DigestSigner
-     */
-    public function getDigestSigner()
-    {
-        return $this->digestSigner;
-    }
-
-    /**
-     * @return string
-     */
-    public function getRequestUrl()
-    {
-        $paymentUrl = $this->settings->getResponseUrl() . '?' . http_build_query($this->request->getParameters());
-
-        return $paymentUrl;
+        return new Request($operation, $this->settings, $this->digestSigner);
     }
 
     /**
@@ -81,15 +45,15 @@ class Provider extends StrictObject
      */
     public function createResponse(array $params)
     {
-        $operation = $params[ResponsePayloadKeys::OPERATION] ?? '';
-        $orderNumber = $params[ResponsePayloadKeys::ORDERNUMBER] ?? '';
+        $operation = $params[ResponsePayloadKeys::OPERATION];
+        $orderNumber = $params[ResponsePayloadKeys::ORDERNUMBER];
         $merOrderNum = $params[ResponsePayloadKeys::MERORDERNUM] ?? '';
         $md = $params[ResponsePayloadKeys::MD] ?? '';
-        $prCode = $params[ResponsePayloadKeys::PRCODE] ?? '';
-        $srCode = $params[ResponsePayloadKeys::SRCODE] ?? '';
+        $prCode = $params[ResponsePayloadKeys::PRCODE];
+        $srCode = $params[ResponsePayloadKeys::SRCODE] ?? 0;
         $resultText = $params[ResponsePayloadKeys::RESULTTEXT] ?? '';
-        $digest = $params[ResponsePayloadKeys::DIGEST] ?? '';
-        $digest1 = $params[ResponsePayloadKeys::DIGEST1] ?? '';
+        $digest = $params[ResponsePayloadKeys::DIGEST];
+        $digest1 = $params[ResponsePayloadKeys::DIGEST1];
         $key = explode('|', $md, 2);
         if (empty($key[0])) {
             $gatewayKey = $this->settings->getGatewayKey();
@@ -121,7 +85,7 @@ class Provider extends StrictObject
      * @throws \Granam\GpWebPay\Exceptions\DigestCanNotBeVerified
      * @throws \Granam\GpWebPay\Exceptions\GpWebPayResponseHasAnError
      */
-    public function verifyPaymentResponse(Response $response)
+    public function verifyResponse(Response $response)
     {
         // verify digest & digest1
         $responseParams = $response->getParams();
