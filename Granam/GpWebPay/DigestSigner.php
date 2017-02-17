@@ -7,13 +7,13 @@ class DigestSigner extends StrictObject
 {
 
     /** @var string */
+    private $publicKeyPath;
+    /** @var string */
     private $privateKeyPath;
-    /** @var resource */
-    private $privateKeyResource;
     /** @var string */
     private $privateKeyPassword;
-    /** @var string */
-    private $publicKeyPath;
+    /** @var resource */
+    private $privateKeyResource;
     /** @var resource */
     private $publicKeyResource;
 
@@ -26,6 +26,12 @@ class DigestSigner extends StrictObject
      */
     public function __construct(string $publicKeyPath, string $privateKeyPath, string $privateKeyPassword = '')
     {
+        $publicKeyPath = trim($publicKeyPath);
+        if (!is_readable($publicKeyPath)) {
+            throw new Exceptions\PublicKeyFileCanNotBeRead(
+                "Public key '{$publicKeyPath}' can not be read. Ensure that it exists and with correct rights."
+            );
+        }
         $privateKeyPath = trim($privateKeyPath);
         if (!is_readable($privateKeyPath)) {
             throw new Exceptions\PrivateKeyFileCanNotBeRead(
@@ -33,16 +39,25 @@ class DigestSigner extends StrictObject
             );
         }
 
-        $publicKeyPath = trim($publicKeyPath);
-        if (!is_readable($publicKeyPath)) {
-            throw new Exceptions\PublicKeyFileCanNotBeRead(
-                "Public key '{$publicKeyPath}' can not be read. Ensure that it exists and with correct rights."
-            );
-        }
-
+        $this->publicKeyPath = $publicKeyPath;
         $this->privateKeyPath = $privateKeyPath;
         $this->privateKeyPassword = $privateKeyPassword;
-        $this->publicKeyPath = $publicKeyPath;
+    }
+
+    /**
+     * @param array|string[] $partsOfDigest
+     * @return string Digest as encrypted content of the request for its validation on GpWebPay side
+     * @throws \Granam\GpWebPay\Exceptions\PrivateKeyUsageFailed
+     * @throws \Granam\GpWebPay\Exceptions\CanNotSignDigest
+     */
+    public function createSignedDigest(array $partsOfDigest)
+    {
+        $digestText = implode('|', $partsOfDigest);
+        if (!openssl_sign($digestText, $digest, $this->getPrivateKeyResource())) {
+            throw new Exceptions\CanNotSignDigest('Can not sign ' . $digestText);
+        }
+
+        return base64_encode($digest);
     }
 
     /**
@@ -66,45 +81,19 @@ class DigestSigner extends StrictObject
         return $this->privateKeyResource;
     }
 
-    public function __destruct()
-    {
-        if (is_resource($this->privateKeyResource)) {
-            fclose($this->privateKeyResource);
-        }
-        if (is_resource($this->publicKeyResource)) {
-            fclose($this->publicKeyResource);
-        }
-    }
-
-    /**
-     * @param array|string[] $partsOfDigest
-     * @return string Digest as encrypted content of the request for its validation on GpWebPay side
-     * @throws \Granam\GpWebPay\Exceptions\PrivateKeyUsageFailed
-     * @throws \Granam\GpWebPay\Exceptions\CanNotSignDigest
-     */
-    public function createSignedDigest(array $partsOfDigest)
-    {
-        $digestText = implode('|', $partsOfDigest);
-        if (!openssl_sign($digestText, $digest, $this->getPrivateKeyResource())) {
-            throw new Exceptions\CanNotSignDigest('Can not sign ' . $digestText);
-        }
-
-        return base64_encode($digest);
-    }
-
     /**
      * @param array|string[] $expectedPartsOfDigest
-     * @param string $digest
+     * @param string $digestToVerify
      * @return bool
      * @throws \Granam\GpWebPay\Exceptions\PublicKeyUsageFailed
-     * @throws \Granam\GpWebPay\Exceptions\FraudSignedDigest
+     * @throws \Granam\GpWebPay\Exceptions\DigestCanNotBeVerified
      */
-    public function verifySignedDigest(array $expectedPartsOfDigest, string $digest)
+    public function verifySignedDigest(string $digestToVerify, array $expectedPartsOfDigest)
     {
         $expectedDigest = implode('|', $expectedPartsOfDigest);
-        $digest = base64_decode($digest);
-        if (openssl_verify($expectedDigest, $digest, $this->getPublicKeyResource()) !== 1) {
-            throw new Exceptions\FraudSignedDigest('Digest does not match expected ' . $expectedDigest);
+        $digestToVerify = base64_decode($digestToVerify);
+        if (openssl_verify($expectedDigest, $digestToVerify, $this->getPublicKeyResource()) !== 1) {
+            throw new Exceptions\DigestCanNotBeVerified('Given digest does not match expected ' . $expectedDigest);
         }
 
         return true;
