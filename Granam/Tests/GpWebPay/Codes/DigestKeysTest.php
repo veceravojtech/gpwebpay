@@ -1,7 +1,7 @@
 <?php
-namespace Granam\Tests\GpWebPay;
+namespace Granam\Tests\GpWebPay\Codes;
 
-use Granam\GpWebPay\RequestDigestKeys;
+use Granam\GpWebPay\Codes\RequestDigestKeys;
 use PHPUnit\Framework\TestCase;
 
 class DigestKeysTest extends TestCase

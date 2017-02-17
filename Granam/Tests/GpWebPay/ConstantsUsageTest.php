@@ -1,8 +1,8 @@
 <?php
 namespace Granam\Tests\GpWebPay;
 
-use Granam\GpWebPay\Codes;
-use Granam\GpWebPay\RequestDigestKeys;
+use Granam\GpWebPay\Codes\Codes;
+use Granam\GpWebPay\Provider;
 use PHPUnit\Framework\TestCase;
 
 class ConstantsUsageTest extends TestCase
@@ -33,7 +33,7 @@ class ConstantsUsageTest extends TestCase
     private function getProjectClasses()
     {
         $projectClasses = [];
-        $namespace = (new \ReflectionClass(RequestDigestKeys::class))->getNamespaceName();
+        $namespace = (new \ReflectionClass(Provider::class))->getNamespaceName();
         foreach (new \DirectoryIterator(__DIR__ . '/../../GpWebPay') as $directoryIterator) {
             if ($directoryIterator->isDir()) {
                 continue;

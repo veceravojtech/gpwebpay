@@ -1,5 +1,5 @@
 <?php
-namespace Granam\GpWebPay;
+namespace Granam\GpWebPay\Codes;
 
 use Alcohol\ISO4217;
 use Granam\Strict\Object\StrictObject;

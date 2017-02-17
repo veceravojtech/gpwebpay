@@ -1,5 +1,5 @@
 <?php
-namespace Granam\GpWebPay;
+namespace Granam\GpWebPay\Codes;
 
 class ResponsePayloadKeys extends ResponseDigestKeys
 {

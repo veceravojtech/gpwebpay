@@ -1,8 +1,8 @@
 <?php
-namespace Granam\Tests\GpWebPay;
+namespace Granam\Tests\GpWebPay\Codes;
 
 use Alcohol\ISO4217;
-use Granam\GpWebPay\CurrencyCodes;
+use Granam\GpWebPay\Codes\CurrencyCodes;
 use PHPUnit\Framework\TestCase;
 
 class CurrencyCodesTest extends TestCase

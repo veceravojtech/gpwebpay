@@ -1,7 +1,7 @@
 <?php
-namespace Granam\Tests\GpWebPay;
+namespace Granam\Tests\GpWebPay\Codes;
 
-use Granam\GpWebPay\PayMethodCodes;
+use Granam\GpWebPay\Codes\PayMethodCodes;
 use PHPUnit\Framework\TestCase;
 
 class PayMethodCodesTest extends TestCase

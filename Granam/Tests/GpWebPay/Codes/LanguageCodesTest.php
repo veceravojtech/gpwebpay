@@ -1,7 +1,7 @@
 <?php
-namespace Granam\Tests\GpWebPay;
+namespace Granam\Tests\GpWebPay\Codes;
 
-use Granam\GpWebPay\LanguageCodes;
+use Granam\GpWebPay\Codes\LanguageCodes;
 use PHPUnit\Framework\TestCase;
 
 class LanguageCodesTest extends TestCase
