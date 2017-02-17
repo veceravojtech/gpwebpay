@@ -21,20 +21,21 @@ class Signer extends StrictObject
      * @param string $publicKeyPath
      * @param string $privateKeyPath
      * @param string $privateKeyPassword
-     * @throws \Granam\GpWebPay\Exceptions\SignerException
+     * @throws \Granam\GpWebPay\Exceptions\PrivateKeyFileCanNotBeRead
+     * @throws \Granam\GpWebPay\Exceptions\PublicKeyFileCanNotBeRead
      */
     public function __construct(string $publicKeyPath, string $privateKeyPath, string $privateKeyPassword = '')
     {
         $privateKeyPath = trim($privateKeyPath);
         if (!is_readable($privateKeyPath)) {
-            throw new Exceptions\SignerException(
+            throw new Exceptions\PrivateKeyFileCanNotBeRead(
                 "Private key '{$privateKeyPath} 'can not be read. Ensure that it exists and with correct rights."
             );
         }
 
         $publicKeyPath = trim($publicKeyPath);
         if (!is_readable($publicKeyPath)) {
-            throw new Exceptions\SignerException(
+            throw new Exceptions\PublicKeyFileCanNotBeRead(
                 "Public key '{$publicKeyPath}' can not be read. Ensure that it exists and with correct rights."
             );
         }
@@ -46,7 +47,7 @@ class Signer extends StrictObject
 
     /**
      * @return resource
-     * @throws \Granam\GpWebPay\Exceptions\SignerException
+     * @throws \Granam\GpWebPay\Exceptions\PrivateKeyUsageFailed
      */
     private function getPrivateKeyResource()
     {
@@ -55,9 +56,11 @@ class Signer extends StrictObject
         }
         $key = file_get_contents($this->privateKeyPath);
         if (!($this->privateKeyResource = openssl_pkey_get_private($key, $this->privateKeyPassword))) {
-            throw new Exceptions\SignerException(
-                "'{$this->privateKeyPath}' is not valid PEM private key or the password is incorrect."
-            );
+            $errorMessage = "'{$this->privateKeyPath}' is not valid PEM private key";
+            if ($this->privateKeyPassword !== '') {
+                $errorMessage = "Password for private key is incorrect (or $errorMessage)";
+            }
+            throw new Exceptions\PrivateKeyUsageFailed($errorMessage);
         }
 
         return $this->privateKeyResource;
@@ -76,13 +79,14 @@ class Signer extends StrictObject
     /**
      * @param array|string[] $partsOfDigest
      * @return string Digest as encrypted content of the request for its validation on GpWebPay side
-     * @throws \Granam\GpWebPay\Exceptions\SignerException
+     * @throws \Granam\GpWebPay\Exceptions\PrivateKeyUsageFailed
+     * @throws \Granam\GpWebPay\Exceptions\CanNotSignDigest
      */
-    public function sign(array $partsOfDigest)
+    public function createSignedDigest(array $partsOfDigest)
     {
         $digestText = implode('|', $partsOfDigest);
         if (!openssl_sign($digestText, $digest, $this->getPrivateKeyResource())) {
-            throw new Exceptions\SignerException('Could not sign ' . $digestText);
+            throw new Exceptions\CanNotSignDigest('Can not sign ' . $digestText);
         }
 
         return base64_encode($digest);
@@ -92,14 +96,15 @@ class Signer extends StrictObject
      * @param array|string[] $expectedPartsOfDigest
      * @param string $digest
      * @return bool
-     * @throws Exceptions\SignerException
+     * @throws \Granam\GpWebPay\Exceptions\PublicKeyUsageFailed
+     * @throws \Granam\GpWebPay\Exceptions\FraudSignedDigest
      */
-    public function verify(array $expectedPartsOfDigest, string $digest)
+    public function verifySignedDigest(array $expectedPartsOfDigest, string $digest)
     {
         $expectedDigest = implode('|', $expectedPartsOfDigest);
         $digest = base64_decode($digest);
         if (openssl_verify($expectedDigest, $digest, $this->getPublicKeyResource()) !== 1) {
-            throw new Exceptions\SignerException('Digest does not match expected ' . $expectedDigest);
+            throw new Exceptions\FraudSignedDigest('Digest does not match expected ' . $expectedDigest);
         }
 
         return true;
@@ -107,20 +112,16 @@ class Signer extends StrictObject
 
     /**
      * @return resource
-     * @throws \Granam\GpWebPay\Exceptions\SignerException
+     * @throws \Granam\GpWebPay\Exceptions\PublicKeyUsageFailed
      */
     private function getPublicKeyResource()
     {
         if (is_resource($this->publicKeyResource)) {
             return $this->publicKeyResource;
         }
-        if (!($fp = fopen($this->publicKeyPath, 'rb'))) {
-            throw new Exceptions\SignerException("Could not open '{$this->publicKeyPath}' for reading.");
-        }
-        $publicKey = fread($fp, filesize($this->publicKeyPath));
-        fclose($fp);
+        $publicKey = file_get_contents($this->publicKeyPath);
         if (!($this->publicKeyResource = openssl_pkey_get_public($publicKey))) {
-            throw new Exceptions\SignerException("'{$this->publicKeyPath}' is not valid PEM public key.");
+            throw new Exceptions\PublicKeyUsageFailed("'{$this->publicKeyPath}' is not valid PEM public key.");
         }
 
         return $this->publicKeyResource;

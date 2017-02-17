@@ -63,7 +63,7 @@ class Provider extends StrictObject
      */
     public function getRequestUrl()
     {
-        $this->request->setDigest($this->signer->sign($this->request->getDigestParams()));
+        $this->request->setDigest($this->signer->createSignedDigest($this->request->getDigestParams()));
         $paymentUrl = $this->settings->getUrl() . '?' . http_build_query($this->request->getParams());
 
         return $paymentUrl;
@@ -112,9 +112,9 @@ class Provider extends StrictObject
         );
 
         $responseParams = $response->getParams();
-        $this->signer->verify($responseParams, $response->getDigest());
+        $this->signer->verifySignedDigest($responseParams, $response->getDigest());
         $responseParams[RequestDigestKeys::MERCHANTNUMBER] = $this->settings->getMerchantNumber();
-        $this->signer->verify($responseParams, $response->getDigest1());
+        $this->signer->verifySignedDigest($responseParams, $response->getDigest1());
         // verify PRCODE and SRCODE
         if (false !== $response->hasError()) {
             throw new Exceptions\GPWebPayResultException(
