@@ -2,9 +2,6 @@
 namespace Granam\GpWebPay;
 
 use Granam\GpWebPay\Codes\RequestPayloadKeys;
-use Granam\GpWebPay\Codes\ResponsePayloadKeys;
-use Granam\Integer\Tools\ToInteger;
-use Granam\Scalar\Tools\ToString;
 use Granam\Strict\Object\StrictObject;
 
 class Provider extends StrictObject
@@ -38,42 +35,16 @@ class Provider extends StrictObject
     }
 
     /**
-     * @param array $params
+     * @param array $valuesFromGetOrPost
      * @return CardPayResponse
-     * @throws \Granam\Scalar\Tools\Exceptions\WrongParameterType
+     * @throws \Granam\GpWebPay\Exceptions\BrokenResponse
      * @throws \Granam\Integer\Tools\Exceptions\WrongParameterType
+     * @throws \Granam\Integer\Tools\Exceptions\ValueLostOnCast
+     * @throws \Granam\Scalar\Tools\Exceptions\WrongParameterType
      */
-    public function createResponse(array $params)
+    public function createResponse(array $valuesFromGetOrPost)
     {
-        $operation = $params[ResponsePayloadKeys::OPERATION];
-        $orderNumber = $params[ResponsePayloadKeys::ORDERNUMBER];
-        $merOrderNum = $params[ResponsePayloadKeys::MERORDERNUM] ?? '';
-        $md = $params[ResponsePayloadKeys::MD] ?? '';
-        $prCode = $params[ResponsePayloadKeys::PRCODE];
-        $srCode = $params[ResponsePayloadKeys::SRCODE] ?? 0;
-        $resultText = $params[ResponsePayloadKeys::RESULTTEXT] ?? '';
-        $digest = $params[ResponsePayloadKeys::DIGEST];
-        $digest1 = $params[ResponsePayloadKeys::DIGEST1];
-        $key = explode('|', $md, 2);
-        if (empty($key[0])) {
-            $gatewayKey = $this->settings->getGatewayKey();
-        } else {
-            $gatewayKey = $key[0];
-        }
-
-        /** @noinspection ExceptionsAnnotatingAndHandlingInspection */
-        return new CardPayResponse(
-            ToString::toString($operation),
-            ToString::toString($orderNumber),
-            ToString::toString($merOrderNum),
-            ToString::toString($md),
-            ToInteger::toInteger($prCode),
-            ToInteger::toInteger($srCode),
-            ToString::toString($resultText),
-            ToString::toString($digest),
-            ToString::toString($digest1),
-            ToString::toString($gatewayKey)
-        );
+        return CardPayResponse::createFromArray($valuesFromGetOrPost);
     }
 
     /**

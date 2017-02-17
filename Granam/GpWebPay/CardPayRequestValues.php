@@ -1,14 +1,98 @@
 <?php
 namespace Granam\GpWebPay;
 
+use Granam\Float\Tools\ToFloat;
 use Granam\GpWebPay\Codes\CurrencyCodes;
 use Granam\GpWebPay\Codes\LanguageCodes;
 use Granam\GpWebPay\Codes\PayMethodCodes;
 use Granam\GpWebPay\Codes\RequestDigestKeys;
+use Granam\GpWebPay\Codes\RequestPayloadKeys;
+use Granam\Integer\Tools\ToInteger;
+use Granam\Scalar\Tools\ToString;
 use Granam\Strict\Object\StrictObject;
 
 class CardPayRequestValues extends StrictObject
 {
+    /**
+     * @param array $valuesFromGetOrPost
+     * @param array $valuesFromGetOrPost
+     * @return CardPayRequestValues
+     * @throws \Granam\GpWebPay\Exceptions\BrokenRequest
+     * @throws \Granam\Float\Tools\Exceptions\WrongParameterType
+     * @throws \Granam\Float\Tools\Exceptions\ValueLostOnCast
+     * @throws \Granam\Integer\Tools\Exceptions\WrongParameterType
+     * @throws \Granam\Integer\Tools\Exceptions\ValueLostOnCast
+     * @throws \Granam\Scalar\Tools\Exceptions\WrongParameterType
+     * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
+     * @throws \Granam\GpWebPay\Exceptions\UnknownCurrency
+     * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
+     * @throws \Granam\GpWebPay\Exceptions\InvalidAsciiRange
+     * @throws \Granam\GpWebPay\Exceptions\UnsupportedLanguage
+     * @throws \Granam\GpWebPay\Exceptions\UnsupportedPayMethod
+     * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
+     * @throws \Granam\GpWebPay\Exceptions\InvalidEmail
+     */
+    public static function createFromArray(array $valuesFromGetOrPost)
+    {
+        $keys = [
+            // required
+            RequestPayloadKeys::ORDERNUMBER => true,
+            RequestPayloadKeys::AMOUNT => true,
+            RequestPayloadKeys::CURRENCY => true,
+            RequestPayloadKeys::DEPOSITFLAG => true,
+            // optional
+            RequestPayloadKeys::MD => false,
+            RequestPayloadKeys::DESCRIPTION => false,
+            RequestPayloadKeys::MERORDERNUM => false,
+            RequestPayloadKeys::LANG => false,
+            RequestPayloadKeys::PAYMETHOD => false,
+            RequestPayloadKeys::DISABLEPAYMETHOD => false,
+            RequestPayloadKeys::PAYMETHODS => false,
+            RequestPayloadKeys::EMAIL => false,
+            RequestPayloadKeys::REFERENCENUMBER => false,
+            RequestPayloadKeys::ADDINFO => false,
+            RequestPayloadKeys::FASTPAYID => false,
+        ];
+        $integerKeys = [RequestPayloadKeys::ORDERNUMBER, RequestPayloadKeys::CURRENCY, RequestPayloadKeys::MERORDERNUM];
+        $floatKeys = [RequestPayloadKeys::AMOUNT]; // as float price like 3.25 EUR
+        $normalizedValues = [];
+        foreach ($keys as $key => $required) {
+            if (!array_key_exists($key, $valuesFromGetOrPost)) {
+                if (!$required) {
+                    $normalizedValues[$key] = null;
+                } else {
+                    throw new Exceptions\BrokenRequest(
+                        'Values to create ' . static::class . " are missing required '{$key}'"
+                    );
+                }
+            } elseif (in_array($key, $integerKeys, true)) {
+                $normalizedValues[$key] = ToInteger::toInteger($valuesFromGetOrPost[$key]);
+            } elseif (in_array($key, $floatKeys, true)) {
+                $normalizedValues[$key] = ToFloat::toFloat($valuesFromGetOrPost[$key]);
+            } else {
+                $normalizedValues[$key] = ToString::toString($valuesFromGetOrPost[$key]);
+            }
+        }
+
+        return new static(
+            $normalizedValues[RequestPayloadKeys::ORDERNUMBER],
+            $normalizedValues[RequestPayloadKeys::AMOUNT],
+            $normalizedValues[RequestPayloadKeys::CURRENCY],
+            $normalizedValues[RequestPayloadKeys::DEPOSITFLAG],
+            $normalizedValues[RequestPayloadKeys::MD],
+            $normalizedValues[RequestPayloadKeys::DESCRIPTION],
+            $normalizedValues[RequestPayloadKeys::MERORDERNUM],
+            $normalizedValues[RequestPayloadKeys::LANG],
+            $normalizedValues[RequestPayloadKeys::PAYMETHOD],
+            $normalizedValues[RequestPayloadKeys::DISABLEPAYMETHOD],
+            $normalizedValues[RequestPayloadKeys::PAYMETHODS],
+            $normalizedValues[RequestPayloadKeys::EMAIL],
+            $normalizedValues[RequestPayloadKeys::REFERENCENUMBER],
+            $normalizedValues[RequestPayloadKeys::ADDINFO],
+            $normalizedValues[RequestPayloadKeys::FASTPAYID]
+        );
+    }
+
     // required values
     /** @var int */
     private $orderNumber;
@@ -51,7 +135,7 @@ class CardPayRequestValues extends StrictObject
      * @param string $merchantNote = null
      * @param string $description = null
      * @param int $merchantOrderIdentification = null
-     * @param string $lang = LanguageCodes::EN
+     * @param string $lang = null
      * @param string $payMethod = null
      * @param string $disabledPayMethod = null
      * @param array $payMethods = []
@@ -77,7 +161,7 @@ class CardPayRequestValues extends StrictObject
         string $merchantNote = null,
         string $description = null,
         int $merchantOrderIdentification = null,
-        string $lang = LanguageCodes::EN,
+        string $lang = null,
         string $payMethod = null,
         string $disabledPayMethod = null,
         array $payMethods = [],
