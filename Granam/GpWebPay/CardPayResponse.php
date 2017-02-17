@@ -3,10 +3,67 @@ namespace Granam\GpWebPay;
 
 use Granam\GpWebPay\Codes\ResponsePayloadKeys;
 use Granam\GpWebPay\Exceptions\GpWebPayResponseHasAnError;
+use Granam\Integer\Tools\ToInteger;
+use Granam\Scalar\Tools\ToString;
 use Granam\Strict\Object\StrictObject;
 
 class CardPayResponse extends StrictObject
 {
+    /**
+     * @param array $valuesFromGetOrPost
+     * @return CardPayResponse
+     * @throws \Granam\GpWebPay\Exceptions\BrokenResponse
+     * @throws \Granam\Integer\Tools\Exceptions\WrongParameterType
+     * @throws \Granam\Integer\Tools\Exceptions\ValueLostOnCast
+     * @throws \Granam\Scalar\Tools\Exceptions\WrongParameterType
+     */
+    public static function createFromArray(array $valuesFromGetOrPost)
+    {
+        $keys = [
+            ResponsePayloadKeys::OPERATION => true,
+            ResponsePayloadKeys::ORDERNUMBER => true,
+            ResponsePayloadKeys::MERORDERNUM => false,
+            ResponsePayloadKeys::MD => false,
+            ResponsePayloadKeys::PRCODE => true,
+            ResponsePayloadKeys::SRCODE => true,
+            ResponsePayloadKeys::RESULTTEXT => false,
+            ResponsePayloadKeys::USERPARAM1 => false,
+            ResponsePayloadKeys::ADDINFO => false,
+            ResponsePayloadKeys::DIGEST => true,
+            ResponsePayloadKeys::DIGEST1 => true,
+        ];
+        $normalizedValues = [];
+        foreach ($keys as $key => $required) {
+            if (!array_key_exists($key, $valuesFromGetOrPost)) {
+                if (!$required) {
+                    $normalizedValues[$key] = null;
+                } else {
+                    throw new Exceptions\BrokenResponse(
+                        'Values to create ' . static::class . " are missing required '{$key}'"
+                    );
+                }
+            } elseif ($key === ResponsePayloadKeys::PRCODE || $key === ResponsePayloadKeys::SRCODE) {
+                $normalizedValues[$key] = ToInteger::toInteger($valuesFromGetOrPost[$key]);
+            } else {
+                $normalizedValues[$key] = ToString::toString($valuesFromGetOrPost[$key]);
+            }
+        }
+
+        return new static(
+            $normalizedValues[ResponsePayloadKeys::OPERATION],
+            $normalizedValues[ResponsePayloadKeys::ORDERNUMBER],
+            $normalizedValues[ResponsePayloadKeys::MERORDERNUM],
+            $normalizedValues[ResponsePayloadKeys::MD],
+            $normalizedValues[ResponsePayloadKeys::PRCODE],
+            $normalizedValues[ResponsePayloadKeys::SRCODE],
+            $normalizedValues[ResponsePayloadKeys::RESULTTEXT],
+            $normalizedValues[ResponsePayloadKeys::USERPARAM1],
+            $normalizedValues[ResponsePayloadKeys::ADDINFO],
+            $normalizedValues[ResponsePayloadKeys::DIGEST],
+            $normalizedValues[ResponsePayloadKeys::DIGEST1]
+        );
+    }
+
     /** @var array $parametersWithoutDigest */
     private $parametersWithoutDigest;
     /** @var string */
