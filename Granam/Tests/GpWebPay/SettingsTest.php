@@ -56,11 +56,11 @@ class SettingsTest extends TestCase
                         $gatewayKey
                     );
             }
-            self::assertSame($requestBaseUrl, $settings->getRequestBaseUrl());
+            self::assertSame($requestBaseUrl, $settings->getBaseUrlForRequest());
             self::assertSame($privateKeyFile, $settings->getPrivateKeyFile());
             self::assertSame($privateKeyPassword, $settings->getPrivateKeyPassword());
             self::assertSame($publicKeyFile, $settings->getPublicKeyFile());
-            self::assertSame($responseUrl, $settings->getResponseUrl());
+            self::assertSame($responseUrl, $settings->getUrlForResponse());
             self::assertSame($merchantNumber, $settings->getMerchantNumber());
             self::assertSame($gatewayKey, $settings->getGatewayKey());
         }

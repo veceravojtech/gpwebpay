@@ -114,7 +114,7 @@ class CardPayRequestValues extends StrictObject
     /** @var string|null */
     private $payMethod;
     /** @var string|null */
-    private $disabledPayMethod;
+    private $disablePayMethod;
     /** @var array|string[] */
     private $payMethods = [];
     /** @var string|null */
@@ -356,7 +356,7 @@ class CardPayRequestValues extends StrictObject
                 . ' use one of ' . implode(',', PayMethodCodes::getPayMethodCodes())
             );
         }
-        $this->disabledPayMethod = $disabledPayMethod;
+        $this->disablePayMethod = $disabledPayMethod;
     }
 
     /**
@@ -516,9 +516,9 @@ class CardPayRequestValues extends StrictObject
     /**
      * @return null|string
      */
-    public function getDisabledPayMethod()
+    public function getDisablePayMethod()
     {
-        return $this->disabledPayMethod;
+        return $this->disablePayMethod;
     }
 
     /**

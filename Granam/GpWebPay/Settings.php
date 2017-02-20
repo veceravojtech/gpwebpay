@@ -78,7 +78,7 @@ class Settings extends StrictObject implements SettingsInterface
     }
 
     /** @var string */
-    private $requestBaseUrl;
+    private $baseUrlForRequest;
     /** @var string */
     private $privateKeyFile;
     /** @var string */
@@ -86,18 +86,18 @@ class Settings extends StrictObject implements SettingsInterface
     /** @var string */
     private $publicKeyFile;
     /** @var string */
-    private $responseUrl;
+    private $urlForResponse;
     /** @var string */
     private $merchantNumber;
     /** @var string */
     private $gatewayKey;
 
     /**
-     * @param string $requestBaseUrl
+     * @param string $baseUrlForRequest
      * @param string $privateKeyFile
      * @param string $privateKeyPassword
      * @param string $publicKeyFile
-     * @param string $responseUrl
+     * @param string $urlForResponse
      * @param string $merchantNumber
      * @param string $gatewayKey
      * @throws \Granam\GpWebPay\Exceptions\PrivateKeyFileCanNotBeRead
@@ -107,37 +107,37 @@ class Settings extends StrictObject implements SettingsInterface
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
      */
     public function __construct(
-        string $requestBaseUrl,
+        string $baseUrlForRequest,
         string $privateKeyFile,
         string $privateKeyPassword,
         string $publicKeyFile,
-        string $responseUrl,
+        string $urlForResponse,
         string $merchantNumber,
         string $gatewayKey
     )
     {
-        $this->setRequestBaseUrl($requestBaseUrl);
+        $this->setBaseUrlForRequest($baseUrlForRequest);
         $this->setPrivateKeyFile($privateKeyFile);
         $this->setPrivateKeyPassword($privateKeyPassword);
         $this->setPublicKeyFile($publicKeyFile);
-        $this->setResponseUrl($responseUrl);
+        $this->setUrlForResponse($urlForResponse);
         $this->merchantNumber = $merchantNumber;
         $this->gatewayKey = trim($gatewayKey);
     }
 
     /**
-     * @param string $requestBaseUrl
+     * @param string $baseUrlForRequest
      * @throws \Granam\GpWebPay\Exceptions\InvalidUrl
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
      */
-    private function setRequestBaseUrl(string $requestBaseUrl)
+    private function setBaseUrlForRequest(string $baseUrlForRequest)
     {
-        $requestBaseUrl = trim($requestBaseUrl);
-        if (!filter_var($requestBaseUrl, FILTER_VALIDATE_URL)) {
-            throw new Exceptions\InvalidUrl("Given URL for request is not valid: '{$requestBaseUrl}'");
+        $baseUrlForRequest = trim($baseUrlForRequest);
+        if (!filter_var($baseUrlForRequest, FILTER_VALIDATE_URL)) {
+            throw new Exceptions\InvalidUrl("Given URL for request is not valid: '{$baseUrlForRequest}'");
         }
 
-        $this->requestBaseUrl = $requestBaseUrl;
+        $this->baseUrlForRequest = $baseUrlForRequest;
     }
 
     /**
@@ -189,32 +189,32 @@ class Settings extends StrictObject implements SettingsInterface
     const MAXIMAL_LENGTH_OF_URL = 300;
 
     /**
-     * @param string $responseUrl with maximal length of 300 characters
+     * @param string $urlForResponse with maximal length of 300 characters
      * @throws \Granam\GpWebPay\Exceptions\InvalidUrl
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
      */
-    private function setResponseUrl(string $responseUrl)
+    private function setUrlForResponse(string $urlForResponse)
     {
-        $responseUrl = trim($responseUrl);
-        if (!filter_var($responseUrl, FILTER_VALIDATE_URL)) {
-            throw new Exceptions\InvalidUrl('Given ' . RequestDigestKeys::URL . " is not valid: '{$responseUrl}'");
+        $urlForResponse = trim($urlForResponse);
+        if (!filter_var($urlForResponse, FILTER_VALIDATE_URL)) {
+            throw new Exceptions\InvalidUrl('Given ' . RequestDigestKeys::URL . " is not valid: '{$urlForResponse}'");
         }
-        if (strlen($responseUrl) > self::MAXIMAL_LENGTH_OF_URL) {
+        if (strlen($urlForResponse) > self::MAXIMAL_LENGTH_OF_URL) {
             throw new Exceptions\ValueTooLong(
                 "Maximal length of '" . RequestDigestKeys::URL . '\' is ' . self::MAXIMAL_LENGTH_OF_URL
-                . ', got one with length of ' . strlen($responseUrl) . " and value '{$responseUrl}'"
+                . ', got one with length of ' . strlen($urlForResponse) . " and value '{$urlForResponse}'"
             );
         }
 
-        $this->responseUrl = $responseUrl;
+        $this->urlForResponse = $urlForResponse;
     }
 
     /**
      * @return string
      */
-    public function getRequestBaseUrl(): string
+    public function getBaseUrlForRequest(): string
     {
-        return $this->requestBaseUrl;
+        return $this->baseUrlForRequest;
     }
 
     /**
@@ -244,9 +244,9 @@ class Settings extends StrictObject implements SettingsInterface
     /**
      * @return string
      */
-    public function getResponseUrl(): string
+    public function getUrlForResponse(): string
     {
-        return $this->responseUrl;
+        return $this->urlForResponse;
     }
 
     /**

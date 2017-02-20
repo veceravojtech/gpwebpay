@@ -32,7 +32,7 @@ class CardPayRequest extends StrictObject implements \IteratorAggregate
             $digestSigner,
             $cardPayRequestValues->getLang()
         );
-        $this->requestUrl = $settings->getRequestBaseUrl() . '?' . http_build_query($this->parametersForRequest);
+        $this->requestUrl = $settings->getBaseUrlForRequest() . '?' . http_build_query($this->parametersForRequest);
     }
 
     /**
@@ -52,7 +52,7 @@ class CardPayRequest extends StrictObject implements \IteratorAggregate
         if ($requestValues->getMerOrderNum()) {
             $parametersWithoutDigest[RequestPayloadKeys::MERORDERNUM] = $requestValues->getMerOrderNum();
         }
-        $parametersWithoutDigest[RequestPayloadKeys::URL] = $settings->getResponseUrl();
+        $parametersWithoutDigest[RequestPayloadKeys::URL] = $settings->getUrlForResponse();
         if ($requestValues->getDescription()) {
             $parametersWithoutDigest[RequestPayloadKeys::DESCRIPTION] = $requestValues->getDescription();
         }
@@ -62,8 +62,8 @@ class CardPayRequest extends StrictObject implements \IteratorAggregate
         if ($requestValues->getPayMethod()) {
             $parametersWithoutDigest[RequestPayloadKeys::PAYMETHOD] = $requestValues->getPayMethod();
         }
-        if ($requestValues->getDisabledPayMethod()) {
-            $parametersWithoutDigest[RequestPayloadKeys::DISABLEPAYMETHOD] = $requestValues->getDisabledPayMethod();
+        if ($requestValues->getDisablePayMethod()) {
+            $parametersWithoutDigest[RequestPayloadKeys::DISABLEPAYMETHOD] = $requestValues->getDisablePayMethod();
         }
         if ($requestValues->getPayMethods()) {
             $parametersWithoutDigest[RequestPayloadKeys::PAYMETHODS] = $requestValues->getPayMethods();

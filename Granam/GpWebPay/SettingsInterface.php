@@ -6,7 +6,7 @@ interface SettingsInterface
     /**
      * @return string
      */
-    public function getRequestBaseUrl(): string;
+    public function getBaseUrlForRequest(): string;
 
     /**
      * @return string
@@ -26,7 +26,7 @@ interface SettingsInterface
     /**
      * @return string
      */
-    public function getResponseUrl(): string;
+    public function getUrlForResponse(): string;
 
     /**
      * @return string
