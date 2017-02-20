@@ -7,16 +7,16 @@ use Granam\Strict\Object\StrictObject;
 class Provider extends StrictObject
 {
 
-    /** @var Settings $settings */
+    /** @var SettingsInterface $settings */
     private $settings;
     /** @var DigestSigner $digestSigner */
     private $digestSigner;
 
     /**
-     * @param Settings $settings
-     * @param DigestSigner $digestSigner
+     * @param SettingsInterface $settings
+     * @param DigestSignerInterface $digestSigner
      */
-    public function __construct(Settings $settings, DigestSigner $digestSigner)
+    public function __construct(SettingsInterface $settings, DigestSignerInterface $digestSigner)
     {
         $this->settings = $settings;
         $this->digestSigner = $digestSigner;

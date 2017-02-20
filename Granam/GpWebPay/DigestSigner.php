@@ -3,10 +3,10 @@ namespace Granam\GpWebPay;
 
 use Granam\Strict\Object\StrictObject;
 
-class DigestSigner extends StrictObject
+class DigestSigner extends StrictObject implements DigestSignerInterface
 {
 
-    /** @var Settings */
+    /** @var SettingsInterface */
     private $settings;
     /** @var resource */
     private $privateKeyResource;
@@ -14,11 +14,11 @@ class DigestSigner extends StrictObject
     private $publicKeyResource;
 
     /**
-     * @param Settings $settings
+     * @param SettingsInterface $settings
      * @throws \Granam\GpWebPay\Exceptions\PrivateKeyFileCanNotBeRead
      * @throws \Granam\GpWebPay\Exceptions\PublicKeyFileCanNotBeRead
      */
-    public function __construct(Settings $settings)
+    public function __construct(SettingsInterface $settings)
     {
         $this->settings = $settings;
     }
@@ -29,7 +29,7 @@ class DigestSigner extends StrictObject
      * @throws \Granam\GpWebPay\Exceptions\PrivateKeyUsageFailed
      * @throws \Granam\GpWebPay\Exceptions\CanNotSignDigest
      */
-    public function createSignedDigest(array $partsOfDigest)
+    public function createSignedDigest(array $partsOfDigest): string
     {
         $digestText = implode('|', $partsOfDigest);
         if (!openssl_sign($digestText, $digest, $this->getPrivateKeyResource())) {
@@ -67,7 +67,7 @@ class DigestSigner extends StrictObject
      * @throws \Granam\GpWebPay\Exceptions\PublicKeyUsageFailed
      * @throws \Granam\GpWebPay\Exceptions\DigestCanNotBeVerified
      */
-    public function verifySignedDigest(string $digestToVerify, array $expectedPartsOfDigest)
+    public function verifySignedDigest(string $digestToVerify, array $expectedPartsOfDigest): bool
     {
         $expectedDigest = implode('|', $expectedPartsOfDigest);
         $digestToVerify = base64_decode($digestToVerify);

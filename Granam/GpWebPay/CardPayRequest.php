@@ -17,29 +17,33 @@ class CardPayRequest extends StrictObject implements \IteratorAggregate
     private $digest;
 
     /**
-     * @param CardPayRequestValues $requestValues
-     * @param Settings $settings
-     * @param DigestSigner $digestSigner
+     * @param CardPayRequestValues $cardPayRequestValues
+     * @param SettingsInterface $settings
+     * @param DigestSignerInterface $digestSigner
      * @throws \Granam\GpWebPay\Exceptions\InvalidArgumentException
      * @throws \Granam\GpWebPay\Exceptions\PrivateKeyUsageFailed
      * @throws \Granam\GpWebPay\Exceptions\CanNotSignDigest
      */
-    public function __construct(CardPayRequestValues $requestValues, Settings $settings, DigestSigner $digestSigner)
+    public function __construct(
+        CardPayRequestValues $cardPayRequestValues,
+        SettingsInterface $settings,
+        DigestSignerInterface $digestSigner
+    )
     {
-        $this->requestUrl = $settings->getRequestUrl();
-        $this->setParametersWithoutDigest($requestValues, $settings);
+        $this->requestUrl = $settings->getRequestBaseUrl();
+        $this->setParametersWithoutDigest($cardPayRequestValues, $settings);
         // digest HAS TO be calculated after parameters population
         $this->digest = $digestSigner->createSignedDigest($this->parametersWithoutDigest);
-        if ($requestValues->getLang()) { // lang IS NOT part of digest
-            $this->lang = $requestValues->getLang();
+        if ($cardPayRequestValues->getLang()) { // lang IS NOT part of digest
+            $this->lang = $cardPayRequestValues->getLang();
         }
     }
 
     /**
      * @param CardPayRequestValues $requestValues
-     * @param Settings $settings
+     * @param SettingsInterface $settings
      */
-    private function setParametersWithoutDigest(CardPayRequestValues $requestValues, Settings $settings)
+    private function setParametersWithoutDigest(CardPayRequestValues $requestValues, SettingsInterface $settings)
     {
         // parameters HAVE TO be in this order, see GP_webpay_HTTP_EN.pdf / GP_webpay_HTTP.pdf
         $this->parametersWithoutDigest[RequestPayloadKeys::MERCHANTNUMBER] = $settings->getMerchantNumber();

@@ -4,7 +4,7 @@ namespace Granam\GpWebPay;
 use Granam\GpWebPay\Codes\RequestDigestKeys;
 use Granam\Strict\Object\StrictObject;
 
-class Settings extends StrictObject
+class Settings extends StrictObject implements SettingsInterface
 {
     const PRODUCTION_REQUEST_URL = 'https://3dsecure.gpwebpay.com/pgw/order.do';
     const TEST_REQUEST_URL = 'https://test.3dsecure.gpwebpay.com/pgw/order.do';
@@ -78,7 +78,7 @@ class Settings extends StrictObject
     }
 
     /** @var string */
-    private $requestUrl;
+    private $requestBaseUrl;
     /** @var string */
     private $privateKeyFile;
     /** @var string */
@@ -93,7 +93,7 @@ class Settings extends StrictObject
     private $gatewayKey;
 
     /**
-     * @param string $requestUrl
+     * @param string $requestBaseUrl
      * @param string $privateKeyFile
      * @param string $privateKeyPassword
      * @param string $publicKeyFile
@@ -107,7 +107,7 @@ class Settings extends StrictObject
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
      */
     public function __construct(
-        string $requestUrl,
+        string $requestBaseUrl,
         string $privateKeyFile,
         string $privateKeyPassword,
         string $publicKeyFile,
@@ -116,7 +116,7 @@ class Settings extends StrictObject
         string $gatewayKey
     )
     {
-        $this->setRequestUrl($requestUrl);
+        $this->setRequestBaseUrl($requestBaseUrl);
         $this->setPrivateKeyFile($privateKeyFile);
         $this->setPrivateKeyPassword($privateKeyPassword);
         $this->setPublicKeyFile($publicKeyFile);
@@ -126,18 +126,18 @@ class Settings extends StrictObject
     }
 
     /**
-     * @param string $requestUrl
+     * @param string $requestBaseUrl
      * @throws \Granam\GpWebPay\Exceptions\InvalidUrl
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
      */
-    private function setRequestUrl(string $requestUrl)
+    private function setRequestBaseUrl(string $requestBaseUrl)
     {
-        $requestUrl = trim($requestUrl);
-        if (!filter_var($requestUrl, FILTER_VALIDATE_URL)) {
-            throw new Exceptions\InvalidUrl("Given URL for request is not valid: '{$requestUrl}'");
+        $requestBaseUrl = trim($requestBaseUrl);
+        if (!filter_var($requestBaseUrl, FILTER_VALIDATE_URL)) {
+            throw new Exceptions\InvalidUrl("Given URL for request is not valid: '{$requestBaseUrl}'");
         }
 
-        $this->requestUrl = $requestUrl;
+        $this->requestBaseUrl = $requestBaseUrl;
     }
 
     /**
@@ -212,9 +212,9 @@ class Settings extends StrictObject
     /**
      * @return string
      */
-    public function getRequestUrl(): string
+    public function getRequestBaseUrl(): string
     {
-        return $this->requestUrl;
+        return $this->requestBaseUrl;
     }
 
     /**

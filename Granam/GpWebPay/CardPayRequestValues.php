@@ -93,7 +93,7 @@ class CardPayRequestValues extends StrictObject
         );
     }
 
-    // required values
+    // REQUIRED VALUES
     /** @var int */
     private $orderNumber;
     /** @var int */
@@ -102,7 +102,7 @@ class CardPayRequestValues extends StrictObject
     private $currency;
     /** @var int */
     private $depositFlag;
-    // optional values
+    // OPTIONAL VALUES
     /** @var string|null merchant data (note) */
     private $md;
     /** @var string|null */
