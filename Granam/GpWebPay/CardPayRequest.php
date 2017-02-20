@@ -5,10 +5,10 @@ use Granam\GpWebPay\Codes\OperationCodes;
 use Granam\GpWebPay\Codes\RequestPayloadKeys;
 use Granam\Strict\Object\StrictObject;
 
-class CardPayRequest extends StrictObject
+class CardPayRequest extends StrictObject implements \IteratorAggregate
 {
-    /** @var Settings */
-    private $settings;
+    /** @var string */
+    private $requestUrl;
     /** @var string|null */
     private $lang;
     /** @var array $parametersWithoutDigest */
@@ -26,8 +26,21 @@ class CardPayRequest extends StrictObject
      */
     public function __construct(CardPayRequestValues $requestValues, Settings $settings, DigestSigner $digestSigner)
     {
-        $this->settings = $settings;
+        $this->requestUrl = $settings->getRequestUrl();
+        $this->setParametersWithoutDigest($requestValues, $settings);
+        // digest HAS TO be calculated after parameters population
+        $this->digest = $digestSigner->createSignedDigest($this->parametersWithoutDigest);
+        if ($requestValues->getLang()) { // lang IS NOT part of digest
+            $this->lang = $requestValues->getLang();
+        }
+    }
 
+    /**
+     * @param CardPayRequestValues $requestValues
+     * @param Settings $settings
+     */
+    private function setParametersWithoutDigest(CardPayRequestValues $requestValues, Settings $settings)
+    {
         // parameters HAVE TO be in this order, see GP_webpay_HTTP_EN.pdf / GP_webpay_HTTP.pdf
         $this->parametersWithoutDigest[RequestPayloadKeys::MERCHANTNUMBER] = $settings->getMerchantNumber();
         $this->parametersWithoutDigest[RequestPayloadKeys::OPERATION] = OperationCodes::CREATE_ORDER; // the only operation currently available
@@ -66,17 +79,14 @@ class CardPayRequest extends StrictObject
         if ($requestValues->getFastPayId()) {
             $this->parametersWithoutDigest[RequestPayloadKeys::FASTPAYID] = $requestValues->getFastPayId();
         }
-        // HAS TO be at the very end after all other parameters already populated
-        $this->digest = $digestSigner->createSignedDigest($this->parametersWithoutDigest);
-        if ($requestValues->getLang()) { // lang IS NOT part of digest
-            $this->lang = $requestValues->getLang();
-        }
     }
 
     /**
+     * To send a request via GET method you can use this URL
+     *
      * @return string
      */
-    public function getRequestUrl()
+    public function getRequestUrl(): string
     {
         $parameters = $this->parametersWithoutDigest;
         $parameters[RequestPayloadKeys::DIGEST] = $this->digest;
@@ -84,7 +94,33 @@ class CardPayRequest extends StrictObject
             $parameters[RequestPayloadKeys::LANG] = $this->lang;
         }
 
-        return $this->settings->getResponseUrl() . '?' . http_build_query($parameters);
+        return $this->requestUrl . '?' . http_build_query($parameters);
+    }
+
+    /**
+     * To build request by your own.
+     *
+     * @return array
+     */
+    public function getParametersForRequest(): array
+    {
+        $parameters = $this->parametersWithoutDigest;
+        $parameters[RequestPayloadKeys::DIGEST] = $this->digest;
+        if ($this->lang !== null) { // lang IS NOT part of digest
+            $parameters[RequestPayloadKeys::LANG] = $this->lang;
+        }
+
+        return $parameters;
+    }
+
+    /**
+     * To easy create a POST request by using values one by one for hidden inputs.
+     *
+     * @return \Iterator
+     */
+    public function getIterator(): \Iterator
+    {
+        return new \ArrayIterator($this->getParametersForRequest());
     }
 
 }

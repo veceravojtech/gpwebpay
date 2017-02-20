@@ -6,6 +6,79 @@ use Granam\Strict\Object\StrictObject;
 
 class Settings extends StrictObject
 {
+    const PRODUCTION_REQUEST_URL = 'https://3dsecure.gpwebpay.com/pgw/order.do';
+    const TEST_REQUEST_URL = 'https://test.3dsecure.gpwebpay.com/pgw/order.do';
+
+    /**
+     * @param string $privateKeyFile
+     * @param string $privateKeyPassword
+     * @param string $publicKeyFile
+     * @param string $responseUrl
+     * @param string $merchantNumber
+     * @param string $gatewayKey
+     * @return Settings
+     * @throws \Granam\GpWebPay\Exceptions\PrivateKeyFileCanNotBeRead
+     * @throws \Granam\GpWebPay\Exceptions\PrivateKeyUsageFailed
+     * @throws \Granam\GpWebPay\Exceptions\PublicKeyFileCanNotBeRead
+     * @throws \Granam\GpWebPay\Exceptions\InvalidUrl
+     * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
+     */
+    public static function createForProduction(
+        string $privateKeyFile,
+        string $privateKeyPassword,
+        string $publicKeyFile,
+        string $responseUrl,
+        string $merchantNumber,
+        string $gatewayKey
+    )
+    {
+        return new static(
+            self::PRODUCTION_REQUEST_URL,
+            $privateKeyFile,
+            $privateKeyPassword,
+            $publicKeyFile,
+            $responseUrl,
+            $merchantNumber,
+            $gatewayKey
+        );
+    }
+
+    /**
+     * @param string $privateKeyFile
+     * @param string $privateKeyPassword
+     * @param string $publicKeyFile
+     * @param string $responseUrl
+     * @param string $merchantNumber
+     * @param string $gatewayKey
+     * @return Settings
+     * @throws \Granam\GpWebPay\Exceptions\PrivateKeyFileCanNotBeRead
+     * @throws \Granam\GpWebPay\Exceptions\PrivateKeyUsageFailed
+     * @throws \Granam\GpWebPay\Exceptions\PublicKeyFileCanNotBeRead
+     * @throws \Granam\GpWebPay\Exceptions\InvalidUrl
+     * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
+     */
+    public static function createForTest(
+        string $privateKeyFile,
+        string $privateKeyPassword,
+        string $publicKeyFile,
+        string $responseUrl,
+        string $merchantNumber,
+        string $gatewayKey
+    )
+    {
+        return new static(
+            self::TEST_REQUEST_URL,
+            $privateKeyFile,
+            $privateKeyPassword,
+            $publicKeyFile,
+            $responseUrl,
+            $merchantNumber,
+            $gatewayKey
+        );
+    }
+
+    /** @var string */
+    private $requestUrl;
     /** @var string */
     private $privateKeyFile;
     /** @var string */
@@ -20,6 +93,7 @@ class Settings extends StrictObject
     private $gatewayKey;
 
     /**
+     * @param string $requestUrl
      * @param string $privateKeyFile
      * @param string $privateKeyPassword
      * @param string $publicKeyFile
@@ -33,6 +107,7 @@ class Settings extends StrictObject
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
      */
     public function __construct(
+        string $requestUrl,
         string $privateKeyFile,
         string $privateKeyPassword,
         string $publicKeyFile,
@@ -41,12 +116,28 @@ class Settings extends StrictObject
         string $gatewayKey
     )
     {
+        $this->setRequestUrl($requestUrl);
         $this->setPrivateKeyFile($privateKeyFile);
         $this->setPrivateKeyPassword($privateKeyPassword);
         $this->setPublicKeyFile($publicKeyFile);
         $this->setResponseUrl($responseUrl);
         $this->merchantNumber = $merchantNumber;
         $this->gatewayKey = trim($gatewayKey);
+    }
+
+    /**
+     * @param string $requestUrl
+     * @throws \Granam\GpWebPay\Exceptions\InvalidUrl
+     * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
+     */
+    private function setRequestUrl(string $requestUrl)
+    {
+        $requestUrl = trim($requestUrl);
+        if (!filter_var($requestUrl, FILTER_VALIDATE_URL)) {
+            throw new Exceptions\InvalidUrl("Given URL for request is not valid: '{$requestUrl}'");
+        }
+
+        $this->requestUrl = $requestUrl;
     }
 
     /**
@@ -116,6 +207,14 @@ class Settings extends StrictObject
         }
 
         $this->responseUrl = $responseUrl;
+    }
+
+    /**
+     * @return string
+     */
+    public function getRequestUrl(): string
+    {
+        return $this->requestUrl;
     }
 
     /**
