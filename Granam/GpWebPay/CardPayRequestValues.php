@@ -34,6 +34,13 @@ class CardPayRequestValues extends StrictObject
         RequestDigestKeys::ADDINFO => false,
         RequestDigestKeys::FASTPAYID => false,
     ];
+    private static $integerKeysExpectedInArray = [
+        RequestDigestKeys::ORDERNUMBER,
+        RequestDigestKeys::CURRENCY,
+        RequestDigestKeys::MERORDERNUM,
+    ];
+    private static $floatKeysExpectedInArray = [RequestDigestKeys::AMOUNT]; // as float price like 3.25 EUR
+    private static $arrayWithStringKeysExpectedInArray = [RequestDigestKeys::PAYMETHODS];
 
     /**
      * @param array $valuesFromGetOrPost
@@ -56,11 +63,13 @@ class CardPayRequestValues extends StrictObject
      */
     public static function createFromArray(array $valuesFromGetOrPost, CurrencyCodes $currencyCodes)
     {
-        $integerKeys = [RequestDigestKeys::ORDERNUMBER, RequestDigestKeys::CURRENCY, RequestDigestKeys::MERORDERNUM];
-        $floatKeys = [RequestDigestKeys::AMOUNT]; // as float price like 3.25 EUR
+        $withUpperCasedKeys = [];
+        foreach ($valuesFromGetOrPost as $key => $value) {
+            $withUpperCasedKeys[strtoupper(trim($key))] = $value;
+        }
         $normalizedValues = [];
         foreach (self::$keysExpectedInArray as $key => $required) {
-            if (!array_key_exists($key, $valuesFromGetOrPost)) {
+            if (!array_key_exists($key, $withUpperCasedKeys)) {
                 if (!$required) {
                     $normalizedValues[$key] = null;
                 } else {
@@ -68,12 +77,20 @@ class CardPayRequestValues extends StrictObject
                         'Values to create ' . static::class . " are missing required '{$key}'"
                     );
                 }
-            } elseif (in_array($key, $integerKeys, true)) {
-                $normalizedValues[$key] = ToInteger::toInteger($valuesFromGetOrPost[$key]);
-            } elseif (in_array($key, $floatKeys, true)) {
-                $normalizedValues[$key] = ToFloat::toFloat($valuesFromGetOrPost[$key]);
+            } elseif (in_array($key, self::$integerKeysExpectedInArray, true)) {
+                $normalizedValues[$key] = ToInteger::toInteger($withUpperCasedKeys[$key]);
+            } elseif (in_array($key, self::$floatKeysExpectedInArray, true)) {
+                $normalizedValues[$key] = ToFloat::toFloat($withUpperCasedKeys[$key]);
+            } elseif (in_array($key, self::$arrayWithStringKeysExpectedInArray, true)) {
+                $subArray = $withUpperCasedKeys[$key];
+                if (!is_array($subArray)) {
+                    trigger_error('', E_USER_WARNING);
+                    $normalizedValues[$key] = null;
+                } else {
+                    $normalizedValues[$key] = $subArray;
+                }
             } else {
-                $normalizedValues[$key] = ToString::toString($valuesFromGetOrPost[$key]);
+                $normalizedValues[$key] = ToString::toString($withUpperCasedKeys[$key]);
             }
         }
 
@@ -139,13 +156,13 @@ class CardPayRequestValues extends StrictObject
      * @param string $merchantNote = null
      * @param string $description = null
      * @param int $merchantOrderIdentification = null
-     * @param string $lang = null
+     * @param string $languageTwoCharCode = null
      * @param string $payMethod = null
      * @param string $disabledPayMethod = null
      * @param array|null $payMethods = null
      * @param string|null $cardHolderEmail = null
      * @param string|null $referenceNumber = null
-     * @param string|null $addInfo = null
+     * @param string|null $additionalInfo = null
      * @param string|null $fastPayId = null
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
      * @throws \Granam\GpWebPay\Exceptions\UnknownCurrency
@@ -155,6 +172,7 @@ class CardPayRequestValues extends StrictObject
      * @throws \Granam\GpWebPay\Exceptions\UnsupportedPayMethod
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
      * @throws \Granam\GpWebPay\Exceptions\InvalidEmail
+     * @throws \Granam\Scalar\Tools\Exceptions\WrongParameterType
      */
     public function __construct(
         CurrencyCodes $currencyCodes,
@@ -165,13 +183,13 @@ class CardPayRequestValues extends StrictObject
         string $merchantNote = null,
         string $description = null,
         int $merchantOrderIdentification = null,
-        string $lang = null,
+        string $languageTwoCharCode = null,
         string $payMethod = null,
         string $disabledPayMethod = null,
         array $payMethods = null,
         string $cardHolderEmail = null,
         string $referenceNumber = null,
-        string $addInfo = null,
+        string $additionalInfo = null,
         string $fastPayId = null
     )
     {
@@ -182,13 +200,13 @@ class CardPayRequestValues extends StrictObject
         $this->setMd($merchantNote);
         $this->setDescription($description);
         $this->setMerOrderNum($merchantOrderIdentification);
-        $this->setLang($lang);
+        $this->setLang($languageTwoCharCode);
         $this->setPayMethod($payMethod);
         $this->setDisabledPayMethod($disabledPayMethod);
         $this->setPayMethods($payMethods);
         $this->setEmail($cardHolderEmail);
         $this->setReferenceNumber($referenceNumber);
-        $this->setAddInfo($addInfo);
+        $this->setAddInfo($additionalInfo);
         $this->setFastPayId($fastPayId);
     }
 
@@ -228,7 +246,12 @@ class CardPayRequestValues extends StrictObject
      */
     private function setPrice(float $price, int $currencyCode, CurrencyCodes $currencyCodes)
     {
-        $this->amount = (int)round($price * $currencyCodes->getCurrencyPrecision($currencyCode));
+        $precision = $currencyCodes->getCurrencyPrecision($currencyCode);
+        if ($precision > 0) {
+            /** @noinspection CallableParameterUseCaseInTypeContextInspection */
+            $price *= $precision;
+        }
+        $this->amount = (int)round($price);
     }
 
     /**
@@ -272,7 +295,8 @@ class CardPayRequestValues extends StrictObject
      */
     private function guardAsciiRange(string $value, string $name)
     {
-        if (preg_match('~(?<outOfRange>[^0x20–0x7E])~', $value, $matches)) {
+        $regexp = '~(?<outOfRange>[^' . preg_quote(chr(0x20), '~') . '-' . preg_quote(chr(0x7E), '~') . '])~';
+        if (preg_match($regexp, $value, $matches)) {
             throw new Exceptions\InvalidAsciiRange(
                 $name . ' can contains only ASCII characters in range of 0x20 – 0x7E'
                 . ', got a value with ' . count($matches['outOfRange'])
@@ -284,12 +308,15 @@ class CardPayRequestValues extends StrictObject
     const MAXIMAL_LENGTH_OF_DESCRIPTION = 255;
 
     /**
-     * @param string $description with maximal length of 255 and ASCII characters in range of 0x20–0x7E
+     * @param string|null $description with maximal length of 255 and ASCII characters in range of 0x20–0x7E
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
      * @throws \Granam\GpWebPay\Exceptions\InvalidAsciiRange
      */
-    private function setDescription(string $description)
+    private function setDescription(string $description = null)
     {
+        if ($description === null) {
+            return;
+        }
         $description = trim($description);
         $this->guardMaximalLength($description, self::MAXIMAL_LENGTH_OF_DESCRIPTION, RequestDigestKeys::DESCRIPTION);
         $this->guardAsciiRange($description, RequestDigestKeys::DESCRIPTION);
@@ -306,21 +333,27 @@ class CardPayRequestValues extends StrictObject
     const MAXIMAL_LENGTH_OF_MERORDERNUM = 30;
 
     /**
-     * @param int $merchantOrderIdentification with maximal length of 30 characters
+     * @param int|null $merchantOrderIdentification with maximal length of 30 characters
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
      */
-    private function setMerOrderNum(int $merchantOrderIdentification)
+    private function setMerOrderNum(int $merchantOrderIdentification = null)
     {
+        if ($merchantOrderIdentification === null) {
+            return;
+        }
         $this->guardMaximalLength($merchantOrderIdentification, self::MAXIMAL_LENGTH_OF_MERORDERNUM, RequestDigestKeys::MERORDERNUM);
         $this->merOrderNum = $merchantOrderIdentification;
     }
 
     /**
-     * @param string $lang
+     * @param string|null $lang
      * @throws \Granam\GpWebPay\Exceptions\UnsupportedLanguage
      */
-    private function setLang(string $lang)
+    private function setLang(string $lang = null)
     {
+        if ($lang === null) {
+            return;
+        }
         $lang = trim($lang);
         if (!LanguageCodes::isLanguageSupported($lang)) {
             throw new Exceptions\UnsupportedLanguage(
@@ -332,14 +365,17 @@ class CardPayRequestValues extends StrictObject
     }
 
     /**
-     * @param string $payMethod supported val: CRD – payment card | MCM – MasterCard Mobile | MPS – MasterPass | BTNCS - PLATBA 24
+     * @param string|null $payMethod supported val: CRD – payment card | MCM – MasterCard Mobile | MPS – MasterPass | BTNCS - PLATBA 24
      * @throws \Granam\GpWebPay\Exceptions\UnsupportedPayMethod
      */
-    private function setPayMethod(string $payMethod)
+    private function setPayMethod(string $payMethod = null)
     {
+        if ($payMethod === null) {
+            return;
+        }
         $payMethod = trim($payMethod);
         $payMethod = strtoupper($payMethod);
-        if (PayMethodCodes::isSupportedPaymentMethod($payMethod)) {
+        if (!PayMethodCodes::isSupportedPaymentMethod($payMethod)) {
             throw new Exceptions\UnsupportedPayMethod(
                 'Given ' . RequestDigestKeys::PAYMETHOD . " '{$payMethod}' is not supported, use one of "
                 . implode(',', PayMethodCodes::getPayMethodCodes())
@@ -351,11 +387,14 @@ class CardPayRequestValues extends StrictObject
     /**
      * Explicitly disable use of a payment method, even if is technically possible.
      *
-     * @param string $disabledPayMethod supported val: CRD – payment card | MCM – MasterCard Mobile | MPS – MasterPass | BTNCS - PLATBA 24
+     * @param string|null $disabledPayMethod supported val: CRD – payment card | MCM – MasterCard Mobile | MPS – MasterPass | BTNCS - PLATBA 24
      * @throws \Granam\GpWebPay\Exceptions\UnsupportedPayMethod
      */
-    private function setDisabledPayMethod(string $disabledPayMethod)
+    private function setDisabledPayMethod(string $disabledPayMethod = null)
     {
+        if ($disabledPayMethod === null) {
+            return;
+        }
         $disabledPayMethod = trim($disabledPayMethod);
         if (!PayMethodCodes::isSupportedPaymentMethod($disabledPayMethod)) {
             throw new Exceptions\UnsupportedPayMethod(
@@ -371,6 +410,7 @@ class CardPayRequestValues extends StrictObject
      * If DISABLEPAYMETHOD is set as well than an intersection of both rules is used.
      *
      * @param array|string[] $payMethods supported val: CRD – payment card | MCM – MasterCard Mobile | MPS – MasterPass | BTNCS - PLATBA 24
+     * @throws \Granam\Scalar\Tools\Exceptions\WrongParameterType
      * @throws \Granam\GpWebPay\Exceptions\UnsupportedPayMethod
      */
     private function setPayMethods(array $payMethods = null)
@@ -379,7 +419,7 @@ class CardPayRequestValues extends StrictObject
             return;
         }
         foreach ($payMethods as &$payMethod) {
-            $payMethod = strtoupper(trim($payMethod));
+            $payMethod = strtoupper(trim(ToString::toString($payMethod)));
         }
         unset($payMethod);
         $unknownPayMethods = array_diff($payMethods, PayMethodCodes::getPayMethodCodes());
@@ -399,11 +439,14 @@ class CardPayRequestValues extends StrictObject
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
      * @throws \Granam\GpWebPay\Exceptions\InvalidEmail
      */
-    private function setEmail(string $email)
+    private function setEmail(string $email = null)
     {
+        if ($email === null) {
+            return;
+        }
         $email = trim($email);
         $this->guardMaximalLength($email, self::MAXIMAL_LENGTH_OF_EMAIL, RequestDigestKeys::EMAIL);
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
+        if (filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
             throw new Exceptions\InvalidEmail("Given email '{$email}' has invalid format");
         }
         $this->email = $email;
@@ -414,11 +457,14 @@ class CardPayRequestValues extends StrictObject
     /**
      * Merchant internal ID of an order
      *
-     * @param string $referenceNumber with maximal length of 20
+     * @param string|null $referenceNumber with maximal length of 20
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
      */
-    private function setReferenceNumber(string $referenceNumber)
+    private function setReferenceNumber(string $referenceNumber = null)
     {
+        if ($referenceNumber === null) {
+            return;
+        }
         $referenceNumber = trim($referenceNumber);
         $this->guardMaximalLength($referenceNumber, self::MAXIMAL_LENGTH_OF_REFERENCENUMBER, RequestDigestKeys::REFERENCENUMBER);
         $this->referenceNumber = $referenceNumber;
@@ -432,8 +478,11 @@ class CardPayRequestValues extends StrictObject
      * @param string $addInfo with maximal length of 24000
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
      */
-    private function setAddInfo(string $addInfo)
+    private function setAddInfo(string $addInfo = null)
     {
+        if ($addInfo === null) {
+            return;
+        }
         $addInfo = trim($addInfo);
         $this->guardMaximalLength($addInfo, self::MAXIMAL_LENGTH_OF_ADDINFO, RequestDigestKeys::ADDINFO);
         $this->addInfo = $addInfo;
@@ -442,11 +491,14 @@ class CardPayRequestValues extends StrictObject
     const MAXIMAL_LENGTH_OF_FASTPAYID = 15;
 
     /**
-     * @param int $fastPayId with maximal length of 15
+     * @param int|null $fastPayId with maximal length of 15
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
      */
-    private function setFastPayId(int $fastPayId)
+    private function setFastPayId(int $fastPayId = null)
     {
+        if ($fastPayId === null) {
+            return;
+        }
         $this->guardMaximalLength($fastPayId, self::MAXIMAL_LENGTH_OF_FASTPAYID, RequestDigestKeys::FASTPAYID);
         $this->fastPayId = $fastPayId;
     }
