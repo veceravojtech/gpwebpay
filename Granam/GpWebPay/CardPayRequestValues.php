@@ -84,7 +84,7 @@ class CardPayRequestValues extends StrictObject
             } elseif (in_array($key, self::$arrayWithStringKeysExpectedInArray, true)) {
                 $subArray = $withUpperCasedKeys[$key];
                 if (!is_array($subArray)) {
-                    trigger_error('', E_USER_WARNING);
+                    trigger_error("Given '{$key}' should be an array, got " . gettype($subArray), E_USER_WARNING);
                     $normalizedValues[$key] = null;
                 } else {
                     $normalizedValues[$key] = $subArray;
