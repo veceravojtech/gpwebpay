@@ -6,9 +6,8 @@ use Granam\GpWebPay\CardPayRequestValues;
 use Granam\GpWebPay\Codes\RequestPayloadKeys;
 use Granam\GpWebPay\DigestSigner;
 use Granam\GpWebPay\SettingsInterface;
-use Granam\Tests\Tools\TestWithMockery;
 
-class CardPayRequestTest extends TestWithMockery
+class CardPayRequestTest extends PayRequestTest
 {
     /**
      * @test

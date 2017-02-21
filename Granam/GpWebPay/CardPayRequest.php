@@ -6,7 +6,7 @@ use Granam\GpWebPay\Codes\RequestDigestKeys;
 use Granam\GpWebPay\Codes\RequestPayloadKeys;
 use Granam\Strict\Object\StrictObject;
 
-class CardPayRequest extends StrictObject implements \IteratorAggregate
+class CardPayRequest extends StrictObject implements \IteratorAggregate, PayRequest
 {
     /** @var string */
     private $requestUrl;
