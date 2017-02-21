@@ -13,6 +13,28 @@ use Granam\Strict\Object\StrictObject;
 
 class CardPayRequestValues extends StrictObject
 {
+
+    // name => is required
+    private static $keysExpectedInArray = [
+        // required
+        RequestPayloadKeys::ORDERNUMBER => true,
+        RequestPayloadKeys::AMOUNT => true,
+        RequestPayloadKeys::CURRENCY => true,
+        RequestPayloadKeys::DEPOSITFLAG => true,
+        // optional
+        RequestPayloadKeys::MD => false,
+        RequestPayloadKeys::DESCRIPTION => false,
+        RequestPayloadKeys::MERORDERNUM => false,
+        RequestPayloadKeys::LANG => false,
+        RequestPayloadKeys::PAYMETHOD => false,
+        RequestPayloadKeys::DISABLEPAYMETHOD => false,
+        RequestPayloadKeys::PAYMETHODS => false,
+        RequestPayloadKeys::EMAIL => false,
+        RequestPayloadKeys::REFERENCENUMBER => false,
+        RequestPayloadKeys::ADDINFO => false,
+        RequestPayloadKeys::FASTPAYID => false,
+    ];
+
     /**
      * @param array $valuesFromGetOrPost
      * @param array $valuesFromGetOrPost
@@ -34,29 +56,10 @@ class CardPayRequestValues extends StrictObject
      */
     public static function createFromArray(array $valuesFromGetOrPost)
     {
-        $keys = [
-            // required
-            RequestPayloadKeys::ORDERNUMBER => true,
-            RequestPayloadKeys::AMOUNT => true,
-            RequestPayloadKeys::CURRENCY => true,
-            RequestPayloadKeys::DEPOSITFLAG => true,
-            // optional
-            RequestPayloadKeys::MD => false,
-            RequestPayloadKeys::DESCRIPTION => false,
-            RequestPayloadKeys::MERORDERNUM => false,
-            RequestPayloadKeys::LANG => false,
-            RequestPayloadKeys::PAYMETHOD => false,
-            RequestPayloadKeys::DISABLEPAYMETHOD => false,
-            RequestPayloadKeys::PAYMETHODS => false,
-            RequestPayloadKeys::EMAIL => false,
-            RequestPayloadKeys::REFERENCENUMBER => false,
-            RequestPayloadKeys::ADDINFO => false,
-            RequestPayloadKeys::FASTPAYID => false,
-        ];
         $integerKeys = [RequestPayloadKeys::ORDERNUMBER, RequestPayloadKeys::CURRENCY, RequestPayloadKeys::MERORDERNUM];
         $floatKeys = [RequestPayloadKeys::AMOUNT]; // as float price like 3.25 EUR
         $normalizedValues = [];
-        foreach ($keys as $key => $required) {
+        foreach (self::$keysExpectedInArray as $key => $required) {
             if (!array_key_exists($key, $valuesFromGetOrPost)) {
                 if (!$required) {
                     $normalizedValues[$key] = null;

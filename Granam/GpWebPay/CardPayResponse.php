@@ -10,6 +10,20 @@ use Granam\Strict\Object\StrictObject;
 
 class CardPayResponse extends StrictObject implements PayResponse
 {
+    private static $expectedKeys = [
+        ResponseDigestKeys::OPERATION => true,
+        ResponseDigestKeys::ORDERNUMBER => true,
+        ResponseDigestKeys::PRCODE => true,
+        ResponseDigestKeys::SRCODE => true,
+        ResponsePayloadKeys::DIGEST => true,
+        ResponsePayloadKeys::DIGEST1 => true,
+        ResponseDigestKeys::MERORDERNUM => false,
+        ResponseDigestKeys::MD => false,
+        ResponseDigestKeys::RESULTTEXT => false,
+        ResponseDigestKeys::USERPARAM1 => false, // hash of the payment card number
+        ResponseDigestKeys::ADDINFO => false,
+    ];
+
     /**
      * @param array $valuesFromGetOrPost
      * @return CardPayResponse
@@ -20,21 +34,8 @@ class CardPayResponse extends StrictObject implements PayResponse
      */
     public static function createFromArray(array $valuesFromGetOrPost)
     {
-        $keys = [
-            ResponseDigestKeys::OPERATION => true,
-            ResponseDigestKeys::ORDERNUMBER => true,
-            ResponseDigestKeys::PRCODE => true,
-            ResponseDigestKeys::SRCODE => true,
-            ResponsePayloadKeys::DIGEST => true,
-            ResponsePayloadKeys::DIGEST1 => true,
-            ResponseDigestKeys::MERORDERNUM => false,
-            ResponseDigestKeys::MD => false,
-            ResponseDigestKeys::RESULTTEXT => false,
-            ResponseDigestKeys::USERPARAM1 => false, // hash of the payment card number
-            ResponseDigestKeys::ADDINFO => false,
-        ];
         $normalizedValues = [];
-        foreach ($keys as $key => $required) {
+        foreach (self::$expectedKeys as $key => $required) {
             $valuesFromGetOrPost[$key] = $valuesFromGetOrPost[$key] ?? null;
             if ($required && $valuesFromGetOrPost[$key] === null) {
                 throw new Exceptions\BrokenResponse(
