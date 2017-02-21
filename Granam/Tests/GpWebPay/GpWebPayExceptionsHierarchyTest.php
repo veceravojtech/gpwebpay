@@ -3,7 +3,7 @@ namespace Granam\Tests\GpWebPay;
 
 use Granam\Tests\ExceptionsHierarchy\Exceptions\AbstractExceptionsHierarchyTest;
 
-class GpWEbPayExceptionsHierarchyTest extends AbstractExceptionsHierarchyTest
+class GpWebPayExceptionsHierarchyTest extends AbstractExceptionsHierarchyTest
 {
     /**
      * @return string
