@@ -163,7 +163,7 @@ vytvoření objednávky již proběhlo a objednávka je v určitém stavu
             ($this->resultText
                 ? "{$this->resultText} - "
                 : ''
-            ) . $this->getLocalizedMessage(LanguageCodes::EN),
+            ) . $this->getLocalizedMessage(LanguageCodes::EN) . "; error codes {$prCode}/{$srCode}",
             $exceptionCode, // will be internally converted to int
             $previousException
         );

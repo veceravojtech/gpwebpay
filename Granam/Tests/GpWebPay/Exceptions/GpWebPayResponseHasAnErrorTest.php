@@ -57,6 +57,7 @@ class GpWebPayResponseHasAnErrorTest extends TestCase
             if ($resultText !== '') {
                 $expectedErrorMessage = $resultText . ' - ' . $expectedErrorMessage;
             }
+            $expectedErrorMessage .= "; error codes $prCode/$srCode";
             self::assertSame($expectedErrorMessage, $gpWebPayResponseHasAnError->getMessage());
             self::assertSame($expectedEnglishResultText, $gpWebPayResponseHasAnError->getLocalizedMessage());
             self::assertSame($expectedEnglishResultText, $gpWebPayResponseHasAnError->getLocalizedMessage(LanguageCodes::EN));
