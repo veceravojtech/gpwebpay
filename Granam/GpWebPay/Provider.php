@@ -29,7 +29,7 @@ class Provider extends StrictObject
      * @throws \Granam\GpWebPay\Exceptions\PrivateKeyUsageFailed
      * @throws \Granam\GpWebPay\Exceptions\CanNotSignDigest
      */
-    public function createRequest(CardPayRequestValues $requestValues)
+    public function createCardPayRequest(CardPayRequestValues $requestValues)
     {
         return new CardPayRequest($requestValues, $this->settings, $this->digestSigner);
     }
@@ -42,7 +42,7 @@ class Provider extends StrictObject
      * @throws \Granam\Integer\Tools\Exceptions\ValueLostOnCast
      * @throws \Granam\Scalar\Tools\Exceptions\WrongParameterType
      */
-    public function createResponse(array $valuesFromGetOrPost)
+    public function createCardPayResponse(array $valuesFromGetOrPost)
     {
         return CardPayResponse::createFromArray($valuesFromGetOrPost);
     }
@@ -56,7 +56,7 @@ class Provider extends StrictObject
      * @throws \Granam\GpWebPay\Exceptions\DigestCanNotBeVerified
      * @throws \Granam\GpWebPay\Exceptions\GpWebPayResponseHasAnError
      */
-    public function verifyResponse(CardPayResponse $response)
+    public function verifyCardPayResponse(CardPayResponse $response)
     {
         // verify digest & digest1
         $responseParams = $response->getParametersForDigest();
