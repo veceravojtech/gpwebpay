@@ -37,7 +37,7 @@ class CardPayRequestValues extends StrictObject
 
     /**
      * @param array $valuesFromGetOrPost
-     * @param array $valuesFromGetOrPost
+     * @param CurrencyCodes $currencyCodes
      * @return CardPayRequestValues
      * @throws \Granam\GpWebPay\Exceptions\BrokenRequest
      * @throws \Granam\Float\Tools\Exceptions\WrongParameterType
@@ -54,7 +54,7 @@ class CardPayRequestValues extends StrictObject
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
      * @throws \Granam\GpWebPay\Exceptions\InvalidEmail
      */
-    public static function createFromArray(array $valuesFromGetOrPost)
+    public static function createFromArray(array $valuesFromGetOrPost, CurrencyCodes $currencyCodes)
     {
         $integerKeys = [RequestPayloadKeys::ORDERNUMBER, RequestPayloadKeys::CURRENCY, RequestPayloadKeys::MERORDERNUM];
         $floatKeys = [RequestPayloadKeys::AMOUNT]; // as float price like 3.25 EUR
@@ -78,6 +78,7 @@ class CardPayRequestValues extends StrictObject
         }
 
         return new static(
+            $currencyCodes,
             $normalizedValues[RequestPayloadKeys::ORDERNUMBER],
             $normalizedValues[RequestPayloadKeys::AMOUNT],
             $normalizedValues[RequestPayloadKeys::CURRENCY],
@@ -130,11 +131,11 @@ class CardPayRequestValues extends StrictObject
     private $fastPayId;
 
     /**
+     * @param CurrencyCodes $currencyCodes list of supported currencies in ISO 4217
      * @param int $orderNumber with max length of 15
      * @param float $price real price of the order (purchase) like 3.74 EUR
      * @param int $currencyNumericCode ISO 4217
      * @param bool $depositFlag false = instant payment not required, true = requires immediate payment
-     * @param CurrencyCodes $currencyCodes list of supported currencies in ISO 4217
      * @param string $merchantNote = null
      * @param string $description = null
      * @param int $merchantOrderIdentification = null
@@ -156,11 +157,11 @@ class CardPayRequestValues extends StrictObject
      * @throws \Granam\GpWebPay\Exceptions\InvalidEmail
      */
     public function __construct(
+        CurrencyCodes $currencyCodes,
         int $orderNumber,
         float $price,
         int $currencyNumericCode,
         bool $depositFlag, // false = instant payment not required, true = requires immediate payment
-        CurrencyCodes $currencyCodes,
         string $merchantNote = null,
         string $description = null,
         int $merchantOrderIdentification = null,
