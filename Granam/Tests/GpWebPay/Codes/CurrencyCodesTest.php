@@ -28,4 +28,14 @@ class CurrencyCodesTest extends TestCase
         self::assertSame(2, $currencyCodes->getCurrencyPrecision(978 /* EUR */));
         self::assertSame(3, $currencyCodes->getCurrencyPrecision(48 /* BHD */));
     }
+
+    /**
+     * @test
+     * @expectedException \Granam\GpWebPay\Exceptions\UnknownCurrency
+     * @expectedExceptionMessageRegExp ~0~
+     */
+    public function I_can_not_get_precision_for_unknown_currency()
+    {
+        (new CurrencyCodes(new ISO4217()))->getCurrencyPrecision(0);
+    }
 }
