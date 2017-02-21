@@ -2,9 +2,10 @@
 namespace Granam\GpWebPay;
 
 use Granam\GpWebPay\Codes\RequestPayloadKeys;
+use Granam\GpWebPay\Codes\ResponsePayloadKeys;
 use Granam\Strict\Object\StrictObject;
 
-class Provider extends StrictObject
+class Provider extends StrictObject implements CardPayProviderInterface
 {
 
     /** @var SettingsInterface $settings */
@@ -29,7 +30,7 @@ class Provider extends StrictObject
      * @throws \Granam\GpWebPay\Exceptions\PrivateKeyUsageFailed
      * @throws \Granam\GpWebPay\Exceptions\CanNotSignDigest
      */
-    public function createCardPayRequest(CardPayRequestValues $requestValues)
+    public function createCardPayRequest(CardPayRequestValues $requestValues): CardPayRequest
     {
         return new CardPayRequest($requestValues, $this->settings, $this->digestSigner);
     }
@@ -42,7 +43,7 @@ class Provider extends StrictObject
      * @throws \Granam\Integer\Tools\Exceptions\ValueLostOnCast
      * @throws \Granam\Scalar\Tools\Exceptions\WrongParameterType
      */
-    public function createCardPayResponse(array $valuesFromGetOrPost)
+    public function createCardPayResponse(array $valuesFromGetOrPost): CardPayResponse
     {
         return CardPayResponse::createFromArray($valuesFromGetOrPost);
     }
@@ -56,14 +57,24 @@ class Provider extends StrictObject
      * @throws \Granam\GpWebPay\Exceptions\DigestCanNotBeVerified
      * @throws \Granam\GpWebPay\Exceptions\GpWebPayResponseHasAnError
      */
-    public function verifyCardPayResponse(CardPayResponse $response)
+    public function verifyCardPayResponse(CardPayResponse $response): bool
     {
         // verify digest & digest1
-        $responseParams = $response->getParametersForDigest();
-        $this->digestSigner->verifySignedDigest($response->getDigest(), $responseParams);
+        $parametersForDigest = $response->getParametersForDigest();
+        if (!$this->digestSigner->verifySignedDigest($response->getDigest(), $parametersForDigest)) {
+            throw new Exceptions\DigestCanNotBeVerified(
+                'Given \'' . ResponsePayloadKeys::DIGEST . '\' does not match expected one calculated from values '
+                . var_export($parametersForDigest, true)
+            );
+        }
         // merchant number is not part of the response to provide additional security
-        $responseParams[RequestPayloadKeys::MERCHANTNUMBER] = $this->settings->getMerchantNumber();
-        $this->digestSigner->verifySignedDigest($response->getDigest1(), $responseParams);
+        $parametersForDigest[RequestPayloadKeys::MERCHANTNUMBER] = $this->settings->getMerchantNumber();
+        if (!$this->digestSigner->verifySignedDigest($response->getDigest1(), $parametersForDigest)) {
+            throw new Exceptions\DigestCanNotBeVerified(
+                'Given \'' . ResponsePayloadKeys::DIGEST1 . '\' does not match expected one calculated from values '
+                . var_export($parametersForDigest, true)
+            );
+        }
         if ($response->hasError()) { // verify PRCODE
             throw new Exceptions\GpWebPayResponseHasAnError(
                 $response->getPrCode(),
