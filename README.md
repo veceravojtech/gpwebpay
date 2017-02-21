@@ -1,8 +1,7 @@
 # GPWebPay interface
 [![Build Status](https://travis-ci.org/jaroslavtyc/granam-gpwebpay.svg?branch=master)](https://travis-ci.org/jaroslavtyc/granam-gpwebpay)
 
-GPWebPay is a PHP library for online payments via [GPWebPay service](http://www.gpwebpay.cz/)
-![GPWEbPay logo](http://www.gpwebpay.cz/Content/imgs/logo_header@2.png | width=100)
+GPWebPay is a PHP library for online payments via [GPWebPay service](http://www.gpwebpay.cz/en)
 
 If your are using [Nette framework](https://nette.org/en/), you may want
 [Pixidos/GPWebPay](https://github.com/Pixidos/GPWebPay) Nette extension instead.
