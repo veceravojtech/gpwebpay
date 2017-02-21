@@ -5,12 +5,14 @@ use Granam\Strict\Object\StrictObject;
 
 class RequestDigestKeys extends StrictObject implements Codes
 {
+    // required
     const MERCHANTNUMBER = 'MERCHANTNUMBER';
     const OPERATION = 'OPERATION';
     const ORDERNUMBER = 'ORDERNUMBER';
     const AMOUNT = 'AMOUNT';
     const CURRENCY = 'CURRENCY';
     const DEPOSITFLAG = 'DEPOSITFLAG';
+    // optional
     const MERORDERNUM = 'MERORDERNUM';
     const URL = 'URL';
     const DESCRIPTION = 'DESCRIPTION';
