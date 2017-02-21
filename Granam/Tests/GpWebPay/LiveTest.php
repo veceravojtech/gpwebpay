@@ -1,6 +1,13 @@
 <?php
 namespace Granam\Tests\GpWebPay;
 
+use Alcohol\ISO4217;
+use Granam\GpWebPay\CardPayRequest;
+use Granam\GpWebPay\CardPayRequestValues;
+use Granam\GpWebPay\Codes\CurrencyCodes;
+use Granam\GpWebPay\Codes\RequestDigestKeys;
+use Granam\GpWebPay\DigestSigner;
+use Granam\GpWebPay\Provider;
 use Granam\GpWebPay\Settings;
 use Granam\Tests\Tools\TestWithMockery;
 use Symfony\Component\Yaml\Yaml;
@@ -17,7 +24,7 @@ class LiveTest extends TestWithMockery
 
     protected function setUp()
     {
-        $liveTestConfigFile = __DIR__ . '/../webpay_live_test_config.ymls';
+        $liveTestConfigFile = __DIR__ . '/../webpay_live_test_config.yml';
         if (is_readable($liveTestConfigFile)) {
             $config = Yaml::parse(file_get_contents($liveTestConfigFile));
             $this->settings = $this->createSettings($config);
@@ -47,20 +54,34 @@ class LiveTest extends TestWithMockery
 
         return new Settings(
             $config[self::BASE_URL_FOR_REQUEST_INDEX],
-            $config[self::PRIVATE_KEY_FILE_INDEX],
+            preg_match('~^\\/~', $config[self::PRIVATE_KEY_FILE_INDEX])
+                ? $config[self::PRIVATE_KEY_FILE_INDEX] // absolute path
+                : __DIR__ . '/../' . $config[self::PRIVATE_KEY_FILE_INDEX], // relative to config file
             $config[self::PRIVATE_KEY_PASSWORD_INDEX],
-            $config[self::PUBLIC_KEY_FILE_INDEX],
+            preg_match('~^\\/~', $config[self::PUBLIC_KEY_FILE_INDEX])
+                ? $config[self::PUBLIC_KEY_FILE_INDEX] // absolute path
+                : __DIR__ . '/../' . $config[self::PUBLIC_KEY_FILE_INDEX], // relative to config file
             'http://example.com', // no response URL is needed
-            $config[self::MERCHANT_NUMBER_INDEX],
-            '' // no gateway is needed
+            $config[self::MERCHANT_NUMBER_INDEX]
         );
     }
 
     /**
      * @test
      */
-    public function toBeContinued()
+    public function I_can_create_order()
     {
-        self::fail();
+        $provider = new Provider($this->settings, new DigestSigner($this->settings));
+        $ISO4217 = new ISO4217();
+        $_POSTLIKE = [
+            RequestDigestKeys::ORDERNUMBER => (string)time(),
+            RequestDigestKeys::AMOUNT => 123,
+            RequestDigestKeys::CURRENCY => $ISO4217->getByCode('EUR')['numeric'],
+            RequestDigestKeys::DEPOSITFLAG => true,
+        ];
+        $cardPayRequest = $provider->createCardPayRequest(
+            CardPayRequestValues::createFromArray($_POSTLIKE, new CurrencyCodes($ISO4217))
+        );
+        self::assertInstanceOf(CardPayRequest::class, $cardPayRequest);
     }
 }

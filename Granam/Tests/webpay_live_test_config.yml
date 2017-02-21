@@ -1,5 +1,5 @@
-privateKeyFile: ./live_test_private_key.pem
-privateKeyPassword: 12345
-publicKeyFile: ./live_test_public_key.pub
+privateKeyFile: ./live_test_values/live_test_private_key.pem
+privateKeyPassword: UFrVhH4LDBc6HmDZR0E9
+publicKeyFile: ./live_test_values/gpe.signing_test.pem
 baseUrlForRequest: https://test.3dsecure.gpwebpay.com/pgw/order.do
 merchantNumber: 123456789
