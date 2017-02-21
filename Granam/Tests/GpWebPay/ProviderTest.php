@@ -14,7 +14,7 @@ use Granam\Tests\Tools\TestWithMockery;
 
 class ProviderTest extends TestWithMockery
 {
-    use  CardPayProviderInterfaceTest;
+    use CardPayProviderInterfaceTest;
 
     /**
      * @test
