@@ -8,7 +8,7 @@ use Granam\Integer\Tools\ToInteger;
 use Granam\Scalar\Tools\ToString;
 use Granam\Strict\Object\StrictObject;
 
-class CardPayResponse extends StrictObject
+class CardPayResponse extends StrictObject implements PayResponse
 {
     /**
      * @param array $valuesFromGetOrPost
@@ -35,15 +35,15 @@ class CardPayResponse extends StrictObject
         ];
         $normalizedValues = [];
         foreach ($keys as $key => $required) {
-            if (!array_key_exists($key, $valuesFromGetOrPost)) {
-                if (!$required) {
-                    $normalizedValues[$key] = null;
-                } else {
-                    throw new Exceptions\BrokenResponse(
-                        'Values to create ' . static::class . " are missing required '{$key}'"
-                    );
-                }
-            } elseif ($key === ResponseDigestKeys::PRCODE || $key === ResponseDigestKeys::SRCODE) {
+            $valuesFromGetOrPost[$key] = $valuesFromGetOrPost[$key] ?? null;
+            if ($required && $valuesFromGetOrPost[$key] === null) {
+                throw new Exceptions\BrokenResponse(
+                    'Values to create ' . static::class . " are missing required '{$key}'"
+                );
+            }
+            if ($valuesFromGetOrPost[$key] === null) {
+                $normalizedValues[$key] = null;
+            } else if ($key === ResponseDigestKeys::PRCODE || $key === ResponseDigestKeys::SRCODE) {
                 $normalizedValues[$key] = ToInteger::toInteger($valuesFromGetOrPost[$key]);
             } else {
                 $normalizedValues[$key] = ToString::toString($valuesFromGetOrPost[$key]);
@@ -172,10 +172,10 @@ class CardPayResponse extends StrictObject
     }
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getResultText(): string
+    public function getResultText()
     {
-        return $this->parametersForDigest[ResponseDigestKeys::RESULTTEXT];
+        return $this->parametersForDigest[ResponseDigestKeys::RESULTTEXT] ?? null;
     }
 }
