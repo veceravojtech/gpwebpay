@@ -50,35 +50,35 @@ class CardPayRequest extends StrictObject implements \IteratorAggregate, PayRequ
         $parametersWithoutDigest[RequestDigestKeys::AMOUNT] = $requestValues->getAmount();
         $parametersWithoutDigest[RequestDigestKeys::CURRENCY] = $requestValues->getCurrency();
         $parametersWithoutDigest[RequestDigestKeys::DEPOSITFLAG] = $requestValues->getDepositFlag();
-        if ($requestValues->getMerOrderNum()) {
+        if ($requestValues->getMerOrderNum() !== null) {
             $parametersWithoutDigest[RequestDigestKeys::MERORDERNUM] = $requestValues->getMerOrderNum();
         }
         $parametersWithoutDigest[RequestDigestKeys::URL] = $settings->getUrlForResponse();
-        if ($requestValues->getDescription()) {
+        if ($requestValues->getDescription() !== null) {
             $parametersWithoutDigest[RequestDigestKeys::DESCRIPTION] = $requestValues->getDescription();
         }
-        if ($requestValues->getMd()) {
+        if ($requestValues->getMd() !== null) {
             $parametersWithoutDigest[RequestDigestKeys::MD] = $requestValues->getMd();
         }
-        if ($requestValues->getPayMethod()) {
+        if ($requestValues->getPayMethod() !== null) {
             $parametersWithoutDigest[RequestDigestKeys::PAYMETHOD] = $requestValues->getPayMethod();
         }
-        if ($requestValues->getDisablePayMethod()) {
+        if ($requestValues->getDisablePayMethod() !== null) {
             $parametersWithoutDigest[RequestDigestKeys::DISABLEPAYMETHOD] = $requestValues->getDisablePayMethod();
         }
-        if ($requestValues->getPayMethods()) {
+        if ($requestValues->getPayMethods() !== null) {
             $parametersWithoutDigest[RequestDigestKeys::PAYMETHODS] = $requestValues->getPayMethods();
         }
-        if ($requestValues->getEmail()) {
+        if ($requestValues->getEmail() !== null) {
             $parametersWithoutDigest[RequestDigestKeys::EMAIL] = $requestValues->getEmail();
         }
-        if ($requestValues->getReferenceNumber()) {
+        if ($requestValues->getReferenceNumber() !== null) {
             $parametersWithoutDigest[RequestDigestKeys::REFERENCENUMBER] = $requestValues->getReferenceNumber();
         }
-        if ($requestValues->getAddInfo()) {
+        if ($requestValues->getAddInfo() !== null) {
             $parametersWithoutDigest[RequestDigestKeys::ADDINFO] = $requestValues->getAddInfo();
         }
-        if ($requestValues->getFastPayId()) {
+        if ($requestValues->getFastPayId() !== null) {
             $parametersWithoutDigest[RequestDigestKeys::FASTPAYID] = $requestValues->getFastPayId();
         }
 

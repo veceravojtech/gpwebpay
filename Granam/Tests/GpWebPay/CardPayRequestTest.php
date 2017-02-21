@@ -82,6 +82,36 @@ class CardPayRequestTest extends PayRequestTest
             $expectedRequiredParametersForRequest,
         ];
 
+        // with optional values as zero or empty string
+        $parametersWithOptionalEmpty = [];
+        foreach (self::$requiredParameterNames as $requiredParameterName) {
+            if (array_key_exists($requiredParameterName, self::$testingValues)) {
+                $parametersWithOptionalEmpty[$requiredParameterName] = self::$testingValues[$requiredParameterName];
+            }
+        }
+        foreach (self::$testingValues as $parameterName => $testingValue) {
+            if (!array_key_exists($parameterName, $parametersWithOptionalEmpty)) {
+                if (in_array($parameterName, ['merOrderNum', 'fastPayId'], true)) {
+                    $parametersWithOptionalEmpty[$parameterName] = 0;
+                } else {
+                    $parametersWithOptionalEmpty[$parameterName] = '';
+                }
+            }
+        }
+        $expectedRequiredParametersWithoutDigest = $this->buildExpectedValues($parametersWithOptionalEmpty, self::$settingsValues);
+        $expectedRequiredNonEmptyParameters = array_filter($expectedRequiredParametersWithoutDigest, function ($parameter) {
+            return $parameter !== null;
+        });
+        $digest = 'over here';
+        $expectedRequiredParametersForRequest = $expectedRequiredNonEmptyParameters;
+        $expectedRequiredParametersForRequest[RequestPayloadKeys::DIGEST] = $digest;
+        $parameters[] = [
+            $this->createCardPayRequestValues($parametersWithOptionalEmpty),
+            $this->createSettingsInterface(self::$settingsValues),
+            $this->createDigestSigner($expectedRequiredNonEmptyParameters, $digest),
+            $expectedRequiredParametersForRequest,
+        ];
+
         return $parameters;
     }
 
