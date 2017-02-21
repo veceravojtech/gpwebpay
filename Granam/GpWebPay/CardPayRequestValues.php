@@ -17,22 +17,22 @@ class CardPayRequestValues extends StrictObject
     // name => is required
     private static $keysExpectedInArray = [
         // required
-        RequestPayloadKeys::ORDERNUMBER => true,
-        RequestPayloadKeys::AMOUNT => true,
-        RequestPayloadKeys::CURRENCY => true,
-        RequestPayloadKeys::DEPOSITFLAG => true,
+        RequestDigestKeys::ORDERNUMBER => true,
+        RequestDigestKeys::AMOUNT => true,
+        RequestDigestKeys::CURRENCY => true,
+        RequestDigestKeys::DEPOSITFLAG => true,
         // optional
-        RequestPayloadKeys::MD => false,
-        RequestPayloadKeys::DESCRIPTION => false,
-        RequestPayloadKeys::MERORDERNUM => false,
+        RequestDigestKeys::MD => false,
+        RequestDigestKeys::DESCRIPTION => false,
+        RequestDigestKeys::MERORDERNUM => false,
         RequestPayloadKeys::LANG => false,
-        RequestPayloadKeys::PAYMETHOD => false,
-        RequestPayloadKeys::DISABLEPAYMETHOD => false,
-        RequestPayloadKeys::PAYMETHODS => false,
-        RequestPayloadKeys::EMAIL => false,
-        RequestPayloadKeys::REFERENCENUMBER => false,
-        RequestPayloadKeys::ADDINFO => false,
-        RequestPayloadKeys::FASTPAYID => false,
+        RequestDigestKeys::PAYMETHOD => false,
+        RequestDigestKeys::DISABLEPAYMETHOD => false,
+        RequestDigestKeys::PAYMETHODS => false,
+        RequestDigestKeys::EMAIL => false,
+        RequestDigestKeys::REFERENCENUMBER => false,
+        RequestDigestKeys::ADDINFO => false,
+        RequestDigestKeys::FASTPAYID => false,
     ];
 
     /**
@@ -56,8 +56,8 @@ class CardPayRequestValues extends StrictObject
      */
     public static function createFromArray(array $valuesFromGetOrPost, CurrencyCodes $currencyCodes)
     {
-        $integerKeys = [RequestPayloadKeys::ORDERNUMBER, RequestPayloadKeys::CURRENCY, RequestPayloadKeys::MERORDERNUM];
-        $floatKeys = [RequestPayloadKeys::AMOUNT]; // as float price like 3.25 EUR
+        $integerKeys = [RequestDigestKeys::ORDERNUMBER, RequestDigestKeys::CURRENCY, RequestDigestKeys::MERORDERNUM];
+        $floatKeys = [RequestDigestKeys::AMOUNT]; // as float price like 3.25 EUR
         $normalizedValues = [];
         foreach (self::$keysExpectedInArray as $key => $required) {
             if (!array_key_exists($key, $valuesFromGetOrPost)) {
@@ -79,21 +79,21 @@ class CardPayRequestValues extends StrictObject
 
         return new static(
             $currencyCodes,
-            $normalizedValues[RequestPayloadKeys::ORDERNUMBER],
-            $normalizedValues[RequestPayloadKeys::AMOUNT],
-            $normalizedValues[RequestPayloadKeys::CURRENCY],
-            $normalizedValues[RequestPayloadKeys::DEPOSITFLAG],
-            $normalizedValues[RequestPayloadKeys::MD],
-            $normalizedValues[RequestPayloadKeys::DESCRIPTION],
-            $normalizedValues[RequestPayloadKeys::MERORDERNUM],
+            $normalizedValues[RequestDigestKeys::ORDERNUMBER],
+            $normalizedValues[RequestDigestKeys::AMOUNT],
+            $normalizedValues[RequestDigestKeys::CURRENCY],
+            $normalizedValues[RequestDigestKeys::DEPOSITFLAG],
+            $normalizedValues[RequestDigestKeys::MD],
+            $normalizedValues[RequestDigestKeys::DESCRIPTION],
+            $normalizedValues[RequestDigestKeys::MERORDERNUM],
             $normalizedValues[RequestPayloadKeys::LANG],
-            $normalizedValues[RequestPayloadKeys::PAYMETHOD],
-            $normalizedValues[RequestPayloadKeys::DISABLEPAYMETHOD],
-            $normalizedValues[RequestPayloadKeys::PAYMETHODS],
-            $normalizedValues[RequestPayloadKeys::EMAIL],
-            $normalizedValues[RequestPayloadKeys::REFERENCENUMBER],
-            $normalizedValues[RequestPayloadKeys::ADDINFO],
-            $normalizedValues[RequestPayloadKeys::FASTPAYID]
+            $normalizedValues[RequestDigestKeys::PAYMETHOD],
+            $normalizedValues[RequestDigestKeys::DISABLEPAYMETHOD],
+            $normalizedValues[RequestDigestKeys::PAYMETHODS],
+            $normalizedValues[RequestDigestKeys::EMAIL],
+            $normalizedValues[RequestDigestKeys::REFERENCENUMBER],
+            $normalizedValues[RequestDigestKeys::ADDINFO],
+            $normalizedValues[RequestDigestKeys::FASTPAYID]
         );
     }
 
@@ -119,8 +119,8 @@ class CardPayRequestValues extends StrictObject
     private $payMethod;
     /** @var string|null */
     private $disablePayMethod;
-    /** @var array|string[] */
-    private $payMethods = [];
+    /** @var string|null */
+    private $payMethods;
     /** @var string|null */
     private $email;
     /** @var string|null */
@@ -142,11 +142,11 @@ class CardPayRequestValues extends StrictObject
      * @param string $lang = null
      * @param string $payMethod = null
      * @param string $disabledPayMethod = null
-     * @param array $payMethods = []
-     * @param string $cardHolderEmail = null
-     * @param string $referenceNumber = null
-     * @param string $addInfo = null
-     * @param string $fastPayId = null
+     * @param array|null $payMethods = null
+     * @param string|null $cardHolderEmail = null
+     * @param string|null $referenceNumber = null
+     * @param string|null $addInfo = null
+     * @param string|null $fastPayId = null
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
      * @throws \Granam\GpWebPay\Exceptions\UnknownCurrency
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
@@ -168,7 +168,7 @@ class CardPayRequestValues extends StrictObject
         string $lang = null,
         string $payMethod = null,
         string $disabledPayMethod = null,
-        array $payMethods = [],
+        array $payMethods = null,
         string $cardHolderEmail = null,
         string $referenceNumber = null,
         string $addInfo = null,
@@ -238,7 +238,7 @@ class CardPayRequestValues extends StrictObject
      */
     private function setCurrency(int $currencyCode, CurrencyCodes $currencyCodes)
     {
-        if ($currencyCodes->isCurrencyNumericCode($currencyCode)) {
+        if (!$currencyCodes->isCurrencyNumericCode($currencyCode)) {
             throw new Exceptions\UnknownCurrency(
                 'Unknown ' . RequestDigestKeys::CURRENCY
                 . " code given, got '{$currencyCode}', expected one of those defined by ISO 4217"
@@ -254,8 +254,11 @@ class CardPayRequestValues extends StrictObject
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
      * @throws \Granam\GpWebPay\Exceptions\InvalidAsciiRange
      */
-    private function setMd(string $merchantNote = '')
+    private function setMd(string $merchantNote = null)
     {
+        if ($merchantNote === null) {
+            return;
+        }
         $merchantNote = trim($merchantNote);
         $this->guardMaximalLength($merchantNote, self::MAXIMAL_LENGTH_OF_MD, RequestDigestKeys::MD . ' (merchant note)');
         $this->guardAsciiRange($merchantNote, RequestDigestKeys::MD . ' (merchant note)');
@@ -370,8 +373,11 @@ class CardPayRequestValues extends StrictObject
      * @param array|string[] $payMethods supported val: CRD – payment card | MCM – MasterCard Mobile | MPS – MasterPass | BTNCS - PLATBA 24
      * @throws \Granam\GpWebPay\Exceptions\UnsupportedPayMethod
      */
-    private function setPayMethods(array $payMethods)
+    private function setPayMethods(array $payMethods = null)
     {
+        if ($payMethods === null) {
+            return;
+        }
         foreach ($payMethods as &$payMethod) {
             $payMethod = strtoupper(trim($payMethod));
         }
@@ -526,7 +532,7 @@ class CardPayRequestValues extends StrictObject
     }
 
     /**
-     * @return array|\string[]
+     * @return null|string
      */
     public function getPayMethods()
     {
