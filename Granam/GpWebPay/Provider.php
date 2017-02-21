@@ -59,8 +59,9 @@ class Provider extends StrictObject
     public function verifyResponse(CardPayResponse $response)
     {
         // verify digest & digest1
-        $responseParams = $response->getParametersWithoutDigest();
+        $responseParams = $response->getParametersForDigest();
         $this->digestSigner->verifySignedDigest($response->getDigest(), $responseParams);
+        // merchant number is not part of the response to provide additional security
         $responseParams[RequestPayloadKeys::MERCHANTNUMBER] = $this->settings->getMerchantNumber();
         $this->digestSigner->verifySignedDigest($response->getDigest1(), $responseParams);
         if ($response->hasError()) { // verify PRCODE

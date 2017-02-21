@@ -1,6 +1,7 @@
 <?php
 namespace Granam\GpWebPay;
 
+use Granam\GpWebPay\Codes\ResponseDigestKeys;
 use Granam\GpWebPay\Codes\ResponsePayloadKeys;
 use Granam\GpWebPay\Exceptions\GpWebPayResponseHasAnError;
 use Granam\Integer\Tools\ToInteger;
@@ -20,17 +21,17 @@ class CardPayResponse extends StrictObject
     public static function createFromArray(array $valuesFromGetOrPost)
     {
         $keys = [
-            ResponsePayloadKeys::OPERATION => true,
-            ResponsePayloadKeys::ORDERNUMBER => true,
-            ResponsePayloadKeys::MERORDERNUM => false,
-            ResponsePayloadKeys::MD => false,
-            ResponsePayloadKeys::PRCODE => true,
-            ResponsePayloadKeys::SRCODE => true,
-            ResponsePayloadKeys::RESULTTEXT => false,
-            ResponsePayloadKeys::USERPARAM1 => false,
-            ResponsePayloadKeys::ADDINFO => false,
+            ResponseDigestKeys::OPERATION => true,
+            ResponseDigestKeys::ORDERNUMBER => true,
+            ResponseDigestKeys::PRCODE => true,
+            ResponseDigestKeys::SRCODE => true,
             ResponsePayloadKeys::DIGEST => true,
             ResponsePayloadKeys::DIGEST1 => true,
+            ResponseDigestKeys::MERORDERNUM => false,
+            ResponseDigestKeys::MD => false,
+            ResponseDigestKeys::RESULTTEXT => false,
+            ResponseDigestKeys::USERPARAM1 => false, // hash of the payment card number
+            ResponseDigestKeys::ADDINFO => false,
         ];
         $normalizedValues = [];
         foreach ($keys as $key => $required) {
@@ -42,7 +43,7 @@ class CardPayResponse extends StrictObject
                         'Values to create ' . static::class . " are missing required '{$key}'"
                     );
                 }
-            } elseif ($key === ResponsePayloadKeys::PRCODE || $key === ResponsePayloadKeys::SRCODE) {
+            } elseif ($key === ResponseDigestKeys::PRCODE || $key === ResponseDigestKeys::SRCODE) {
                 $normalizedValues[$key] = ToInteger::toInteger($valuesFromGetOrPost[$key]);
             } else {
                 $normalizedValues[$key] = ToString::toString($valuesFromGetOrPost[$key]);
@@ -50,22 +51,22 @@ class CardPayResponse extends StrictObject
         }
 
         return new static(
-            $normalizedValues[ResponsePayloadKeys::OPERATION],
-            $normalizedValues[ResponsePayloadKeys::ORDERNUMBER],
-            $normalizedValues[ResponsePayloadKeys::MERORDERNUM],
-            $normalizedValues[ResponsePayloadKeys::MD],
-            $normalizedValues[ResponsePayloadKeys::PRCODE],
-            $normalizedValues[ResponsePayloadKeys::SRCODE],
-            $normalizedValues[ResponsePayloadKeys::RESULTTEXT],
-            $normalizedValues[ResponsePayloadKeys::USERPARAM1],
-            $normalizedValues[ResponsePayloadKeys::ADDINFO],
+            $normalizedValues[ResponseDigestKeys::OPERATION],
+            $normalizedValues[ResponseDigestKeys::ORDERNUMBER],
+            $normalizedValues[ResponseDigestKeys::PRCODE],
+            $normalizedValues[ResponseDigestKeys::SRCODE],
             $normalizedValues[ResponsePayloadKeys::DIGEST],
-            $normalizedValues[ResponsePayloadKeys::DIGEST1]
+            $normalizedValues[ResponsePayloadKeys::DIGEST1],
+            $normalizedValues[ResponseDigestKeys::MERORDERNUM],
+            $normalizedValues[ResponseDigestKeys::MD],
+            $normalizedValues[ResponseDigestKeys::RESULTTEXT],
+            $normalizedValues[ResponseDigestKeys::USERPARAM1],
+            $normalizedValues[ResponseDigestKeys::ADDINFO]
         );
     }
 
-    /** @var array $parametersWithoutDigest */
-    private $parametersWithoutDigest;
+    /** @var array $parametersForDigest */
+    private $parametersForDigest;
     /** @var string */
     private $digest;
     /** @var string */
@@ -74,48 +75,49 @@ class CardPayResponse extends StrictObject
     /**
      * @param string $operation
      * @param string $orderNumber
-     * @param string $merOrderNum
-     * @param string $md
      * @param int $prCode
      * @param int $srCode
-     * @param string $resultText
-     * @param string $userParam1
-     * @param string $addInfo
      * @param string $digest
      * @param string $digest1
+     * @param string|null $merOrderNum
+     * @param string|null $md
+     * @param string|null $resultText
+     * @param string|null $userParam1
+     * @param string|null $addInfo
      */
     public function __construct(
         string $operation,
         string $orderNumber,
-        string $merOrderNum = null,
-        string $md = null,
         int $prCode,
         int $srCode,
+        string $digest,
+        string $digest1,
+        string $merOrderNum = null,
+        string $md = null,
         string $resultText = null,
         string $userParam1 = null,
-        string $addInfo = null,
-        string $digest,
-        string $digest1
+        string $addInfo = null
     )
     {
-        $this->parametersWithoutDigest[ResponsePayloadKeys::OPERATION] = $operation; // string up to length of 20 (always FINALIZE_ORDER)
-        $this->parametersWithoutDigest[ResponsePayloadKeys::ORDERNUMBER] = $orderNumber; // numeric up to length of 15
+        // keys HAVE TO be exactly in this order to provide correct values for digest calculation
+        $this->parametersForDigest[ResponseDigestKeys::OPERATION] = $operation; // string up to length of 20 (always FINALIZE_ORDER)
+        $this->parametersForDigest[ResponseDigestKeys::ORDERNUMBER] = $orderNumber; // numeric up to length of 15
         if ($merOrderNum !== null) {
-            $this->parametersWithoutDigest[ResponsePayloadKeys::MERORDERNUM] = $merOrderNum; // numeric up to length of 30
+            $this->parametersForDigest[ResponseDigestKeys::MERORDERNUM] = $merOrderNum; // numeric up to length of 30
         }
         if ($md !== null) {
-            $this->parametersWithoutDigest[ResponsePayloadKeys::MD] = $md; // string up to length of 255
+            $this->parametersForDigest[ResponseDigestKeys::MD] = $md; // string up to length of 255
         }
-        $this->parametersWithoutDigest[ResponsePayloadKeys::PRCODE] = $prCode; // numeric
-        $this->parametersWithoutDigest[ResponsePayloadKeys::SRCODE] = $srCode; // numeric
+        $this->parametersForDigest[ResponseDigestKeys::PRCODE] = $prCode; // numeric
+        $this->parametersForDigest[ResponseDigestKeys::SRCODE] = $srCode; // numeric
         if ($resultText !== null) {
-            $this->parametersWithoutDigest[ResponsePayloadKeys::RESULTTEXT] = $resultText; // string up to length of 255
+            $this->parametersForDigest[ResponseDigestKeys::RESULTTEXT] = $resultText; // string up to length of 255
         }
         if ($userParam1 !== null) {
-            $this->parametersWithoutDigest[ResponsePayloadKeys::USERPARAM1] = $userParam1; // string up to length of 64
+            $this->parametersForDigest[ResponseDigestKeys::USERPARAM1] = $userParam1; // string up to length of 64
         }
         if ($addInfo !== null) {
-            $this->parametersWithoutDigest[ResponsePayloadKeys::ADDINFO] = $addInfo; // long string
+            $this->parametersForDigest[ResponseDigestKeys::ADDINFO] = $addInfo; // long string
         }
         $this->digest = $digest; // string up to length of 2000
         $this->digest1 = $digest1; // string up to length of 2000
@@ -126,15 +128,15 @@ class CardPayResponse extends StrictObject
      */
     public function hasError(): bool
     {
-        return GpWebPayResponseHasAnError::isErrorCode($this->parametersWithoutDigest[ResponsePayloadKeys::PRCODE]);
+        return GpWebPayResponseHasAnError::isErrorCode($this->parametersForDigest[ResponseDigestKeys::PRCODE]);
     }
 
     /**
      * @return array
      */
-    public function getParametersWithoutDigest(): array
+    public function getParametersForDigest(): array
     {
-        return $this->parametersWithoutDigest;
+        return $this->parametersForDigest;
     }
 
     /**
@@ -158,7 +160,7 @@ class CardPayResponse extends StrictObject
      */
     public function getSrCode(): int
     {
-        return $this->parametersWithoutDigest[ResponsePayloadKeys::SRCODE];
+        return $this->parametersForDigest[ResponseDigestKeys::SRCODE];
     }
 
     /**
@@ -166,7 +168,7 @@ class CardPayResponse extends StrictObject
      */
     public function getPrCode(): int
     {
-        return $this->parametersWithoutDigest[ResponsePayloadKeys::PRCODE];
+        return $this->parametersForDigest[ResponseDigestKeys::PRCODE];
     }
 
     /**
@@ -174,6 +176,6 @@ class CardPayResponse extends StrictObject
      */
     public function getResultText(): string
     {
-        return $this->parametersWithoutDigest[ResponsePayloadKeys::RESULTTEXT];
+        return $this->parametersForDigest[ResponseDigestKeys::RESULTTEXT];
     }
 }
