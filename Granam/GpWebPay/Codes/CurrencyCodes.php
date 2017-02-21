@@ -2,6 +2,7 @@
 namespace Granam\GpWebPay\Codes;
 
 use Alcohol\ISO4217;
+use Granam\GpWebPay\Exceptions\UnknownCurrency;
 use Granam\Strict\Object\StrictObject;
 
 /**
@@ -42,7 +43,7 @@ class CurrencyCodes extends StrictObject implements Codes
      * @param int $numericCode
      * @return string
      */
-    private function formatNumericCode(int $numericCode)
+    private function formatNumericCode(int $numericCode): string
     {
         return sprintf("%'03d", $numericCode);
     }
@@ -61,6 +62,6 @@ class CurrencyCodes extends StrictObject implements Codes
             }
         }
 
-        throw new Exceptions\UnknownCurrency("Given currency of numeric code {$numericCode} is not known");
+        throw new UnknownCurrency("Given currency of numeric code {$numericCode} is not known");
     }
 }
