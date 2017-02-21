@@ -32,9 +32,4 @@ interface SettingsInterface
      * @return string
      */
     public function getMerchantNumber(): string;
-
-    /**
-     * @return string
-     */
-    public function getGatewayKey(): string;
 }

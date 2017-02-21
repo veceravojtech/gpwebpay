@@ -18,7 +18,6 @@ class SettingsTest extends TestCase
         $publicKeyFile = __DIR__ . '/files/testing_public_key.pub';
         $responseUrl = 'https://example.com/gp-webpay/response';
         $merchantNumber = '123456';
-        $gatewayKey = 'foo';
 
         foreach (['new', 'production', 'test'] as $howToCreate) {
             switch ($howToCreate) {
@@ -28,8 +27,7 @@ class SettingsTest extends TestCase
                         $privateKeyPassword,
                         $publicKeyFile,
                         $responseUrl,
-                        $merchantNumber,
-                        $gatewayKey
+                        $merchantNumber
                     );
                     $requestBaseUrl = Settings::PRODUCTION_REQUEST_URL;
                     break;
@@ -39,8 +37,7 @@ class SettingsTest extends TestCase
                         $privateKeyPassword,
                         $publicKeyFile,
                         $responseUrl,
-                        $merchantNumber,
-                        $gatewayKey
+                        $merchantNumber
                     );
                     $requestBaseUrl = Settings::TEST_REQUEST_URL;
                     break;
@@ -52,8 +49,7 @@ class SettingsTest extends TestCase
                         $privateKeyPassword,
                         $publicKeyFile,
                         $responseUrl,
-                        $merchantNumber,
-                        $gatewayKey
+                        $merchantNumber
                     );
             }
             self::assertSame($requestBaseUrl, $settings->getBaseUrlForRequest());
@@ -62,7 +58,6 @@ class SettingsTest extends TestCase
             self::assertSame($publicKeyFile, $settings->getPublicKeyFile());
             self::assertSame($responseUrl, $settings->getUrlForResponse());
             self::assertSame($merchantNumber, $settings->getMerchantNumber());
-            self::assertSame($gatewayKey, $settings->getGatewayKey());
         }
     }
 
@@ -78,7 +73,6 @@ class SettingsTest extends TestCase
             __DIR__ . '/files/testing_private_key.pem',
             '1234567', // password
             __DIR__ . '/files/testing_public_key.pub',
-            '',
             '',
             ''
         );
@@ -97,7 +91,6 @@ class SettingsTest extends TestCase
             '1234567', // password
             __DIR__ . '/files/testing_public_key.pub',
             '',
-            '',
             ''
         );
     }
@@ -113,7 +106,6 @@ class SettingsTest extends TestCase
             __DIR__ . '/files/testing_private_key.pem',
             'knock knock', // password
             __DIR__ . '/files/testing_public_key.pub',
-            '',
             '',
             ''
         );
@@ -132,7 +124,6 @@ class SettingsTest extends TestCase
             1234567, // password
             'in a cloud',
             '',
-            '',
             ''
         );
     }
@@ -150,7 +141,6 @@ class SettingsTest extends TestCase
             1234567, // password
             __DIR__ . '/files/testing_public_key.pub',
             '/dev/null',
-            '',
             ''
         );
     }
@@ -168,7 +158,6 @@ class SettingsTest extends TestCase
             1234567, // password
             __DIR__ . '/files/testing_public_key.pub',
             'http://example.com/' . str_repeat('u', 301 - strlen('http://example.com/')),
-            '',
             ''
         );
     }

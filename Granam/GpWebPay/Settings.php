@@ -15,7 +15,6 @@ class Settings extends StrictObject implements SettingsInterface
      * @param string $publicKeyFile
      * @param string $responseUrl
      * @param string $merchantNumber
-     * @param string $gatewayKey
      * @return Settings
      * @throws \Granam\GpWebPay\Exceptions\PrivateKeyFileCanNotBeRead
      * @throws \Granam\GpWebPay\Exceptions\PrivateKeyUsageFailed
@@ -28,8 +27,7 @@ class Settings extends StrictObject implements SettingsInterface
         string $privateKeyPassword,
         string $publicKeyFile,
         string $responseUrl,
-        string $merchantNumber,
-        string $gatewayKey
+        string $merchantNumber
     )
     {
         return new static(
@@ -38,8 +36,7 @@ class Settings extends StrictObject implements SettingsInterface
             $privateKeyPassword,
             $publicKeyFile,
             $responseUrl,
-            $merchantNumber,
-            $gatewayKey
+            $merchantNumber
         );
     }
 
@@ -49,7 +46,6 @@ class Settings extends StrictObject implements SettingsInterface
      * @param string $publicKeyFile
      * @param string $responseUrl
      * @param string $merchantNumber
-     * @param string $gatewayKey
      * @return Settings
      * @throws \Granam\GpWebPay\Exceptions\PrivateKeyFileCanNotBeRead
      * @throws \Granam\GpWebPay\Exceptions\PrivateKeyUsageFailed
@@ -62,8 +58,7 @@ class Settings extends StrictObject implements SettingsInterface
         string $privateKeyPassword,
         string $publicKeyFile,
         string $responseUrl,
-        string $merchantNumber,
-        string $gatewayKey
+        string $merchantNumber
     )
     {
         return new static(
@@ -72,8 +67,7 @@ class Settings extends StrictObject implements SettingsInterface
             $privateKeyPassword,
             $publicKeyFile,
             $responseUrl,
-            $merchantNumber,
-            $gatewayKey
+            $merchantNumber
         );
     }
 
@@ -89,8 +83,6 @@ class Settings extends StrictObject implements SettingsInterface
     private $urlForResponse;
     /** @var string */
     private $merchantNumber;
-    /** @var string */
-    private $gatewayKey;
 
     /**
      * @param string $baseUrlForRequest
@@ -99,7 +91,6 @@ class Settings extends StrictObject implements SettingsInterface
      * @param string $publicKeyFile
      * @param string $urlForResponse
      * @param string $merchantNumber
-     * @param string $gatewayKey
      * @throws \Granam\GpWebPay\Exceptions\PrivateKeyFileCanNotBeRead
      * @throws \Granam\GpWebPay\Exceptions\PrivateKeyUsageFailed
      * @throws \Granam\GpWebPay\Exceptions\PublicKeyFileCanNotBeRead
@@ -112,8 +103,7 @@ class Settings extends StrictObject implements SettingsInterface
         string $privateKeyPassword,
         string $publicKeyFile,
         string $urlForResponse,
-        string $merchantNumber,
-        string $gatewayKey
+        string $merchantNumber
     )
     {
         $this->setBaseUrlForRequest($baseUrlForRequest);
@@ -121,8 +111,7 @@ class Settings extends StrictObject implements SettingsInterface
         $this->setPrivateKeyPassword($privateKeyPassword);
         $this->setPublicKeyFile($publicKeyFile);
         $this->setUrlForResponse($urlForResponse);
-        $this->merchantNumber = $merchantNumber;
-        $this->gatewayKey = trim($gatewayKey);
+        $this->merchantNumber = trim($merchantNumber);
     }
 
     /**
@@ -255,13 +244,5 @@ class Settings extends StrictObject implements SettingsInterface
     public function getMerchantNumber(): string
     {
         return $this->merchantNumber;
-    }
-
-    /**
-     * @return string
-     */
-    public function getGatewayKey(): string
-    {
-        return $this->gatewayKey;
     }
 }
