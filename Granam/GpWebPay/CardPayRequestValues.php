@@ -58,7 +58,6 @@ class CardPayRequestValues extends StrictObject
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
      * @throws \Granam\GpWebPay\Exceptions\UnknownCurrency
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
-     * @throws \Granam\GpWebPay\Exceptions\UnsupportedLanguage
      * @throws \Granam\GpWebPay\Exceptions\UnsupportedPayMethod
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
      */
@@ -176,7 +175,6 @@ class CardPayRequestValues extends StrictObject
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
      * @throws \Granam\GpWebPay\Exceptions\UnknownCurrency
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
-     * @throws \Granam\GpWebPay\Exceptions\UnsupportedLanguage
      * @throws \Granam\GpWebPay\Exceptions\UnsupportedPayMethod
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
      * @throws \Granam\Scalar\Tools\Exceptions\WrongParameterType
@@ -567,7 +565,6 @@ class CardPayRequestValues extends StrictObject
      * Note: LANG is not part of digest
      *
      * @param string|null $lang
-     * @throws \Granam\GpWebPay\Exceptions\UnsupportedLanguage
      */
     private function setLang(string $lang = null)
     {
@@ -576,11 +573,13 @@ class CardPayRequestValues extends StrictObject
         }
         $lang = trim($lang);
         if (!LanguageCodes::isLanguageSupported($lang)) {
-            throw new Exceptions\UnsupportedLanguage(
-                "Given language code is not supported '{
-                $lang}', use on of "
-                . implode(',', LanguageCodes::getLanguageCodes())
+            trigger_error(
+                "Unsupported language code '{$lang}', GPWebPay auto-detection of a language will be used."
+                . ' Supported languages are ' . implode(',', LanguageCodes::getLanguageCodes()),
+                E_USER_WARNING
             );
+
+            return;
         }
         $this->lang = $lang;
     }

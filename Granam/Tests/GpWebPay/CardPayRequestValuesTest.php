@@ -455,7 +455,7 @@ REGEXP
     /**
      * @test
      */
-    public function I_can_not_set_invalid_user_email()
+    public function No_user_email_is_used_at_all_if_invalid_one_provided()
     {
         error_clear_last();
         $previousErrorReporting = ini_set('error_reporting', -1 ^ E_USER_WARNING);
@@ -479,6 +479,39 @@ REGEXP
         error_clear_last();
         self::assertNotEmpty($lastError);
         self::assertSame(E_USER_WARNING, $lastError['type']);
-        self::assertContains('local post', $lastError['message']);
+        self::assertRegExp('~email.+local post~', $lastError['message']);
+    }
+
+    /**
+     * @test
+     */
+    public function No_user_language_is_used_at_all_if_invalid_one_provided()
+    {
+        error_clear_last();
+        $previousErrorReporting = ini_set('error_reporting', -1 ^ E_USER_WARNING);
+        new CardPayRequestValues(
+            $this->createCurrencyCodes(789, 321),
+            123,
+            456,
+            789,
+            false,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            'aboriginal'
+        );
+        ini_set('error_reporting', $previousErrorReporting);
+        $lastError = error_get_last();
+        error_clear_last();
+        self::assertNotEmpty($lastError);
+        self::assertSame(E_USER_WARNING, $lastError['type']);
+        self::assertRegExp('~language.+aboriginal~', $lastError['message']);
     }
 }
