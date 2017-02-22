@@ -61,7 +61,6 @@ class CardPayRequestValues extends StrictObject
      * @throws \Granam\GpWebPay\Exceptions\UnsupportedLanguage
      * @throws \Granam\GpWebPay\Exceptions\UnsupportedPayMethod
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
-     * @throws \Granam\GpWebPay\Exceptions\InvalidEmail
      */
     public static function createFromArray(array $valuesFromGetOrPost, CurrencyCodes $currencyCodes)
     {
@@ -180,7 +179,6 @@ class CardPayRequestValues extends StrictObject
      * @throws \Granam\GpWebPay\Exceptions\UnsupportedLanguage
      * @throws \Granam\GpWebPay\Exceptions\UnsupportedPayMethod
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
-     * @throws \Granam\GpWebPay\Exceptions\InvalidEmail
      * @throws \Granam\Scalar\Tools\Exceptions\WrongParameterType
      */
     public function __construct(
@@ -513,7 +511,6 @@ class CardPayRequestValues extends StrictObject
     /**
      * @param string $email with maximal length of 255
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
-     * @throws \Granam\GpWebPay\Exceptions\InvalidEmail
      */
     private function setEmail(string $email = null)
     {
@@ -523,8 +520,9 @@ class CardPayRequestValues extends StrictObject
         $email = trim($email);
         $this->guardMaximalLength($email, self::MAXIMAL_LENGTH_OF_EMAIL, RequestDigestKeys::EMAIL);
         if (filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
-            throw new Exceptions\InvalidEmail("Given email '{
-                $email}' has invalid format");
+            trigger_error("Given user email '{$email}' has invalid format, email will not be used", E_USER_WARNING);
+
+            return;
         }
         $this->email = $email;
     }
