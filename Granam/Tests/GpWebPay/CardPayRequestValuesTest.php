@@ -349,58 +349,67 @@ class CardPayRequestValuesTest extends TestWithMockery
     /**
      * @test
      */
-    public function My_description_is_sanitized_with_warning_if_out_of_allowed_ascii_range()
+    public function My_description_and_merchant_note_are_sanitized_with_warning_if_out_of_allowed_ascii_range()
     {
         $messageOutOfAllowedAsciiRange = 'こんにちは';
         error_clear_last();
-        $previousErrorReporting = ini_set('error_reporting', -1 ^ E_USER_WARNING);
-        new CardPayRequestValues(
-            $this->createCurrencyCodes(789, 321),
-            123,
-            456,
-            789,
-            false,
-            null,
-            $messageOutOfAllowedAsciiRange // description
-        );
-        ini_set('error_reporting', $previousErrorReporting);
-        $lastError = error_get_last();
-        error_clear_last();
-        self::assertNotEmpty($lastError);
-        self::assertSame(E_USER_WARNING, $lastError['type']);
-        self::assertRegExp(<<<'REGEXP'
-~DESCRIPTION.+\D5\D.+'こ'.+'ko'.+'ん'.+'n'.+'に'.+'ni'.+'ち'.+'chi'.+'は'.+'ha'~s
+        foreach ([RequestDigestKeys::DESCRIPTION, RequestDigestKeys::MD] as $index => $name) {
+            $roulette = [0 => null, 1 => 0];
+            $roulette[$index] = $messageOutOfAllowedAsciiRange;
+            $previousErrorReporting = ini_set('error_reporting', -1 ^ E_USER_WARNING);
+            new CardPayRequestValues(
+                $this->createCurrencyCodes(789, 321),
+                123,
+                456,
+                789,
+                false,
+                null,
+                $roulette[0], // description
+                $roulette[1] // merchant note (MD)
+            );
+            ini_set('error_reporting', $previousErrorReporting);
+            $lastError = error_get_last();
+            error_clear_last();
+            self::assertNotEmpty($lastError);
+            self::assertSame(E_USER_WARNING, $lastError['type']);
+            $nameForRegexp = preg_quote($name, '~');
+            self::assertRegExp(<<<REGEXP
+~{$nameForRegexp}.+\D5\D.+'こ'.+'ko'.+'ん'.+'n'.+'に'.+'ni'.+'ち'.+'chi'.+'は'.+'ha'~s
 REGEXP
-            ,
-            $lastError['message']
-        );
+                ,
+                $lastError['message']
+            );
+        }
     }
 
     /**
      * @test
      */
-    public function My_description_is_truncated_with_warning_if_contains_character_which_can_not_be_detected_by_regexp()
+    public function My_description_and_merchant_note_are_truncated_with_warning_if_contains_character_which_can_not_be_detected_by_regexp()
     {
         $nonDetectableCharacter = chr(128) . chr(129);
         error_clear_last();
-        $previousErrorReporting = ini_set('error_reporting', -1 ^ E_USER_WARNING);
-        new CardPayRequestValues(
-            $this->createCurrencyCodes(789, 321),
-            123,
-            456,
-            789,
-            false,
-            null,
-            $nonDetectableCharacter // description
-        );
-        ini_set('error_reporting', $previousErrorReporting);
-        $lastError = error_get_last();
-        error_clear_last();
-        self::assertNotEmpty($lastError);
-        self::assertSame(E_USER_WARNING, $lastError['type']);
-        self::assertRegExp(
-            '~DESCRIPTION.+128,129~s',
-            $lastError['message']
-        );
+        foreach ([RequestDigestKeys::DESCRIPTION, RequestDigestKeys::MD] as $index => $name) {
+            $roulette = [0 => null, 1 => 0];
+            $roulette[$index] = $nonDetectableCharacter;
+            $previousErrorReporting = ini_set('error_reporting', -1 ^ E_USER_WARNING);
+            new CardPayRequestValues(
+                $this->createCurrencyCodes(789, 321),
+                123,
+                456,
+                789,
+                false,
+                null,
+                $roulette[0], // description
+                $roulette[1] // merchant note (MD)
+            );
+            ini_set('error_reporting', $previousErrorReporting);
+            $lastError = error_get_last();
+            error_clear_last();
+            self::assertNotEmpty($lastError);
+            self::assertSame(E_USER_WARNING, $lastError['type']);
+            $nameForRegexp = preg_quote($name, '~');
+            self::assertRegExp("~{$nameForRegexp}.+128,129~s", $lastError['message']);
+        }
     }
 }
