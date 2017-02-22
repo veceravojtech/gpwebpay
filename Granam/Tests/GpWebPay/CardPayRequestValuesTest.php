@@ -96,9 +96,14 @@ class CardPayRequestValuesTest extends TestWithMockery
     /**
      * @param string|null $expectedCurrencyCode
      * @param int|null $currencyPrecision
+     * @param bool $isValidCurrencyCode = true
      * @return \Mockery\MockInterface|CurrencyCodes
      */
-    private function createCurrencyCodes(string $expectedCurrencyCode = null, int $currencyPrecision = null)
+    private function createCurrencyCodes(
+        string $expectedCurrencyCode = null,
+        int $currencyPrecision = null,
+        bool $isValidCurrencyCode = true
+    )
     {
         $currencyCodes = $this->mockery(CurrencyCodes::class);
         $currencyCodes->shouldReceive('getCurrencyPrecision')
@@ -106,9 +111,9 @@ class CardPayRequestValuesTest extends TestWithMockery
             ->andReturn($currencyPrecision);
         $currencyCodes->shouldReceive('isCurrencyNumericCode')
             ->with($expectedCurrencyCode)
-            ->andReturn(true);
+            ->andReturn($isValidCurrencyCode);
         $currencyCodes->shouldReceive('isCurrencyNumericCode')
-            ->andReturn(false);
+            ->andReturn(!$isValidCurrencyCode);
 
         return $currencyCodes;
     }
@@ -323,5 +328,21 @@ class CardPayRequestValuesTest extends TestWithMockery
                 $lang,
             ],
         ];
+    }
+
+    /**
+     * @test
+     * @expectedException \Granam\GpWebPay\Exceptions\UnknownCurrency
+     * @expectedExceptionMessageRegExp ~789~
+     */
+    public function I_can_not_use_unsupported_currency_code()
+    {
+        new CardPayRequestValues(
+            $this->createCurrencyCodes(789, 321, false /* unsupported/unknown currency code */),
+            123,
+            456,
+            789,
+            false
+        );
     }
 }
