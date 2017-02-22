@@ -445,15 +445,14 @@ class CardPayRequestValues extends StrictObject
             return;
         }
         $payMethod = trim($payMethod);
-        $payMethod = strtoupper($payMethod);
-        if (!PayMethodCodes::isSupportedPaymentMethod($payMethod)) {
+        $upperPayMethod = strtoupper($payMethod);
+        if (!PayMethodCodes::isSupportedPaymentMethod($upperPayMethod)) {
             throw new Exceptions\UnsupportedPayMethod(
-                'Given ' . RequestDigestKeys::PAYMETHOD . " '{
-                $payMethod}' is not supported, use one of "
+                'Given ' . RequestDigestKeys::PAYMETHOD . " '{$payMethod}' is not supported, use one of "
                 . implode(',', PayMethodCodes::getPayMethodCodes())
             );
         }
-        $this->payMethod = $payMethod;
+        $this->payMethod = $upperPayMethod;
     }
 
     /**
@@ -468,14 +467,14 @@ class CardPayRequestValues extends StrictObject
             return;
         }
         $disabledPayMethod = trim($disabledPayMethod);
-        if (!PayMethodCodes::isSupportedPaymentMethod($disabledPayMethod)) {
+        $upperDisabledPayMethod = strtoupper($disabledPayMethod);
+        if (!PayMethodCodes::isSupportedPaymentMethod($upperDisabledPayMethod)) {
             throw new Exceptions\UnsupportedPayMethod(
-                'Can not disable ' . RequestDigestKeys::DISABLEPAYMETHOD . " by unknown pay method '{
-                $disabledPayMethod}',"
+                'Can not disable ' . RequestDigestKeys::DISABLEPAYMETHOD . " by unknown pay method '{$disabledPayMethod}',"
                 . ' use one of ' . implode(',', PayMethodCodes::getPayMethodCodes())
             );
         }
-        $this->disablePayMethod = $disabledPayMethod;
+        $this->disablePayMethod = $upperDisabledPayMethod;
     }
 
     /**
@@ -491,18 +490,22 @@ class CardPayRequestValues extends StrictObject
         if ($payMethods === null) {
             return;
         }
-        foreach ($payMethods as &$payMethod) {
-            $payMethod = strtoupper(trim(ToString::toString($payMethod)));
+        $upperPayMethods = [];
+        foreach ($payMethods as $payMethod) {
+            $upperPayMethods[$payMethod] = strtoupper(trim(ToString::toString($payMethod)));
         }
-        unset($payMethod);
-        $unknownPayMethods = array_diff($payMethods, PayMethodCodes::getPayMethodCodes());
+        $unknownPayMethods = array_diff($upperPayMethods, PayMethodCodes::getPayMethodCodes());
         if (count($unknownPayMethods) > 0) {
+            $unknownOriginalPayMethods = [];
+            foreach ($unknownPayMethods as $unknownPayMethod) {
+                $unknownOriginalPayMethods[] = array_search($unknownPayMethod, $upperPayMethods, true);
+            }
             throw new Exceptions\UnsupportedPayMethod(
-                implode(',', $unknownPayMethods) . ' as given pay methods are not supported, use only '
-                . implode(',', PayMethodCodes::getPayMethodCodes())
+                'Can not set \'' . RequestDigestKeys::PAYMETHODS . '\' by unknown pay method ' . implode(',', $unknownOriginalPayMethods)
+                . '; use only ' . implode(',', PayMethodCodes::getPayMethodCodes())
             );
         }
-        $this->payMethods = implode(',', $payMethods);
+        $this->payMethods = implode(',', $upperPayMethods);
     }
 
     const MAXIMAL_LENGTH_OF_EMAIL = 255;

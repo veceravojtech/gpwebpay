@@ -6,6 +6,7 @@ use Granam\GpWebPay\Codes\CurrencyCodes;
 use Granam\GpWebPay\Codes\PayMethodCodes;
 use Granam\GpWebPay\Codes\RequestDigestKeys;
 use Granam\GpWebPay\Codes\RequestPayloadKeys;
+use Granam\GpWebPay\Exceptions\UnsupportedPayMethod;
 use Granam\GpWebPay\Exceptions\ValueTooLong;
 use Granam\Tests\Tools\TestWithMockery;
 
@@ -354,7 +355,7 @@ class CardPayRequestValuesTest extends TestWithMockery
         $messageOutOfAllowedAsciiRange = 'こんにちは';
         error_clear_last();
         foreach ([RequestDigestKeys::DESCRIPTION, RequestDigestKeys::MD] as $index => $name) {
-            $roulette = [0 => null, 1 => 0];
+            $roulette = [0 => null, 1 => null];
             $roulette[$index] = $messageOutOfAllowedAsciiRange;
             $previousErrorReporting = ini_set('error_reporting', -1 ^ E_USER_WARNING);
             new CardPayRequestValues(
@@ -369,6 +370,7 @@ class CardPayRequestValuesTest extends TestWithMockery
             );
             ini_set('error_reporting', $previousErrorReporting);
             $lastError = error_get_last();
+            /** @noinspection DisconnectedForeachInstructionInspection */
             error_clear_last();
             self::assertNotEmpty($lastError);
             self::assertSame(E_USER_WARNING, $lastError['type']);
@@ -390,7 +392,7 @@ REGEXP
         $nonDetectableCharacter = chr(128) . chr(129);
         error_clear_last();
         foreach ([RequestDigestKeys::DESCRIPTION, RequestDigestKeys::MD] as $index => $name) {
-            $roulette = [0 => null, 1 => 0];
+            $roulette = [0 => null, 1 => null];
             $roulette[$index] = $nonDetectableCharacter;
             $previousErrorReporting = ini_set('error_reporting', -1 ^ E_USER_WARNING);
             new CardPayRequestValues(
@@ -405,11 +407,48 @@ REGEXP
             );
             ini_set('error_reporting', $previousErrorReporting);
             $lastError = error_get_last();
+            /** @noinspection DisconnectedForeachInstructionInspection */
             error_clear_last();
             self::assertNotEmpty($lastError);
             self::assertSame(E_USER_WARNING, $lastError['type']);
             $nameForRegexp = preg_quote($name, '~');
             self::assertRegExp("~{$nameForRegexp}.+128,129~s", $lastError['message']);
+        }
+    }
+
+    /**
+     * @test
+     */
+    public function I_can_not_use_unknown_pay_method()
+    {
+        foreach ([RequestDigestKeys::PAYMETHOD, RequestDigestKeys::DISABLEPAYMETHOD, RequestDigestKeys::PAYMETHODS] as $index => $name) {
+            $roulette = [0 => null, 1 => null, 2 => null];
+            $roulette[$index] = 'cash';
+            try {
+                new CardPayRequestValues(
+                    $this->createCurrencyCodes(789, 321),
+                    123,
+                    456,
+                    789,
+                    false,
+                    null,
+                    null,
+                    null,
+                    null,
+                    $roulette[0], // pay method
+                    $roulette[1], // disabled pay method
+                    $roulette[2] !== null
+                        ? [$roulette[2]] // pay methods
+                        : null
+                );
+            } catch (UnsupportedPayMethod $unsupportedPayMethod) {
+                $nameForRegexp = preg_quote($name, '~');
+                $rouletteForRegexp = preg_quote($roulette[$index], '~');
+                self::assertRegExp(
+                    '~' . $nameForRegexp . '.+' . $rouletteForRegexp . '~',
+                    $unsupportedPayMethod->getMessage()
+                );
+            }
         }
     }
 }
