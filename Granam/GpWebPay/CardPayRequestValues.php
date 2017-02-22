@@ -242,7 +242,7 @@ class CardPayRequestValues extends StrictObject
     {
         if (strlen((string)$value) > $maximalLength) {
             throw new Exceptions\ValueTooLong(
-                "Maximal length of {$name} is {$maximalLength}, got one with length of "
+                "Maximal length of '{$name}' is {$maximalLength}, got one with length of "
                 . strlen((string)$value) . " and value '{$value}'"
             );
         }
