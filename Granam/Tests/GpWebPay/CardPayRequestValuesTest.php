@@ -18,34 +18,34 @@ class CardPayRequestValuesTest extends TestWithMockery
      * @param float $price
      * @param int $currencyNumericCode
      * @param bool $depositFlag
-     * @param string|null $merchantNote
-     * @param string|null $description
      * @param int|null $merchantOrderIdentification
-     * @param string|null $lang
+     * @param string|null $description
+     * @param string|null $merchantNote
+     * @param string|null $fastPayId
      * @param string|null $payMethod
      * @param string|null $disabledPayMethod
      * @param array|null $payMethods
      * @param string|null $cardHolderEmail
      * @param string|null $referenceNumber
      * @param string|null $addInfo
-     * @param string|null $fastPayId
+     * @param string|null $lang
      */
     public function I_can_create_it_both_directly_and_from_array(
         int $orderNumber,
         float $price,
         int $currencyNumericCode,
         bool $depositFlag,
+        int $merchantOrderIdentification = null,
         string $merchantNote = null,
         string $description = null,
-        int $merchantOrderIdentification = null,
-        string $lang = null,
+        string $fastPayId = null,
         string $payMethod = null,
         string $disabledPayMethod = null,
         array $payMethods = null,
         string $cardHolderEmail = null,
         string $referenceNumber = null,
         string $addInfo = null,
-        string $fastPayId = null
+        string $lang = null
     )
     {
         $currencyCodes = $this->createCurrencyCodes($currencyNumericCode, $currencyPrecision = 2);
@@ -55,17 +55,17 @@ class CardPayRequestValuesTest extends TestWithMockery
             RequestDigestKeys::CURRENCY => $currencyNumericCode,
             RequestDigestKeys::DEPOSITFLAG => $depositFlag,
             // optional
-            strtolower(RequestDigestKeys::MD) => $merchantNote,
-            RequestDigestKeys::DESCRIPTION => $description,
             lcfirst(RequestDigestKeys::MERORDERNUM) => $merchantOrderIdentification,
-            RequestPayloadKeys::LANG => $lang,
+            RequestDigestKeys::DESCRIPTION => $description,
+            strtolower(RequestDigestKeys::MD) => $merchantNote,
+            RequestDigestKeys::FASTPAYID => $fastPayId,
             RequestDigestKeys::PAYMETHOD => $payMethod,
             RequestDigestKeys::DISABLEPAYMETHOD => $disabledPayMethod,
             RequestDigestKeys::PAYMETHODS => $payMethods,
             RequestDigestKeys::EMAIL => $cardHolderEmail,
             RequestDigestKeys::REFERENCENUMBER => $referenceNumber,
             RequestDigestKeys::ADDINFO => $addInfo,
-            RequestDigestKeys::FASTPAYID => $fastPayId,
+            RequestPayloadKeys::LANG => $lang,
         ];
         $arrayParameters = array_filter($arrayParameters, function ($parameter) {
             return $parameter !== null || random_int(0, 1) > 1; // to cover all combinations
@@ -77,17 +77,17 @@ class CardPayRequestValuesTest extends TestWithMockery
             $price,
             $currencyNumericCode,
             $depositFlag,
-            $merchantNote,
-            $description,
             $merchantOrderIdentification,
-            $lang,
+            $description,
+            $merchantNote,
+            $fastPayId,
             $payMethod,
             $disabledPayMethod,
             $payMethods,
             $cardHolderEmail,
             $referenceNumber,
             $addInfo,
-            $fastPayId
+            $lang
         );
         self::assertEquals($fromArrayCardPayRequestValues, $newCardPayRequestValues);
         self::assertSame((int)round($price * 100), $newCardPayRequestValues->getAmount());
@@ -119,17 +119,17 @@ class CardPayRequestValuesTest extends TestWithMockery
         $price = 456.789;
         $currencyNumericCode = 978; // EUR
         $depositFlag = true;
-        $merchantNote = 'Just a note';
-        $description = 'Bought happiness';
         $merchantOrderIdentification = 135;
-        $lang = 'cs';
+        $description = 'Bought happiness';
+        $merchantNote = 'Just a note';
+        $fastPayId = 1470;
         $payMethod = PayMethodCodes::CRD;
         $disabledPayMethod = PayMethodCodes::BTNCS;
         $payMethods = PayMethodCodes::getPayMethodCodes();
         $cardHolderEmail = 'someone@example.com';
         $referenceNumber = 246;
         $addInfo = '<?xml ?>';
-        $fastPayId = 1470;
+        $lang = 'cs';
 
         return [
             // all values
@@ -138,17 +138,17 @@ class CardPayRequestValuesTest extends TestWithMockery
                 $price,
                 $currencyNumericCode,
                 $depositFlag,
-                $merchantNote,
-                $description,
                 $merchantOrderIdentification,
-                $lang,
+                $description,
+                $merchantNote,
+                $fastPayId,
                 $payMethod,
                 $disabledPayMethod,
                 $payMethods,
                 $cardHolderEmail,
                 $referenceNumber,
                 $addInfo,
-                $fastPayId,
+                $lang,
             ],
             // only required
             [
@@ -206,17 +206,17 @@ class CardPayRequestValuesTest extends TestWithMockery
      * @param int $currencyNumericCode
      * @param int $currencyPrecision
      * @param bool $depositFlag
-     * @param string|null $merchantNote
-     * @param string|null $description
      * @param int|null $merchantOrderIdentification
-     * @param string|null $lang
+     * @param string|null $description
+     * @param string|null $merchantNote
+     * @param string|null $fastPayId
      * @param string|null $payMethod
      * @param string|null $disabledPayMethod
      * @param array|null $payMethods
      * @param string|null $cardHolderEmail
      * @param string|null $referenceNumber
      * @param string|null $addInfo
-     * @param string|null $fastPayId
+     * @param string|null $lang
      */
     public function I_can_not_create_it_with_too_long_parameters(
         int $orderNumber,
@@ -224,17 +224,17 @@ class CardPayRequestValuesTest extends TestWithMockery
         int $currencyNumericCode,
         int $currencyPrecision,
         bool $depositFlag,
+        int $merchantOrderIdentification = null,
         string $merchantNote = null,
         string $description = null,
-        int $merchantOrderIdentification = null,
-        string $lang = null,
+        string $fastPayId = null,
         string $payMethod = null,
         string $disabledPayMethod = null,
         array $payMethods = null,
         string $cardHolderEmail = null,
         string $referenceNumber = null,
         string $addInfo = null,
-        string $fastPayId = null
+        string $lang = null
     )
     {
         $parameters = func_get_args();
@@ -291,17 +291,17 @@ class CardPayRequestValuesTest extends TestWithMockery
         $currencyNumericCode = 978; // EUR
         $currencyPrecision = 2;
         $depositFlag = true;
-        $merchantNote = str_repeat('a', 256);
-        $description = str_repeat('b', 256);
         $merchantOrderIdentification = null;
-        $lang = null;
+        $description = str_repeat('b', 256);
+        $merchantNote = str_repeat('a', 256);
+        $fastPayId = (int)str_repeat('4', 16);
         $payMethod = null;
         $disabledPayMethod = null;
         $payMethods = null;
         $cardHolderEmail = str_repeat('c', 256);
         $referenceNumber = str_repeat('d', 21);
         $addInfo = str_repeat('e', 24001);
-        $fastPayId = (int)str_repeat('4', 16);
+        $lang = null;
 
         return [
             [
@@ -310,17 +310,17 @@ class CardPayRequestValuesTest extends TestWithMockery
                 $currencyNumericCode,
                 $currencyPrecision,
                 $depositFlag,
-                $merchantNote,
-                $description,
                 $merchantOrderIdentification,
-                $lang,
+                $description,
+                $merchantNote,
+                $fastPayId,
                 $payMethod,
                 $disabledPayMethod,
                 $payMethods,
                 $cardHolderEmail,
                 $referenceNumber,
                 $addInfo,
-                $fastPayId,
+                $lang,
             ],
         ];
     }

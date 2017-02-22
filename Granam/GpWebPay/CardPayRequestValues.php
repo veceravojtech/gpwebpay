@@ -23,17 +23,17 @@ class CardPayRequestValues extends StrictObject
         RequestDigestKeys::CURRENCY => true,
         RequestDigestKeys::DEPOSITFLAG => true,
         // optional
-        RequestDigestKeys::MD => false,
-        RequestDigestKeys::DESCRIPTION => false,
         RequestDigestKeys::MERORDERNUM => false,
-        RequestPayloadKeys::LANG => false,
+        RequestDigestKeys::DESCRIPTION => false,
+        RequestDigestKeys::MD => false,
+        RequestDigestKeys::FASTPAYID => false,
         RequestDigestKeys::PAYMETHOD => false,
         RequestDigestKeys::DISABLEPAYMETHOD => false,
         RequestDigestKeys::PAYMETHODS => false,
         RequestDigestKeys::EMAIL => false,
         RequestDigestKeys::REFERENCENUMBER => false,
         RequestDigestKeys::ADDINFO => false,
-        RequestDigestKeys::FASTPAYID => false,
+        RequestPayloadKeys::LANG => false,
     ];
     private static $integerKeysExpectedInArray = [
         RequestDigestKeys::ORDERNUMBER,
@@ -110,17 +110,17 @@ class CardPayRequestValues extends StrictObject
             $normalizedValues[RequestDigestKeys::AMOUNT],
             $normalizedValues[RequestDigestKeys::CURRENCY],
             $normalizedValues[RequestDigestKeys::DEPOSITFLAG],
-            $normalizedValues[RequestDigestKeys::MD],
-            $normalizedValues[RequestDigestKeys::DESCRIPTION],
             $normalizedValues[RequestDigestKeys::MERORDERNUM],
-            $normalizedValues[RequestPayloadKeys::LANG],
+            $normalizedValues[RequestDigestKeys::DESCRIPTION],
+            $normalizedValues[RequestDigestKeys::MD],
+            $normalizedValues[RequestDigestKeys::FASTPAYID],
             $normalizedValues[RequestDigestKeys::PAYMETHOD],
             $normalizedValues[RequestDigestKeys::DISABLEPAYMETHOD],
             $normalizedValues[RequestDigestKeys::PAYMETHODS],
             $normalizedValues[RequestDigestKeys::EMAIL],
             $normalizedValues[RequestDigestKeys::REFERENCENUMBER],
             $normalizedValues[RequestDigestKeys::ADDINFO],
-            $normalizedValues[RequestDigestKeys::FASTPAYID]
+            $normalizedValues[RequestPayloadKeys::LANG]
         );
     }
 
@@ -134,14 +134,14 @@ class CardPayRequestValues extends StrictObject
     /** @var int */
     private $depositFlag;
     // OPTIONAL VALUES
-    /** @var string|null merchant data (note) */
-    private $md;
-    /** @var string|null */
-    private $description;
     /** @var int|null */
     private $merOrderNum;
     /** @var string|null */
-    private $lang;
+    private $description;
+    /** @var string|null merchant data (note) */
+    private $md;
+    /** @var int|null */
+    private $fastPayId;
     /** @var string|null */
     private $payMethod;
     /** @var string|null */
@@ -154,26 +154,26 @@ class CardPayRequestValues extends StrictObject
     private $referenceNumber;
     /** @var string|null */
     private $addInfo;
-    /** @var int|null */
-    private $fastPayId;
+    /** @var string|null */
+    private $lang;
 
     /**
      * @param CurrencyCodes $currencyCodes list of supported currencies in ISO 4217
      * @param int $orderNumber with max length of 15
      * @param float $price real price of the order (purchase) like 3.74 EUR
      * @param int $currencyNumericCode ISO 4217
-     * @param bool $depositFlag false = instant payment not required, true = requires immediate payment
-     * @param string $merchantNote = null
-     * @param string $description = null
-     * @param int $merchantOrderIdentification = null
-     * @param string $languageTwoCharCode = null
-     * @param string $payMethod = null
-     * @param string $disabledPayMethod = null
+     * @param bool $depositFlag (false = instant payment not required, true = requires immediate payment)
+     * @param int|null $merchantOrderIdentification = null
+     * @param string|null $description = null
+     * @param string|null $merchantNote = null
+     * @param string|null $fastPayId = null
+     * @param string|null $payMethod = null
+     * @param string|null $disabledPayMethod = null
      * @param array|null $payMethods = null
      * @param string|null $cardHolderEmail = null
      * @param string|null $referenceNumber = null
      * @param string|null $additionalInfo = null
-     * @param string|null $fastPayId = null
+     * @param string|null $languageTwoCharCode = null
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
      * @throws \Granam\GpWebPay\Exceptions\UnknownCurrency
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
@@ -190,34 +190,38 @@ class CardPayRequestValues extends StrictObject
         float $price,
         int $currencyNumericCode,
         bool $depositFlag, // false = instant payment not required, true = requires immediate payment
-        string $merchantNote = null,
-        string $description = null,
         int $merchantOrderIdentification = null,
-        string $languageTwoCharCode = null,
+        string $description = null,
+        string $merchantNote = null,
+        string $fastPayId = null,
         string $payMethod = null,
         string $disabledPayMethod = null,
         array $payMethods = null,
         string $cardHolderEmail = null,
         string $referenceNumber = null,
         string $additionalInfo = null,
-        string $fastPayId = null
+        string $languageTwoCharCode = null
     )
     {
+        // MERCHANTNUMBER is taken from Settings by CardPayRequest
+        // OPERATION is handled by CardPayRequest
         $this->setOrderNumber($orderNumber);
-        $this->setPrice($price, $currencyNumericCode, $currencyCodes);
+        $this->setAmount($price, $currencyNumericCode, $currencyCodes);
         $this->setCurrency($currencyNumericCode, $currencyCodes);
-        $this->depositFlag = (int)$depositFlag; // 0 / 1
-        $this->setMd($merchantNote);
-        $this->setDescription($description);
+        $this->setDepositFlag($depositFlag);
         $this->setMerOrderNum($merchantOrderIdentification);
-        $this->setLang($languageTwoCharCode);
+        // URL is taken from Settings by CardPayRequest
+        $this->setDescription($description);
+        $this->setMd($merchantNote);
+        $this->setFastPayId($fastPayId); // "This parameter is located behind the MD parameter", see GP_webpay_HTTP_EN.pdf page 15
         $this->setPayMethod($payMethod);
         $this->setDisabledPayMethod($disabledPayMethod);
         $this->setPayMethods($payMethods);
         $this->setEmail($cardHolderEmail);
         $this->setReferenceNumber($referenceNumber);
         $this->setAddInfo($additionalInfo);
-        $this->setFastPayId($fastPayId);
+        // DIGEST is handled by CardPayRequest
+        $this->setLang($languageTwoCharCode);
     }
 
     const MAXIMAL_LENGTH_OF_ORDER_NUMBER = 15;
@@ -257,7 +261,7 @@ class CardPayRequestValues extends StrictObject
      * @throws \Granam\GpWebPay\Exceptions\UnknownCurrency
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
      */
-    private function setPrice(float $price, int $currencyCode, CurrencyCodes $currencyCodes)
+    private function setAmount(float $price, int $currencyCode, CurrencyCodes $currencyCodes)
     {
         $precision = $currencyCodes->getCurrencyPrecision($currencyCode);
         if ($precision > 0) {
@@ -285,58 +289,12 @@ class CardPayRequestValues extends StrictObject
         $this->currency = $currencyCode;
     }
 
-    const MAXIMAL_LENGTH_OF_MD = 255;
-
     /**
-     * @param string $merchantNote with maximal length of 255 and ASCII characters in range of 0x20–0x7E
-     * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
-     * @throws \Granam\GpWebPay\Exceptions\InvalidAsciiRange
+     * @param bool $depositFlag
      */
-    private function setMd(string $merchantNote = null)
+    private function setDepositFlag(bool $depositFlag)
     {
-        if ($merchantNote === null) {
-            return;
-        }
-        $merchantNote = trim($merchantNote);
-        $this->guardMaximalLength($merchantNote, self::MAXIMAL_LENGTH_OF_MD, RequestDigestKeys::MD . ' (merchant note)');
-        $this->guardAsciiRange($merchantNote, RequestDigestKeys::MD . ' (merchant note)');
-        $this->md = $merchantNote;
-    }
-
-    /**
-     * @param string $value
-     * @param string $name
-     * @throws \Granam\GpWebPay\Exceptions\InvalidAsciiRange
-     */
-    private function guardAsciiRange(string $value, string $name)
-    {
-        $regexp = '~(?<outOfRange>[^' . preg_quote(chr(0x20), '~') . '-' . preg_quote(chr(0x7E), '~') . '])~';
-        if (preg_match_all($regexp, $value, $matches)) {
-            throw new Exceptions\InvalidAsciiRange(
-                $name . ' can contains only ASCII characters in range of'
-                . ' 0x20 (' . chr(0x20) . ') – 0x7E (' . chr(0x7E) . ')'
-                . ', got a value with ' . count($matches['outOfRange'])
-                . " non-matching characters in string '{$value}' (" . implode(',', $matches['outOfRange']) . ')'
-            );
-        }
-    }
-
-    const MAXIMAL_LENGTH_OF_DESCRIPTION = 255;
-
-    /**
-     * @param string|null $description with maximal length of 255 and ASCII characters in range of 0x20–0x7E
-     * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
-     * @throws \Granam\GpWebPay\Exceptions\InvalidAsciiRange
-     */
-    private function setDescription(string $description = null)
-    {
-        if ($description === null) {
-            return;
-        }
-        $description = trim($description);
-        $this->guardMaximalLength($description, self::MAXIMAL_LENGTH_OF_DESCRIPTION, RequestDigestKeys::DESCRIPTION);
-        $this->guardAsciiRange($description, RequestDigestKeys::DESCRIPTION);
-        $this->description = $description;
+        $this->depositFlag = (int)$depositFlag; // 0 or 1
     }
 
     /*
@@ -361,23 +319,73 @@ class CardPayRequestValues extends StrictObject
         $this->merOrderNum = $merchantOrderIdentification;
     }
 
+    const MAXIMAL_LENGTH_OF_DESCRIPTION = 255;
+
     /**
-     * @param string|null $lang
-     * @throws \Granam\GpWebPay\Exceptions\UnsupportedLanguage
+     * @param string|null $description with maximal length of 255 and ASCII characters in range of 0x20–0x7E
+     * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
+     * @throws \Granam\GpWebPay\Exceptions\InvalidAsciiRange
      */
-    private function setLang(string $lang = null)
+    private function setDescription(string $description = null)
     {
-        if ($lang === null) {
+        if ($description === null) {
             return;
         }
-        $lang = trim($lang);
-        if (!LanguageCodes::isLanguageSupported($lang)) {
-            throw new Exceptions\UnsupportedLanguage(
-                "Given language code is not supported '{$lang}', use on of "
-                . implode(',', LanguageCodes::getLanguageCodes())
+        $description = trim($description);
+        $this->guardMaximalLength($description, self::MAXIMAL_LENGTH_OF_DESCRIPTION, RequestDigestKeys::DESCRIPTION);
+        $this->guardAsciiRange($description, RequestDigestKeys::DESCRIPTION);
+        $this->description = $description;
+    }
+
+    /**
+     * @param string $value
+     * @param string $name
+     * @throws \Granam\GpWebPay\Exceptions\InvalidAsciiRange
+     */
+    private function guardAsciiRange(string $value, string $name)
+    {
+        $regexp = '~(?<outOfRange>[^' . preg_quote(chr(0x20), '~') . '-' . preg_quote(chr(0x7E), '~') . '])~';
+        if (preg_match_all($regexp, $value, $matches)) {
+            throw new Exceptions\InvalidAsciiRange(
+                $name . ' can contains only ASCII characters in range of'
+                . ' 0x20 (' . chr(0x20) . ') – 0x7E (' . chr(0x7E) . ')'
+                . ', got a value with ' . count($matches['outOfRange'])
+                . " non-matching characters in string '{$value}' (" . implode(',', $matches['outOfRange']) . ')'
             );
         }
-        $this->lang = $lang;
+    }
+
+    const MAXIMAL_LENGTH_OF_MD = 255;
+
+    /**
+     * @param string $merchantNote with maximal length of 255 and ASCII characters in range of 0x20–0x7E
+     * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
+     * @throws \Granam\GpWebPay\Exceptions\InvalidAsciiRange
+     */
+    private function setMd(string $merchantNote = null)
+    {
+        if ($merchantNote === null) {
+            return;
+        }
+        $merchantNote = trim($merchantNote);
+        $this->guardMaximalLength($merchantNote, self::MAXIMAL_LENGTH_OF_MD, RequestDigestKeys::MD . ' (merchant note)');
+        $this->guardAsciiRange($merchantNote, RequestDigestKeys::MD . ' (merchant note)');
+        $this->md = $merchantNote;
+    }
+
+    const MAXIMAL_LENGTH_OF_FASTPAYID = 15;
+
+    /**
+     * @param int|null $fastPayId with maximal length of 15
+     * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
+     */
+    private function setFastPayId(int $fastPayId = null)
+    {
+        if ($fastPayId === null) {
+            return;
+        }
+        $this->guardMaximalLength($fastPayId, self::MAXIMAL_LENGTH_OF_FASTPAYID, RequestDigestKeys::FASTPAYID);
+        $this->fastPayId = $fastPayId;
     }
 
     /**
@@ -504,19 +512,25 @@ class CardPayRequestValues extends StrictObject
         $this->addInfo = $addInfo;
     }
 
-    const MAXIMAL_LENGTH_OF_FASTPAYID = 15;
-
     /**
-     * @param int|null $fastPayId with maximal length of 15
-     * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
+     * Note: LANG is not part of digest
+     *
+     * @param string|null $lang
+     * @throws \Granam\GpWebPay\Exceptions\UnsupportedLanguage
      */
-    private function setFastPayId(int $fastPayId = null)
+    private function setLang(string $lang = null)
     {
-        if ($fastPayId === null) {
+        if ($lang === null) {
             return;
         }
-        $this->guardMaximalLength($fastPayId, self::MAXIMAL_LENGTH_OF_FASTPAYID, RequestDigestKeys::FASTPAYID);
-        $this->fastPayId = $fastPayId;
+        $lang = trim($lang);
+        if (!LanguageCodes::isLanguageSupported($lang)) {
+            throw new Exceptions\UnsupportedLanguage(
+                "Given language code is not supported '{$lang}', use on of "
+                . implode(',', LanguageCodes::getLanguageCodes())
+            );
+        }
+        $this->lang = $lang;
     }
 
     /**
