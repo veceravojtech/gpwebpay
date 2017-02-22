@@ -10,6 +10,7 @@ use Granam\GpWebPay\Codes\RequestPayloadKeys;
 use Granam\Integer\Tools\ToInteger;
 use Granam\Scalar\Tools\ToString;
 use Granam\Strict\Object\StrictObject;
+use \Granam\Scalar\Tools\Exceptions\Runtime as ConversionException;
 
 class CardPayRequestValues extends StrictObject
 {
@@ -96,7 +97,7 @@ class CardPayRequestValues extends StrictObject
                 } else {
                     $normalizedValues[$key] = ToString::toString($withUpperCasedKeys[$key]);
                 }
-            } catch (\Granam\Scalar\Tools\Exceptions\Runtime $conversionException) {
+            } catch (ConversionException $conversionException) {
                 throw new Exceptions\InvalidArgumentException(
                     "Value of key '{$key}' could not be converted to scalar: " . $conversionException->getMessage()
                 );
@@ -247,20 +248,25 @@ class CardPayRequestValues extends StrictObject
         }
     }
 
+    const MAXIMAL_LENGTH_OF_AMOUNT = 15;
+
     /**
      * @param float $price
      * @param int $currencyCode
      * @param CurrencyCodes $currencyCodes
      * @throws \Granam\GpWebPay\Exceptions\UnknownCurrency
+     * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
      */
     private function setPrice(float $price, int $currencyCode, CurrencyCodes $currencyCodes)
     {
         $precision = $currencyCodes->getCurrencyPrecision($currencyCode);
         if ($precision > 0) {
             /** @noinspection CallableParameterUseCaseInTypeContextInspection */
-            $price *= $precision;
+            $price *= 10 ** $precision;
         }
-        $this->amount = (int)round($price);
+        $amount = (int)round($price);
+        $this->guardMaximalLength($amount, self::MAXIMAL_LENGTH_OF_AMOUNT, RequestDigestKeys::AMOUNT);
+        $this->amount = $amount;
     }
 
     /**
@@ -305,11 +311,12 @@ class CardPayRequestValues extends StrictObject
     private function guardAsciiRange(string $value, string $name)
     {
         $regexp = '~(?<outOfRange>[^' . preg_quote(chr(0x20), '~') . '-' . preg_quote(chr(0x7E), '~') . '])~';
-        if (preg_match($regexp, $value, $matches)) {
+        if (preg_match_all($regexp, $value, $matches)) {
             throw new Exceptions\InvalidAsciiRange(
-                $name . ' can contains only ASCII characters in range of 0x20 – 0x7E'
+                $name . ' can contains only ASCII characters in range of'
+                . ' 0x20 (' . chr(0x20) . ') – 0x7E (' . chr(0x7E) . ')'
                 . ', got a value with ' . count($matches['outOfRange'])
-                . " non-matching characters in string '{$value}'"
+                . " non-matching characters in string '{$value}' (" . implode(',', $matches['outOfRange']) . ')'
             );
         }
     }
