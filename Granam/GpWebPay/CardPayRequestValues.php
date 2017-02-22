@@ -11,6 +11,7 @@ use Granam\Integer\Tools\ToInteger;
 use Granam\Scalar\Tools\ToString;
 use Granam\Strict\Object\StrictObject;
 use \Granam\Scalar\Tools\Exceptions\Runtime as ConversionException;
+use Granam\String\StringTools;
 
 class CardPayRequestValues extends StrictObject
 {
@@ -57,7 +58,6 @@ class CardPayRequestValues extends StrictObject
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
      * @throws \Granam\GpWebPay\Exceptions\UnknownCurrency
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
-     * @throws \Granam\GpWebPay\Exceptions\InvalidAsciiRange
      * @throws \Granam\GpWebPay\Exceptions\UnsupportedLanguage
      * @throws \Granam\GpWebPay\Exceptions\UnsupportedPayMethod
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
@@ -177,7 +177,6 @@ class CardPayRequestValues extends StrictObject
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
      * @throws \Granam\GpWebPay\Exceptions\UnknownCurrency
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
-     * @throws \Granam\GpWebPay\Exceptions\InvalidAsciiRange
      * @throws \Granam\GpWebPay\Exceptions\UnsupportedLanguage
      * @throws \Granam\GpWebPay\Exceptions\UnsupportedPayMethod
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
@@ -322,9 +321,8 @@ class CardPayRequestValues extends StrictObject
     const MAXIMAL_LENGTH_OF_DESCRIPTION = 255;
 
     /**
-     * @param string|null $description with maximal length of 255 and ASCII characters in range of 0x20–0x7E
+     * @param string|null $description with maximal length of 255 and ASCII characters in range of 0x20–0x7E (printable characters)
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
-     * @throws \Granam\GpWebPay\Exceptions\InvalidAsciiRange
      */
     private function setDescription(string $description = null)
     {
@@ -333,34 +331,83 @@ class CardPayRequestValues extends StrictObject
         }
         $description = trim($description);
         $this->guardMaximalLength($description, self::MAXIMAL_LENGTH_OF_DESCRIPTION, RequestDigestKeys::DESCRIPTION);
-        $this->guardAsciiRange($description, RequestDigestKeys::DESCRIPTION);
+        $description = $this->sanitizeAsciiRange($description, RequestDigestKeys::DESCRIPTION);
         $this->description = $description;
     }
 
     /**
+     * @link https://en.wikipedia.org/wiki/ASCII#Printable_characters
      * @param string $value
-     * @param string $name
-     * @throws \Granam\GpWebPay\Exceptions\InvalidAsciiRange
+     * @param string $nameOfParameter
+     * @return string
      */
-    private function guardAsciiRange(string $value, string $name)
+    private function sanitizeAsciiRange(string $value, string $nameOfParameter): string
     {
-        $regexp = '~(?<outOfRange>[^' . preg_quote(chr(0x20), '~') . '-' . preg_quote(chr(0x7E), '~') . '])~';
-        if (preg_match_all($regexp, $value, $matches)) {
-            throw new Exceptions\InvalidAsciiRange(
-                $name . ' can contains only ASCII characters in range of'
-                . ' 0x20 (' . chr(0x20) . ') – 0x7E (' . chr(0x7E) . ')'
-                . ', got a value with ' . count($matches['outOfRange'])
-                . " non-matching characters in string '{$value}' (" . implode(',', $matches['outOfRange']) . ')'
+        $changes = [];
+        $sanitized = preg_replace_callback(
+            '~(?<character>\w)~u',
+            function (array $characterMatch) use (&$changes) {
+                $character = $characterMatch['character'];
+                if (!preg_match($this->getAsciiOutOfRangeRegexp(), $character)) {
+                    return $character; // character is in the allowed range
+                }
+
+                $withoutDiacritics = StringTools::removeDiacritics($character);
+                $replacement = preg_replace_callback(
+                    $this->getAsciiOutOfRangeRegexp(),
+                    function (string $stillOutOfRange) {
+                        return str_repeat('?', mb_strlen($stillOutOfRange));
+                    },
+                    $withoutDiacritics
+                );
+                $changes[] = [$character => $replacement];
+
+                return $replacement;
+            },
+            $value
+        );
+        if (count($changes) > 0) {
+            trigger_error("'{$nameOfParameter}' contains " . count($changes)
+                . ' characters out of allowed ASCII range of'
+                . ' 0x20 (\'' . chr(0x20) . '\') – 0x7E (\'' . chr(0x7E) . '\'), replacements have to be made: '
+                . var_export($changes, true),
+                E_USER_WARNING
             );
         }
+        if ($sanitized === null) { // like for ASCII 128
+            trigger_error("'{$nameOfParameter}' contains some characters out of allowed ASCII range"
+                . ' 0x20 (\'' . chr(0x20) . '\') – 0x7E (\'' . chr(0x7E) . '\') which was not detected by regexp,'
+                . ' given value as ASCII ' . implode(
+                    ',',
+                    array_map(
+                        function ($character) {
+                            return ord($character);
+                        },
+                        str_split($value)
+                    )
+                ),
+                E_USER_WARNING
+            );
+
+            return '';
+        }
+
+        return $sanitized;
+    }
+
+    /**
+     * @return string
+     */
+    private function getAsciiOutOfRangeRegexp()
+    {
+        return '~(?<outOfRange>[^' . preg_quote(chr(0x20), '~') . '-' . preg_quote(chr(0x7E), '~') . '])~';
     }
 
     const MAXIMAL_LENGTH_OF_MD = 255;
 
     /**
-     * @param string $merchantNote with maximal length of 255 and ASCII characters in range of 0x20–0x7E
+     * @param string $merchantNote with maximal length of 255 and ASCII characters in range of 0x20–0x7E (printable characters)
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
-     * @throws \Granam\GpWebPay\Exceptions\InvalidAsciiRange
      */
     private function setMd(string $merchantNote = null)
     {
@@ -369,7 +416,7 @@ class CardPayRequestValues extends StrictObject
         }
         $merchantNote = trim($merchantNote);
         $this->guardMaximalLength($merchantNote, self::MAXIMAL_LENGTH_OF_MD, RequestDigestKeys::MD . ' (merchant note)');
-        $this->guardAsciiRange($merchantNote, RequestDigestKeys::MD . ' (merchant note)');
+        $merchantNote = $this->sanitizeAsciiRange($merchantNote, RequestDigestKeys::MD . ' (merchant note)');
         $this->md = $merchantNote;
     }
 
@@ -401,7 +448,8 @@ class CardPayRequestValues extends StrictObject
         $payMethod = strtoupper($payMethod);
         if (!PayMethodCodes::isSupportedPaymentMethod($payMethod)) {
             throw new Exceptions\UnsupportedPayMethod(
-                'Given ' . RequestDigestKeys::PAYMETHOD . " '{$payMethod}' is not supported, use one of "
+                'Given ' . RequestDigestKeys::PAYMETHOD . " '{
+                $payMethod}' is not supported, use one of "
                 . implode(',', PayMethodCodes::getPayMethodCodes())
             );
         }
@@ -422,7 +470,8 @@ class CardPayRequestValues extends StrictObject
         $disabledPayMethod = trim($disabledPayMethod);
         if (!PayMethodCodes::isSupportedPaymentMethod($disabledPayMethod)) {
             throw new Exceptions\UnsupportedPayMethod(
-                'Can not disable ' . RequestDigestKeys::DISABLEPAYMETHOD . " by unknown pay method '{$disabledPayMethod}',"
+                'Can not disable ' . RequestDigestKeys::DISABLEPAYMETHOD . " by unknown pay method '{
+                $disabledPayMethod}',"
                 . ' use one of ' . implode(',', PayMethodCodes::getPayMethodCodes())
             );
         }
@@ -471,7 +520,8 @@ class CardPayRequestValues extends StrictObject
         $email = trim($email);
         $this->guardMaximalLength($email, self::MAXIMAL_LENGTH_OF_EMAIL, RequestDigestKeys::EMAIL);
         if (filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
-            throw new Exceptions\InvalidEmail("Given email '{$email}' has invalid format");
+            throw new Exceptions\InvalidEmail("Given email '{
+                $email}' has invalid format");
         }
         $this->email = $email;
     }
@@ -526,7 +576,8 @@ class CardPayRequestValues extends StrictObject
         $lang = trim($lang);
         if (!LanguageCodes::isLanguageSupported($lang)) {
             throw new Exceptions\UnsupportedLanguage(
-                "Given language code is not supported '{$lang}', use on of "
+                "Given language code is not supported '{
+                $lang}', use on of "
                 . implode(',', LanguageCodes::getLanguageCodes())
             );
         }

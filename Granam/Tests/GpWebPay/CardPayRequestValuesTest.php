@@ -345,4 +345,62 @@ class CardPayRequestValuesTest extends TestWithMockery
             false
         );
     }
+
+    /**
+     * @test
+     */
+    public function My_description_is_sanitized_with_warning_if_out_of_allowed_ascii_range()
+    {
+        $messageOutOfAllowedAsciiRange = 'こんにちは';
+        error_clear_last();
+        $previousErrorReporting = ini_set('error_reporting', -1 ^ E_USER_WARNING);
+        new CardPayRequestValues(
+            $this->createCurrencyCodes(789, 321),
+            123,
+            456,
+            789,
+            false,
+            null,
+            $messageOutOfAllowedAsciiRange // description
+        );
+        ini_set('error_reporting', $previousErrorReporting);
+        $lastError = error_get_last();
+        error_clear_last();
+        self::assertNotEmpty($lastError);
+        self::assertSame(E_USER_WARNING, $lastError['type']);
+        self::assertRegExp(<<<'REGEXP'
+~DESCRIPTION.+\D5\D.+'こ'.+'ko'.+'ん'.+'n'.+'に'.+'ni'.+'ち'.+'chi'.+'は'.+'ha'~s
+REGEXP
+            ,
+            $lastError['message']
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function My_description_is_truncated_with_warning_if_contains_character_which_can_not_be_detected_by_regexp()
+    {
+        $nonDetectableCharacter = chr(128) . chr(129);
+        error_clear_last();
+        $previousErrorReporting = ini_set('error_reporting', -1 ^ E_USER_WARNING);
+        new CardPayRequestValues(
+            $this->createCurrencyCodes(789, 321),
+            123,
+            456,
+            789,
+            false,
+            null,
+            $nonDetectableCharacter // description
+        );
+        ini_set('error_reporting', $previousErrorReporting);
+        $lastError = error_get_last();
+        error_clear_last();
+        self::assertNotEmpty($lastError);
+        self::assertSame(E_USER_WARNING, $lastError['type']);
+        self::assertRegExp(
+            '~DESCRIPTION.+128,129~s',
+            $lastError['message']
+        );
+    }
 }

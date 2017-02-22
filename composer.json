@@ -37,11 +37,13 @@
   "require": {
     "php": ">=7.0",
     "ext-openssl": "*",
+    "ext-intl": "*",
     "roave/security-advisories": "dev-master",
     "granam/strict-object": ">=2.0",
     "alcohol/iso4217": "^3.1",
     "granam/integer": "^5.0",
-    "granam/float": "^4.0"
+    "granam/float": "^4.0",
+    "granam/string": "^2.0"
   },
   "require-dev": {
     "phpunit/phpunit": ">=6.0",
