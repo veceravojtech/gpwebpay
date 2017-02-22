@@ -129,6 +129,7 @@ class CardPayRequestValuesTest extends TestWithMockery
         $fastPayId = 1470;
 
         return [
+            // all values
             [
                 $orderNumber,
                 $price,
@@ -145,6 +146,13 @@ class CardPayRequestValuesTest extends TestWithMockery
                 $referenceNumber,
                 $addInfo,
                 $fastPayId,
+            ],
+            // only required
+            [
+                $orderNumber,
+                $price,
+                $currencyNumericCode,
+                $depositFlag,
             ],
         ];
     }

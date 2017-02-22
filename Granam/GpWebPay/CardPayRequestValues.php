@@ -68,30 +68,37 @@ class CardPayRequestValues extends StrictObject
             $withUpperCasedKeys[strtoupper(trim($key))] = $value;
         }
         $normalizedValues = [];
-        foreach (self::$keysExpectedInArray as $key => $required) {
-            if (!array_key_exists($key, $withUpperCasedKeys)) {
-                if (!$required) {
-                    $normalizedValues[$key] = null;
-                } else {
+        try {
+            foreach (self::$keysExpectedInArray as $key => $required) {
+                if (($withUpperCasedKeys[$key] ?? null) === null) {
+                    if (!$required) {
+                        $normalizedValues[$key] = null;
+                        continue;
+                    }
                     throw new Exceptions\BrokenRequest(
                         'Values to create ' . static::class . " are missing required '{$key}'"
                     );
                 }
-            } elseif (in_array($key, self::$integerKeysExpectedInArray, true)) {
-                $normalizedValues[$key] = ToInteger::toInteger($withUpperCasedKeys[$key]);
-            } elseif (in_array($key, self::$floatKeysExpectedInArray, true)) {
-                $normalizedValues[$key] = ToFloat::toFloat($withUpperCasedKeys[$key]);
-            } elseif (in_array($key, self::$arrayWithStringKeysExpectedInArray, true)) {
-                $subArray = $withUpperCasedKeys[$key];
-                if (!is_array($subArray)) {
-                    trigger_error("Given '{$key}' should be an array, got " . gettype($subArray), E_USER_WARNING);
-                    $normalizedValues[$key] = null;
+                if (in_array($key, self::$integerKeysExpectedInArray, true)) {
+                    $normalizedValues[$key] = ToInteger::toInteger($withUpperCasedKeys[$key]);
+                } elseif (in_array($key, self::$floatKeysExpectedInArray, true)) {
+                    $normalizedValues[$key] = ToFloat::toFloat($withUpperCasedKeys[$key]);
+                } elseif (in_array($key, self::$arrayWithStringKeysExpectedInArray, true)) {
+                    $subArray = $withUpperCasedKeys[$key];
+                    if (!is_array($subArray)) {
+                        trigger_error("Given '{$key}' should be an array, got " . gettype($subArray), E_USER_WARNING);
+                        $normalizedValues[$key] = null;
+                    } else {
+                        $normalizedValues[$key] = $subArray;
+                    }
                 } else {
-                    $normalizedValues[$key] = $subArray;
+                    $normalizedValues[$key] = ToString::toString($withUpperCasedKeys[$key]);
                 }
-            } else {
-                $normalizedValues[$key] = ToString::toString($withUpperCasedKeys[$key]);
             }
+        } catch (\Granam\Scalar\Tools\Exceptions\Runtime $conversionException) {
+            throw new Exceptions\InvalidArgumentException(
+                "Value of key '{$key}' could not be converted to scalar: " . $conversionException->getMessage()
+            );
         }
 
         return new static(
