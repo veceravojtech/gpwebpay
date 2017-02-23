@@ -263,7 +263,7 @@ class ProviderTest extends TestWithMockery
 
     /**
      * @test
-     * @expectedException \Granam\GpWebPay\Exceptions\GpWebPayResponseHasAnError
+     * @expectedException \Granam\GpWebPay\Exceptions\GpWebPayErrorResponse
      * @expectedExceptionMessageRegExp ~^Time for service - .+\D1/2\D*~
      */
     public function I_am_stopped_when_response_reports_error()

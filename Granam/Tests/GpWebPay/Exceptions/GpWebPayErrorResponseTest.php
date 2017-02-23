@@ -2,20 +2,20 @@
 namespace Granam\Tests\GpWebPay\Exceptions;
 
 use Granam\GpWebPay\Codes\LanguageCodes;
-use Granam\GpWebPay\Exceptions\GpWebPayResponseHasAnError;
+use Granam\GpWebPay\Exceptions\GpWebPayErrorResponse;
 use PHPUnit\Framework\TestCase;
 
-class GpWebPayResponseHasAnErrorTest extends TestCase
+class GpWebPayErrorResponseTest extends TestCase
 {
     /**
      * @test
      */
     public function I_can_ask_it_if_given_pr_code_means_error()
     {
-        self::assertFalse(GpWebPayResponseHasAnError::isErrorCode(0));
-        self::assertFalse(GpWebPayResponseHasAnError::isErrorCode(200));
-        self::assertTrue(GpWebPayResponseHasAnError::isErrorCode(1));
-        self::assertTrue(GpWebPayResponseHasAnError::isErrorCode(50));
+        self::assertFalse(GpWebPayErrorResponse::isErrorCode(0));
+        self::assertFalse(GpWebPayErrorResponse::isErrorCode(200));
+        self::assertTrue(GpWebPayErrorResponse::isErrorCode(1));
+        self::assertTrue(GpWebPayErrorResponse::isErrorCode(50));
     }
 
     /**
@@ -40,14 +40,14 @@ class GpWebPayResponseHasAnErrorTest extends TestCase
     )
     {
         try {
-            throw new GpWebPayResponseHasAnError(
+            throw new GpWebPayErrorResponse(
                 $prCode,
                 $srCode,
                 $resultText,
                 $exceptionCode,
                 $previousException
             );
-        } catch (GpWebPayResponseHasAnError $gpWebPayResponseHasAnError) {
+        } catch (GpWebPayErrorResponse $gpWebPayResponseHasAnError) {
             self::assertSame($prCode, $gpWebPayResponseHasAnError->getPrCode());
             self::assertSame($srCode, $gpWebPayResponseHasAnError->getSrCode());
             self::assertSame($resultText, $gpWebPayResponseHasAnError->getResultText());
@@ -84,5 +84,16 @@ class GpWebPayResponseHasAnErrorTest extends TestCase
             [1, 0, 'foo', 'Field too long', 'Pole příliš dlouhé', 123, new \Exception()],
             [4, 8, 'bar', 'Field is null (DEPOSITFLAG)', 'Pole je prázdné (DEPOSITFLAG)'],
         ];
+    }
+
+    /**
+     * @test
+     */
+    public function I_can_find_out_easily_if_currency_was_refused()
+    {
+        $gpWebPayResponseHasAnError = new GpWebPayErrorResponse(3, 7);
+        self::assertTrue($gpWebPayResponseHasAnError->isUnsupportedCurrency());
+        $gpWebPayResponseHasAnError = new GpWebPayErrorResponse(3, 6);
+        self::assertFalse($gpWebPayResponseHasAnError->isUnsupportedCurrency());
     }
 }

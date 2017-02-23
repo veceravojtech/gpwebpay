@@ -55,7 +55,7 @@ class Provider extends StrictObject implements CardPayProvider
      * @throws \Granam\GpWebPay\Exceptions\PublicKeyFileCanNotBeRead
      * @throws \Granam\GpWebPay\Exceptions\PublicKeyUsageFailed
      * @throws \Granam\GpWebPay\Exceptions\DigestCanNotBeVerified
-     * @throws \Granam\GpWebPay\Exceptions\GpWebPayResponseHasAnError
+     * @throws \Granam\GpWebPay\Exceptions\GpWebPayErrorResponse
      */
     public function verifyCardPayResponse(CardPayResponse $response): bool
     {
@@ -76,7 +76,7 @@ class Provider extends StrictObject implements CardPayProvider
             );
         }
         if ($response->hasError()) { // verify PRCODE
-            throw new Exceptions\GpWebPayResponseHasAnError(
+            throw new Exceptions\GpWebPayErrorResponse(
                 $response->getPrCode(),
                 $response->getSrCode(),
                 $response->getResultText()

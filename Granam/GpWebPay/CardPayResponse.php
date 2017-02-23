@@ -3,7 +3,7 @@ namespace Granam\GpWebPay;
 
 use Granam\GpWebPay\Codes\ResponseDigestKeys;
 use Granam\GpWebPay\Codes\ResponsePayloadKeys;
-use Granam\GpWebPay\Exceptions\GpWebPayResponseHasAnError;
+use Granam\GpWebPay\Exceptions\GpWebPayErrorResponse;
 use Granam\Integer\Tools\ToInteger;
 use Granam\Scalar\Tools\ToString;
 use Granam\Strict\Object\StrictObject;
@@ -129,7 +129,7 @@ class CardPayResponse extends StrictObject implements PayResponse
      */
     public function hasError(): bool
     {
-        return GpWebPayResponseHasAnError::isErrorCode($this->parametersForDigest[ResponseDigestKeys::PRCODE]);
+        return GpWebPayErrorResponse::isErrorCode($this->parametersForDigest[ResponseDigestKeys::PRCODE]);
     }
 
     /**

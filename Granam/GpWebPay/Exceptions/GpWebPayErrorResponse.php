@@ -5,7 +5,7 @@ use Granam\GpWebPay\Codes\LanguageCodes;
 use Granam\GpWebPay\Codes\PrCodes;
 use Granam\GpWebPay\Codes\SrCodes;
 
-class GpWebPayResponseHasAnError extends \RuntimeException implements Runtime
+class GpWebPayErrorResponse extends \RuntimeException implements Runtime
 {
     const OK_CODE = 0;
     const ADDITIONAL_INFO_REQUEST_CODE = 200;
@@ -100,5 +100,15 @@ class GpWebPayResponseHasAnError extends \RuntimeException implements Runtime
         }
 
         return $message;
+    }
+
+    /**
+     * GPWebPay supports only CZK, EUR, GBP, HUF, PLN, RUB, USD. Every other currency is refused, even if existing.
+     *
+     * @return bool
+     */
+    public function isUnsupportedCurrency()
+    {
+        return $this->getPrCode() === 3 && $this->getSrCode() === 7;
     }
 }

@@ -19,7 +19,7 @@ interface CardPayProvider
      * @param CardPayResponse $response
      * @return bool
      * @throws \Granam\GpWebPay\Exceptions\DigestCanNotBeVerified
-     * @throws \Granam\GpWebPay\Exceptions\GpWebPayResponseHasAnError
+     * @throws \Granam\GpWebPay\Exceptions\GpWebPayErrorResponse
      */
     public function verifyCardPayResponse(CardPayResponse $response): bool;
 }
