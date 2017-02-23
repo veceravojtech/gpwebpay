@@ -85,15 +85,4 @@ class GpWebPayErrorResponseTest extends TestCase
             [4, 8, 'bar', 'Field is null (DEPOSITFLAG)', 'Pole je prázdné (DEPOSITFLAG)'],
         ];
     }
-
-    /**
-     * @test
-     */
-    public function I_can_find_out_easily_if_currency_was_refused()
-    {
-        $gpWebPayResponseHasAnError = new GpWebPayErrorResponse(3, 7);
-        self::assertTrue($gpWebPayResponseHasAnError->isUnsupportedCurrency());
-        $gpWebPayResponseHasAnError = new GpWebPayErrorResponse(3, 6);
-        self::assertFalse($gpWebPayResponseHasAnError->isUnsupportedCurrency());
-    }
 }

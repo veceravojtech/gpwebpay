@@ -117,7 +117,7 @@ class ProviderTest extends TestWithMockery
         $provider = new Provider($this->createSettings(), $this->createDigestSigner());
         $values = [
             ResponseDigestKeys::OPERATION => 'foo',
-            ResponseDigestKeys::ORDERNUMBER => 'bar',
+            ResponseDigestKeys::ORDERNUMBER => 159,
             ResponseDigestKeys::PRCODE => 123,
             ResponseDigestKeys::SRCODE => 456,
             ResponsePayloadKeys::DIGEST => 'baz',

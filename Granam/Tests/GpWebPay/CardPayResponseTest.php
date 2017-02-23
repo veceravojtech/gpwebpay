@@ -12,7 +12,7 @@ class CardPayResponseTest extends PayResponseTest
      * @test
      * @dataProvider provideValuesForResponse
      * @param string $operation
-     * @param string $orderNumber
+     * @param int $orderNumber
      * @param int $prCode
      * @param int $srCode
      * @param string $digest
@@ -26,7 +26,7 @@ class CardPayResponseTest extends PayResponseTest
      */
     public function I_can_use_it(
         string $operation,
-        string $orderNumber,
+        int $orderNumber,
         int $prCode,
         int $srCode,
         string $digest,
@@ -86,9 +86,9 @@ class CardPayResponseTest extends PayResponseTest
     public function provideValuesForResponse()
     {
         return [
-            ['foo', 'bar', 0, 0, 'baz', 'qux', 'FOO', 'BAR', 'BAZ', 'QUX', 'FooBar', false],
-            ['foo', 'bar', 0, 123, 'baz', 'qux', 'FOO', null, 'BAR', null, 'BAZ', false],
-            ['foo', 'bar', 456, 0, 'baz', 'qux', null, null, null, null, null, true],
+            ['foo', 1357, 0, 0, 'baz', 'qux', 'FOO', 'BAR', 'BAZ', 'QUX', 'FooBar', false],
+            ['foo', 1357, 0, 123, 'baz', 'qux', 'FOO', null, 'BAR', null, 'BAZ', false],
+            ['foo', 1357, 456, 0, 'baz', 'qux', null, null, null, null, null, true],
         ];
     }
 
@@ -144,5 +144,16 @@ class CardPayResponseTest extends PayResponseTest
                 self::assertRegExp('~' . preg_quote($requiredParameter, '~') . '~', $brokenResponse->getMessage());
             }
         }
+    }
+
+    /**
+     * @test
+     */
+    public function I_can_find_out_easily_if_currency_was_refused()
+    {
+        $cardPayResponse = new CardPayResponse('foo', 123, 3, 7, 'bar', 'baz');
+        self::assertTrue($cardPayResponse->errorCausedByUnsupportedCurrency());
+        $cardPayResponse = new CardPayResponse('foo', 123, 3, 6, 'bar', 'baz');
+        self::assertFalse($cardPayResponse->errorCausedByUnsupportedCurrency());
     }
 }

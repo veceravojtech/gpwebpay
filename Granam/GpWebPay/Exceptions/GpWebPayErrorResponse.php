@@ -101,14 +101,4 @@ class GpWebPayErrorResponse extends \RuntimeException implements Runtime
 
         return $message;
     }
-
-    /**
-     * GPWebPay supports only CZK, EUR, GBP, HUF, PLN, RUB, USD. Every other currency is refused, even if existing.
-     *
-     * @return bool
-     */
-    public function isUnsupportedCurrency()
-    {
-        return $this->getPrCode() === 3 && $this->getSrCode() === 7;
-    }
 }

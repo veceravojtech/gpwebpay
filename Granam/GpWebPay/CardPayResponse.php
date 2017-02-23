@@ -24,6 +24,12 @@ class CardPayResponse extends StrictObject implements PayResponse
         ResponseDigestKeys::ADDINFO => false,
     ];
 
+    private static $integerValues = [
+        ResponseDigestKeys::PRCODE,
+        ResponseDigestKeys::SRCODE,
+        ResponseDigestKeys::ORDERNUMBER,
+    ];
+
     /**
      * @param array $valuesFromGetOrPost
      * @return CardPayResponse
@@ -44,7 +50,7 @@ class CardPayResponse extends StrictObject implements PayResponse
             }
             if ($valuesFromGetOrPost[$key] === null) {
                 $normalizedValues[$key] = null;
-            } else if ($key === ResponseDigestKeys::PRCODE || $key === ResponseDigestKeys::SRCODE) {
+            } else if (in_array($key, self::$integerValues, true)) {
                 $normalizedValues[$key] = ToInteger::toInteger($valuesFromGetOrPost[$key]);
             } else {
                 $normalizedValues[$key] = ToString::toString($valuesFromGetOrPost[$key]);
@@ -75,7 +81,7 @@ class CardPayResponse extends StrictObject implements PayResponse
 
     /**
      * @param string $operation
-     * @param string $orderNumber
+     * @param int $orderNumber
      * @param int $prCode
      * @param int $srCode
      * @param string $digest
@@ -88,7 +94,7 @@ class CardPayResponse extends StrictObject implements PayResponse
      */
     public function __construct(
         string $operation,
-        string $orderNumber,
+        int $orderNumber,
         int $prCode,
         int $srCode,
         string $digest,
@@ -130,6 +136,16 @@ class CardPayResponse extends StrictObject implements PayResponse
     public function hasError(): bool
     {
         return GpWebPayErrorResponse::isErrorCode($this->parametersForDigest[ResponseDigestKeys::PRCODE]);
+    }
+
+    /**
+     * GPWebPay supports only CZK, EUR, GBP, HUF, PLN, RUB, USD. Every other currency is refused, even if existing.
+     *
+     * @return bool
+     */
+    public function errorCausedByUnsupportedCurrency()
+    {
+        return $this->getPrCode() === 3 && $this->getSrCode() === 7;
     }
 
     /**
