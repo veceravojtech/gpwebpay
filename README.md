@@ -7,6 +7,8 @@ GPWebPay is a PHP library for online payments via [GPWebPay service](http://www.
 If your are using [Nette framework](https://nette.org/en/), you may want
 [Pixidos/GPWebPay](https://github.com/Pixidos/GPWebPay) Nette extension instead.
 
+# NOT READY - DO NOT USE YET
+
 ## Quickstart
 
 This extension is here to provide [GP WebPay](http://www.gpwebpay.cz) system for Nette Framework.
@@ -14,31 +16,21 @@ This extension is here to provide [GP WebPay](http://www.gpwebpay.cz) system for
 and setting
 
 ```yml
-gpwebpay:
-    privateKey: < your private certificate path >
-    privateKeyPassword: < private certificate password >
-    publicKey: < gateway public certificate path (you will probably get this by email) > //gpe.signing_prod.pem
-    url: <url of gpwabpay system gateway > //example: https://test.3dsecure.gpwebpay.com/unicredit/order.do
-    merchantNumber: <your merechant number >
+privateKey: < your private certificate path >
+privateKeyPassword: < private certificate password >
+publicKey: < gateway public certificate path (you will probably get this by email) > //gpe.signing_prod.pem
+url: <url of gpwabpay system gateway > //example: https://test.3dsecure.gpwebpay.com/unicredit/order.do
+merchantNumber: <your merechant number >
 ```
 
 or if you need more then one gateway
 ```yml
-gpwebpay:
-	privateKey:
-		czk: < your CZK private certificate path .pem>
-		eur: < your EUR private certificate path .pem>
-	privateKeyPassword:
-		czk: < private CKZ certificate password >
-		eur: < private EUR certificate password >
-	publicKey: < gateway public certificate path (you will probably get this by email) > //gpe.signing_prod.pem
-	url: <url of gpwebpay system gateway > //example: https://test.3dsecure.gpwebpay.com/unicredit/order.do
-	merchantNumber:
-		czk: <your CZK merechant number >
-		eur: <your EUR merechant number >
+TODO
 ```
 
 ## Usage
+
+**TODO**
 
 
 ```php
