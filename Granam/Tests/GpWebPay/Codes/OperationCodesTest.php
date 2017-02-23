@@ -2,9 +2,8 @@
 namespace Granam\Tests\GpWebPay\Codes;
 
 use Granam\GpWebPay\Codes\OperationCodes;
-use Granam\Tests\Tools\TestWithMockery;
 
-class OperationCodesTest extends TestWithMockery
+class OperationCodesTest extends CodesTest
 {
     /**
      * @test

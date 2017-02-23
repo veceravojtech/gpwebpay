@@ -30,6 +30,7 @@ class CardPayRequestTest extends PayRequestTest
             $settings->getBaseUrlForRequest() . '?' . http_build_query($expectedParametersForRequest),
             $cardPayRequest->getRequestUrlForGet()
         );
+        self::assertEquals($settings->getBaseUrlForRequest(), $cardPayRequest->getRequestUrlForPost());
         $iterator = $cardPayRequest->getIterator();
         self::assertInstanceOf(\Iterator::class, $iterator);
         $collectedValues = [];

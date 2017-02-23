@@ -5,7 +5,7 @@ use Granam\GpWebPay\Codes\RequestPayloadKeys;
 use Granam\GpWebPay\Codes\ResponsePayloadKeys;
 use Granam\Strict\Object\StrictObject;
 
-class Provider extends StrictObject implements CardPayProviderInterface
+class Provider extends StrictObject implements CardPayProvider
 {
 
     /** @var SettingsInterface $settings */

@@ -1,7 +1,7 @@
 <?php
 namespace Granam\GpWebPay;
 
-interface CardPayProviderInterface
+interface CardPayProvider
 {
     /**
      * @param CardPayRequestValues $requestValues

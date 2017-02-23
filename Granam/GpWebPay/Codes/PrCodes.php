@@ -7,7 +7,7 @@ class PrCodes extends StrictObject implements Codes
 {
     private static $prCodes = [
         LanguageCodes::CS => [
-            'genericProblem' => 'Technický problém v GP webpay systému, kontaktujete obchodníka',
+            'genericProblem' => 'Technický problém v GP webpay systému, kontaktujte obchodníka',
             0 => 'OK',
             1 => 'Pole příliš dlouhé',
             2 => 'Pole příliš krátké',
@@ -22,7 +22,7 @@ class PrCodes extends StrictObject implements Codes
             20 => 'Objekt není ve stavu odpovídajícím této operaci
 Info: Pokud v případě vytváření objednávky (CREATE_ORDER) obdrží obchodník tento návratový kód,
 vytvoření objednávky již proběhlo a objednávka je v určitém stavu
-– tento návratový kód je zapříčiněn aktivitou držitele karty (například pokusem o přechod zpět, použití refresh...).',
+– tento návratový kód je zapříčiněn aktivitou držitele karty (například pokusem o přechod zpět, použití refresh...)',
             25 => 'Uživatel není oprávněn k provedení operace',
             26 => 'Technický problém při spojení s autorizačním centrem',
             27 => 'Chybný typ objednávky',
@@ -35,7 +35,7 @@ vytvoření objednávky již proběhlo a objednávka je v určitém stavu
             1000 => 'Technický problém',
         ],
         LanguageCodes::EN => [
-            'genericProblem' => 'Technical problem in GP webpay system, contact the merchant.',
+            'genericProblem' => 'Technical problem in GP webpay system, contact the merchant',
             0 => 'OK',
             1 => 'Field too long',
             2 => 'Field too short',
@@ -84,8 +84,15 @@ vytvoření objednávky již proběhlo a objednávka je v určitém stavu
             return self::$prCodes[$languageCode][$prCode];
         }
         if ($languageCode !== self::LANGUAGE_EN && array_key_exists($prCode, self::$prCodes[self::LANGUAGE_EN])) {
+            trigger_error(
+                "Unsupported language for main error code requested: '{$languageCode}', " . self::LANGUAGE_EN . ' used instead',
+                E_USER_NOTICE
+            );
+
             return self::$prCodes[self::LANGUAGE_EN][$prCode]; // fallback
         }
+
+        trigger_error("Unknown PR error code: '{$prCode}', a generic text used instead", E_USER_WARNING);
 
         return self::$prCodes[$languageCode]['genericProblem'];
     }

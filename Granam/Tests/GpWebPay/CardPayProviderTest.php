@@ -1,9 +1,9 @@
 <?php
 namespace Granam\Tests\GpWebPay;
 
-use Granam\GpWebPay\CardPayProviderInterface;
+use Granam\GpWebPay\CardPayProvider;
 
-trait CardPayProviderInterfaceTest
+trait CardPayProviderTest
 {
     /**
      * @test
@@ -12,8 +12,8 @@ trait CardPayProviderInterfaceTest
     {
         $sutClass = self::getSutClass();
         self::assertTrue(
-            is_a($sutClass, CardPayProviderInterface::class, true),
-            $sutClass . ' should implement ' . CardPayProviderInterface::class
+            is_a($sutClass, CardPayProvider::class, true),
+            $sutClass . ' should implement ' . CardPayProvider::class
         );
     }
 

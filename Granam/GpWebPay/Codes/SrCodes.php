@@ -7,6 +7,7 @@ class SrCodes extends StrictObject implements Codes
 {
     private static $srCodes = [
         LanguageCodes::CS => [
+            0 => '',
             1 => 'ORDERNUMBER',
             2 => 'MERCHANTNUMBER',
             6 => 'AMOUNT',
@@ -21,7 +22,7 @@ class SrCodes extends StrictObject implements Codes
             25 => 'MD',
             26 => 'DESC',
             34 => 'DIGEST',
-            1001 => 'Zamítnuto v autorizačním centru, katra blokována',
+            1001 => 'Zamítnuto v autorizačním centru, katra je blokována',
             1002 => 'Zamítnuto v autorizačním centru, autorizace zamítnuta',
             1003 => 'Zamítnuto v autorizačním centru, problém karty',
             1004 => 'Zamítnuto v autorizačním centru, technický problém',
@@ -36,6 +37,7 @@ class SrCodes extends StrictObject implements Codes
             3008 => 'Zamítnuto v 3D. Použit nepodporavný karetní produkt',
         ],
         LanguageCodes::EN => [
+            0 => '',
             1 => 'ORDERNUMBER',
             2 => 'MERCHANTNUMBER',
             6 => 'AMOUNT',
@@ -50,7 +52,7 @@ class SrCodes extends StrictObject implements Codes
             25 => 'MD',
             26 => 'DESC',
             34 => 'DIGEST',
-            1001 => 'Declined in AC, Card blocked',
+            1001 => 'Declined in AC, Card is blocked',
             1002 => 'Declined in AC, Declined',
             1003 => 'Declined in AC, Card problem',
             1004 => 'Declined in AC, Technical problem in authorization process',
@@ -89,8 +91,14 @@ class SrCodes extends StrictObject implements Codes
             return self::$srCodes[$languageCode][$srCode];
         }
         if ($languageCode !== self::LANGUAGE_EN && array_key_exists($srCode, self::$srCodes[self::LANGUAGE_EN])) {
+            trigger_error(
+                "Unsupported language for error detail code requested: '{$languageCode}', " . self::LANGUAGE_EN . ' used instead',
+                E_USER_NOTICE
+            );
+
             return self::$srCodes[self::LANGUAGE_EN][$srCode]; // fallback
         }
+        trigger_error("Unknown SR error code: '{$srCode}', no message about detail used", E_USER_WARNING);
 
         return '';
     }

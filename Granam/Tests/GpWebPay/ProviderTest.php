@@ -14,7 +14,7 @@ use Granam\Tests\Tools\TestWithMockery;
 
 class ProviderTest extends TestWithMockery
 {
-    use CardPayProviderInterfaceTest;
+    use CardPayProviderTest;
 
     /**
      * @test
@@ -264,7 +264,7 @@ class ProviderTest extends TestWithMockery
     /**
      * @test
      * @expectedException \Granam\GpWebPay\Exceptions\GpWebPayResponseHasAnError
-     * @expectedExceptionMessageRegExp ~^Time for service - .+123/456$~
+     * @expectedExceptionMessageRegExp ~^Time for service - .+\D1/2\D*~
      */
     public function I_am_stopped_when_response_reports_error()
     {
@@ -285,8 +285,8 @@ class ProviderTest extends TestWithMockery
                 $digest,
                 $digest1,
                 true, /* response has error */
-                123, // response error code PRCODE
-                456, // response detail error code SRCODE
+                1, // response error code PRCODE
+                2, // response detail error code SRCODE
                 'Time for service' // error message from GPWebPay
             )
         );

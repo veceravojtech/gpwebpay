@@ -3,9 +3,8 @@ namespace Granam\Tests\GpWebPay\Codes;
 
 use Granam\GpWebPay\Codes\ResponseDigestKeys;
 use Granam\GpWebPay\Codes\ResponsePayloadKeys;
-use Granam\Tests\Tools\TestWithMockery;
 
-class ResponsePayloadKeysTest extends TestWithMockery
+class ResponsePayloadKeysTest extends CodesTest
 {
 
     /**
