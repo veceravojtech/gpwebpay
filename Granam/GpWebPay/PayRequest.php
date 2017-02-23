@@ -6,7 +6,7 @@ interface PayRequest extends \IteratorAggregate
     /**
      * @return string
      */
-    public function getRequestUrl(): string;
+    public function getRequestUrlForGet(): string;
 
     /**
      * @return array

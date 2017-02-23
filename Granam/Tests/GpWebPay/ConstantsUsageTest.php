@@ -1,6 +1,7 @@
 <?php
 namespace Granam\Tests\GpWebPay;
 
+use Granam\GpWebPay\CardPayRequestValues;
 use Granam\GpWebPay\Codes\Codes;
 use Granam\GpWebPay\Provider;
 use PHPUnit\Framework\TestCase;
@@ -12,16 +13,30 @@ class ConstantsUsageTest extends TestCase
      */
     public function everyCodeIsTakenFromHelperAsConstant()
     {
-        foreach ($this->getProjectClasses() as $projectClass) {
-            if (is_a($projectClass, Codes::class, true)) {
+        foreach ($this->getProjectNonCodeClasses() as $projectNonCodeClass) {
+            if (is_a($projectNonCodeClass, Codes::class, true)) {
                 continue; // Codes are the only ones with GP WebPay constants
             }
-            $reflectionClass = new \ReflectionClass($projectClass);
+            $reflectionClass = new \ReflectionClass($projectNonCodeClass);
             $classContent = file_get_contents($reflectionClass->getFileName());
+            $constantLikeCount = preg_match_all('~([\'"])(?<CONSTANT_LIKE>[A-Z_]+)\1~', $classContent, $matches);
+            $constantLikes = array_unique($matches['CONSTANT_LIKE']);
             self::assertSame(
-                0,
-                preg_match('~([\'"])[A-Z_]+\1~', $classContent, $matches),
-                "Class {$projectClass} uses an internal constant-like value: " . implode(';', $matches)
+                $projectNonCodeClass === CardPayRequestValues::class
+                && current($constantLikes) === CardPayRequestValues::PRICE_INDEX
+                    ? 1
+                    : 0,
+                $constantLikeCount,
+                "Class {$projectNonCodeClass} uses an internal constant-like values: "
+                . implode(
+                    ';',
+                    array_map(
+                        function (string $constantLike) {
+                            return "'{$constantLike}'";
+                        },
+                        array_unique($matches['CONSTANT_LIKE'])
+                    )
+                ) . '.'
                 . " Every 'CODE_NAME' should be taken from one of " . implode(', ', $this->getCodeClasses())
             );
         }
@@ -32,21 +47,43 @@ class ConstantsUsageTest extends TestCase
      */
     private function getProjectClasses()
     {
-        $projectClasses = [];
-        $namespace = (new \ReflectionClass(Provider::class))->getNamespaceName();
-        foreach (new \DirectoryIterator(__DIR__ . '/../../GpWebPay') as $directoryIterator) {
-            if ($directoryIterator->isDir()) {
-                continue;
+        $getClassesFromDir = function (string $directory, string $rootNamespace) use (&$getClassesFromDir) {
+            $classes = [];
+            foreach (scandir($directory) as $folder) {
+                if (in_array($folder, ['.', '..'], true)) {
+                    continue;
+                }
+                $folderPath = rtrim($directory, '\\/') . DIRECTORY_SEPARATOR . $folder;
+                if (is_dir($folderPath)) {
+                    /** @noinspection SlowArrayOperationsInLoopInspection */
+                    $classes = array_merge($classes, $getClassesFromDir($folderPath, $rootNamespace . '\\' . $folder));
+                    continue;
+                }
+                $class = $rootNamespace . '\\' . basename($folder, '.php');
+                self::assertTrue(
+                    class_exists($class) || interface_exists($class),
+                    "Class nor interface {$class} does not exist or can not be auto-loaded"
+                );
+                $classes[] = $class;
             }
-            $projectClass = $namespace . '\\' . $directoryIterator->getBasename('.php');
-            self::assertTrue(
-                class_exists($projectClass) || interface_exists($projectClass),
-                "Class {$projectClass} does not exist or can not be auto-loaded"
-            );
-            $projectClasses[] = $projectClass;
-        }
 
-        return $projectClasses;
+            return $classes;
+        };
+
+        return $getClassesFromDir(
+            __DIR__ . '/../../GpWebPay',
+            (new \ReflectionClass(Provider::class))->getNamespaceName()
+        );
+    }
+
+    /**
+     * @return array|string[]
+     */
+    private function getProjectNonCodeClasses()
+    {
+        return array_filter($this->getProjectClasses(), function (string $projectClass) {
+            return !is_a($projectClass, Codes::class);
+        });
     }
 
     /**
@@ -60,6 +97,7 @@ class ConstantsUsageTest extends TestCase
                 $codeClasses[] = $projectClass;
             }
         }
+        self::assertNotEmpty($codeClasses, 'No code classes found');
 
         return $codeClasses;
     }

@@ -44,6 +44,8 @@ class CardPayRequestValues extends StrictObject
     private static $floatKeysExpectedInArray = [RequestDigestKeys::AMOUNT]; // as float price like 3.25 EUR
     private static $arrayWithStringKeysExpectedInArray = [RequestDigestKeys::PAYMETHODS];
 
+    const PRICE_INDEX = 'PRICE';
+
     /**
      * @param array $valuesFromGetOrPost
      * @param CurrencyCodes $currencyCodes
@@ -67,6 +69,41 @@ class CardPayRequestValues extends StrictObject
         foreach ($valuesFromGetOrPost as $key => $value) {
             $withUpperCasedKeys[strtoupper(trim($key))] = $value;
         }
+        if (($withUpperCasedKeys[RequestDigestKeys::AMOUNT] ?? null) === null
+            && ($withUpperCasedKeys[self::PRICE_INDEX] ?? null) !== null
+        ) {
+            $withUpperCasedKeys[RequestDigestKeys::AMOUNT] = $withUpperCasedKeys[self::PRICE_INDEX];
+        }
+        $normalizedValues = self::normalizeValues($withUpperCasedKeys);
+
+        return new static(
+            $currencyCodes,
+            $normalizedValues[RequestDigestKeys::ORDERNUMBER],
+            $normalizedValues[RequestDigestKeys::AMOUNT],
+            $normalizedValues[RequestDigestKeys::CURRENCY],
+            $normalizedValues[RequestDigestKeys::DEPOSITFLAG],
+            $normalizedValues[RequestDigestKeys::MERORDERNUM],
+            $normalizedValues[RequestDigestKeys::DESCRIPTION],
+            $normalizedValues[RequestDigestKeys::MD],
+            $normalizedValues[RequestDigestKeys::FASTPAYID],
+            $normalizedValues[RequestDigestKeys::PAYMETHOD],
+            $normalizedValues[RequestDigestKeys::DISABLEPAYMETHOD],
+            $normalizedValues[RequestDigestKeys::PAYMETHODS],
+            $normalizedValues[RequestDigestKeys::EMAIL],
+            $normalizedValues[RequestDigestKeys::REFERENCENUMBER],
+            $normalizedValues[RequestDigestKeys::ADDINFO],
+            $normalizedValues[RequestPayloadKeys::LANG]
+        );
+    }
+
+    /**
+     * @param array $withUpperCasedKeys
+     * @return array
+     * @throws \Granam\GpWebPay\Exceptions\InvalidArgumentException
+     * @throws \Granam\GpWebPay\Exceptions\InvalidRequest
+     */
+    private static function normalizeValues(array $withUpperCasedKeys)
+    {
         $normalizedValues = [];
         foreach (self::$keysExpectedInArray as $key => $required) {
             if (($withUpperCasedKeys[$key] ?? null) === null) {
@@ -102,24 +139,7 @@ class CardPayRequestValues extends StrictObject
             }
         }
 
-        return new static(
-            $currencyCodes,
-            $normalizedValues[RequestDigestKeys::ORDERNUMBER],
-            $normalizedValues[RequestDigestKeys::AMOUNT],
-            $normalizedValues[RequestDigestKeys::CURRENCY],
-            $normalizedValues[RequestDigestKeys::DEPOSITFLAG],
-            $normalizedValues[RequestDigestKeys::MERORDERNUM],
-            $normalizedValues[RequestDigestKeys::DESCRIPTION],
-            $normalizedValues[RequestDigestKeys::MD],
-            $normalizedValues[RequestDigestKeys::FASTPAYID],
-            $normalizedValues[RequestDigestKeys::PAYMETHOD],
-            $normalizedValues[RequestDigestKeys::DISABLEPAYMETHOD],
-            $normalizedValues[RequestDigestKeys::PAYMETHODS],
-            $normalizedValues[RequestDigestKeys::EMAIL],
-            $normalizedValues[RequestDigestKeys::REFERENCENUMBER],
-            $normalizedValues[RequestDigestKeys::ADDINFO],
-            $normalizedValues[RequestPayloadKeys::LANG]
-        );
+        return $normalizedValues;
     }
 
     // REQUIRED VALUES
