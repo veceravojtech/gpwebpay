@@ -1,13 +1,14 @@
 <?php
 namespace Granam\GpWebPay;
 
+require_once __DIR__ . '/../../tests_bootstrap.php';
+
 use Alcohol\ISO4217;
 use Granam\GpWebPay\Codes\CurrencyCodes;
 use Granam\GpWebPay\Codes\RequestDigestKeys;
 use Granam\Tests\GpWebPay\LiveTest;
 use Symfony\Component\Yaml\Yaml;
 
-require_once __DIR__ . '/../../tests_bootstrap.php';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -46,7 +47,7 @@ if (($_GET['price'] ?? null) !== null) {
         preg_match('~^\\/~', $config[LiveTest::PUBLIC_KEY_FILE_INDEX])
             ? $config[LiveTest::PUBLIC_KEY_FILE_INDEX] // absolute path
             : __DIR__ . '/../../' . $config[LiveTest::PUBLIC_KEY_FILE_INDEX], // relative to config file
-        'http://example.com', // no response URL is needed
+        'https://keeper.jaroslavtyc.com/',
         $config[LiveTest::MERCHANT_NUMBER_INDEX]
     );
     $provider = new Provider($settings, new DigestSigner($settings));
