@@ -57,26 +57,31 @@ if (($_GET['price'] ?? null) !== null) {
         CardPayRequestValues::createFromArray($values, new CurrencyCodes($ISO4217))
     );
     ?>
-    <form action="<?= $cardPayRequest->getRequestUrlForGet() ?>" method="get">
-        <label>Price <input type="number" value="<?= $values['price'] ?>" disabled
-        </label><br>
-        <label>Currency
-            <select disabled>
-                <option value="<?= $values['currency']; ?>" selected>
-                    <?= $currencies[$values['currency']]; ?>
-                </option>
-            </select>
-        </label><br>
+    <label>
+        Price
+        <input type="number" value="<?= $values['price'] ?>" disabled>
+    </label><br>
+    <label>
+        Currency
+        <select disabled>
+            <option value="<?= $values['currency']; ?>" selected>
+                <?= $currencies[$values['currency']]; ?>
+            </option>
+        </select>
+    </label><br>
+    <br>
+    <form action="<?= $cardPayRequest->getRequestUrl() ?>" method="get">
+        <?php foreach ($cardPayRequest as $name => $value) {
+            ?><input type="hidden" name="<?= $name ?>" value="<?= $value ?>">
+        <?php } ?>
         <button type="submit">Confirm via GET</button>
-        <br>
-    </form>
-    <form action="<?= $cardPayRequest->getRequestUrlForPost() ?>" method="post">
+    </form><br>
+    <form action="<?= $cardPayRequest->getRequestUrl() ?>" method="post">
         <?php foreach ($cardPayRequest as $name => $value) {
             ?><input type="hidden" name="<?= $name ?>" value="<?= $value ?>">
         <?php } ?>
         <button type="submit">Confirm via POST</button>
-        <br>
-    </form>
+    </form><br>
     <a href="gp_web_pay.php">Reset</a>
 <?php } else {
     ?>
@@ -93,7 +98,7 @@ if (($_GET['price'] ?? null) !== null) {
                 <?php } ?>
             </select><br>
             <button type="submit">Check</button>
-        </label><br>
+        </label>
     </form>
 <?php }
 ?>

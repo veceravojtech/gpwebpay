@@ -31,7 +31,7 @@ class ProviderTest extends TestWithMockery
         );
         self::assertRegExp(
             '~' . preg_quote($url, '~') . '~',
-            $cardPayRequest->getRequestUrlForGet(),
+            $cardPayRequest->getRequestUrlWithGetParameters(),
             'Request URL from settings was not propagated'
         );
     }

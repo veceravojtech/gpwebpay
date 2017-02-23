@@ -3,10 +3,16 @@ namespace Granam\GpWebPay;
 
 interface PayRequest extends \IteratorAggregate
 {
+
     /**
      * @return string
      */
-    public function getRequestUrlForGet(): string;
+    public function getRequestUrl(): string;
+
+    /**
+     * @return string
+     */
+    public function getRequestUrlWithGetParameters(): string;
 
     /**
      * @return array

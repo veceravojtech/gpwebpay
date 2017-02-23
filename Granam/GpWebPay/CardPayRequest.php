@@ -9,9 +9,7 @@ use Granam\Strict\Object\StrictObject;
 class CardPayRequest extends StrictObject implements \IteratorAggregate, PayRequest
 {
     /** @var string */
-    private $requestUrlForPost;
-    /** @var string */
-    private $requestUrlForGet;
+    private $requestUrl;
     /** @var array */
     private $parametersForRequest;
 
@@ -35,8 +33,7 @@ class CardPayRequest extends StrictObject implements \IteratorAggregate, PayRequ
             $digestSigner,
             $cardPayRequestValues->getLang()
         );
-        $this->requestUrlForPost = $settings->getBaseUrlForRequest();
-        $this->requestUrlForGet = $settings->getBaseUrlForRequest() . '?' . http_build_query($this->parametersForRequest);
+        $this->requestUrl = $settings->getBaseUrlForRequest();
     }
 
     /**
@@ -113,19 +110,19 @@ class CardPayRequest extends StrictObject implements \IteratorAggregate, PayRequ
     /**
      * @return string
      */
-    public function getRequestUrlForPost(): string
+    public function getRequestUrl(): string
     {
-        return $this->requestUrlForPost;
+        return $this->requestUrl;
     }
 
     /**
-     * To send a request via GET method you can use this URL
+     * To send a request via GET method and REDIRECT you can use this URL
      *
      * @return string
      */
-    public function getRequestUrlForGet(): string
+    public function getRequestUrlWithGetParameters(): string
     {
-        return $this->requestUrlForGet;
+        return $this->getRequestUrl() . '?' . http_build_query($this->parametersForRequest);
     }
 
     /**

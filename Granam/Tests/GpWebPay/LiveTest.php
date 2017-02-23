@@ -84,7 +84,7 @@ class LiveTest extends TestWithMockery
             CardPayRequestValues::createFromArray($_POSTLIKE, new CurrencyCodes($ISO4217))
         );
         self::assertInstanceOf(CardPayRequest::class, $cardPayRequest);
-        $curl = curl_init($cardPayRequest->getRequestUrlForGet());
+        $curl = curl_init($cardPayRequest->getRequestUrlWithGetParameters());
         curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
         curl_setopt($curl, CURLOPT_MAXREDIRS, 5);
         curl_setopt($curl, CURLOPT_SSL_VERIFYSTATUS, true);
@@ -92,7 +92,7 @@ class LiveTest extends TestWithMockery
         curl_setopt($curl, CURLOPT_VERBOSE, true);
         self::assertTrue(
             curl_exec($curl),
-            'Requesting a new order via GET fails, used URL ' . $cardPayRequest->getRequestUrlForGet()
+            'Requesting a new order via GET fails, used URL ' . $cardPayRequest->getRequestUrlWithGetParameters()
         );
     }
 }
