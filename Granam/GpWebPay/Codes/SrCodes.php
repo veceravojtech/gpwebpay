@@ -102,4 +102,15 @@ class SrCodes extends StrictObject implements Codes
 
         return '';
     }
+
+    /**
+     * Messages of those errors can be shown to customer for his clear information.
+     *
+     * @param int $srCode
+     * @return bool
+     */
+    public static function isErrorForCustomer(int $srCode): bool
+    {
+        return in_array($srCode, [6, 11], true) || $srCode >= 1001;
+    }
 }

@@ -7,16 +7,13 @@ use Granam\GpWebPay\Codes\SrCodes;
 
 class GpWebPayErrorResponse extends \RuntimeException implements Runtime
 {
-    const OK_CODE = 0;
-    const ADDITIONAL_INFO_REQUEST_CODE = 200;
-
     /**
      * @param int $prCode
      * @return bool
      */
-    public static function isErrorCode(int $prCode): bool
+    public static function isError(int $prCode): bool
     {
-        return $prCode !== self::OK_CODE && $prCode !== self::ADDITIONAL_INFO_REQUEST_CODE;
+        return $prCode !== PrCodes::OK_CODE && $prCode !== PrCodes::ADDITIONAL_INFO_REQUEST_CODE;
     }
 
     /**
@@ -28,7 +25,7 @@ class GpWebPayErrorResponse extends \RuntimeException implements Runtime
      * @param int $srCode
      * @return bool
      */
-    public static function isUnsupportedCurrencyErrorCodes(int $prCode, int $srCode): bool
+    public static function isUnsupportedCurrencyError(int $prCode, int $srCode): bool
     {
         return $prCode === 3 && $srCode === 7;
     }
@@ -117,5 +114,15 @@ class GpWebPayErrorResponse extends \RuntimeException implements Runtime
         }
 
         return $message;
+    }
+
+    /**
+     * Its recommended to show a localized message to an user / customer if it has sense to him.
+     *
+     * @return bool
+     */
+    public function isLocalizedMessageForCustomer()
+    {
+        return PrCodes::isErrorForCustomer($this->getPrCode()) && SrCodes::isErrorForCustomer($this->getSrCode());
     }
 }

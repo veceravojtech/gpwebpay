@@ -5,10 +5,14 @@ use Granam\Strict\Object\StrictObject;
 
 class PrCodes extends StrictObject implements Codes
 {
+    // NON-ERROR CODES
+    const OK_CODE = 0;
+    const ADDITIONAL_INFO_REQUEST_CODE = 200;
+
     private static $prCodes = [
         LanguageCodes::CS => [
             'genericProblem' => 'Technický problém v GP webpay systému, kontaktujte obchodníka',
-            0 => 'OK',
+            self::OK_CODE => 'OK',
             1 => 'Pole příliš dlouhé',
             2 => 'Pole příliš krátké',
             3 => 'Chybný obsah pole',
@@ -26,17 +30,17 @@ vytvoření objednávky již proběhlo a objednávka je v určitém stavu
             25 => 'Uživatel není oprávněn k provedení operace',
             26 => 'Technický problém při spojení s autorizačním centrem',
             27 => 'Chybný typ objednávky',
-            28 => 'Zamítnuto v 3D Info: důvod zamítnutí udává SRCODE Declined in 3D',
+            28 => 'Zamítnuto v 3D',
             30 => 'Zamítnuto v autorizačním centru',
             31 => 'Chybný podpis (digest)',
             35 => 'Expirovaná session (nastává při vypršení webové session při zadávání karty)',
             50 => 'Držitel karty zrušil platbu',
-            200 => 'Žádost o doplňující informace',
+            self::ADDITIONAL_INFO_REQUEST_CODE => 'Žádost o doplňující informace',
             1000 => 'Technický problém',
         ],
         LanguageCodes::EN => [
             'genericProblem' => 'Technical problem in GP webpay system, contact the merchant',
-            0 => 'OK',
+            self::OK_CODE => 'OK',
             1 => 'Field too long',
             2 => 'Field too short',
             3 => 'Incorrect content of field',
@@ -56,7 +60,7 @@ vytvoření objednávky již proběhlo a objednávka je v určitém stavu
             31 => 'Wrong digest',
             35 => 'Session expired (happens on web session expiration when entering a card)',
             50 => 'The cardholder canceled the payment',
-            200 => 'Additional info request',
+            self::ADDITIONAL_INFO_REQUEST_CODE => 'Additional info request',
             1000 => 'Technical problem',
         ],
     ];
@@ -95,5 +99,16 @@ vytvoření objednávky již proběhlo a objednávka je v určitém stavu
         trigger_error("Unknown PR error code: '{$prCode}', a generic text used instead", E_USER_WARNING);
 
         return self::$prCodes[$languageCode]['genericProblem'];
+    }
+
+    /**
+     * Messages of those errors can be shown to a customer / user for his clear information.
+     *
+     * @param int $prCode
+     * @return bool
+     */
+    public static function isErrorForCustomer(int $prCode): bool
+    {
+        return in_array($prCode, [17, 25, 26, 28, 30, 35, 50, 1000], true);
     }
 }

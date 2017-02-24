@@ -12,10 +12,10 @@ class GpWebPayErrorResponseTest extends TestCase
      */
     public function I_can_ask_it_if_given_pr_code_means_error()
     {
-        self::assertFalse(GpWebPayErrorResponse::isErrorCode(0));
-        self::assertFalse(GpWebPayErrorResponse::isErrorCode(200));
-        self::assertTrue(GpWebPayErrorResponse::isErrorCode(1));
-        self::assertTrue(GpWebPayErrorResponse::isErrorCode(50));
+        self::assertFalse(GpWebPayErrorResponse::isError(0));
+        self::assertFalse(GpWebPayErrorResponse::isError(200));
+        self::assertTrue(GpWebPayErrorResponse::isError(1));
+        self::assertTrue(GpWebPayErrorResponse::isError(50));
     }
 
     /**
@@ -93,8 +93,21 @@ class GpWebPayErrorResponseTest extends TestCase
      */
     public function I_can_find_out_easily_if_currency_was_refused()
     {
-        self::assertTrue(GpWebPayErrorResponse::isUnsupportedCurrencyErrorCodes(3, 7));
-        self::assertFalse(GpWebPayErrorResponse::isUnsupportedCurrencyErrorCodes(2, 7));
-        self::assertFalse(GpWebPayErrorResponse::isUnsupportedCurrencyErrorCodes(3, 8));
+        self::assertTrue(GpWebPayErrorResponse::isUnsupportedCurrencyError(3, 7));
+        self::assertFalse(GpWebPayErrorResponse::isUnsupportedCurrencyError(2, 7));
+        self::assertFalse(GpWebPayErrorResponse::isUnsupportedCurrencyError(3, 8));
+    }
+
+    /**
+     * @test
+     */
+    public function I_can_ask_it_for_hint_if_message_should_be_shown_to_customer()
+    {
+        $gpWebPayErrorResponse = new GpWebPayErrorResponse(26, 10);
+        self::assertFalse($gpWebPayErrorResponse->isLocalizedMessageForCustomer());
+        $gpWebPayErrorResponse = new GpWebPayErrorResponse(26, 1002);
+        self::assertTrue($gpWebPayErrorResponse->isLocalizedMessageForCustomer());
+        $gpWebPayErrorResponse = new GpWebPayErrorResponse(1, 1002);
+        self::assertFalse($gpWebPayErrorResponse->isLocalizedMessageForCustomer());
     }
 }

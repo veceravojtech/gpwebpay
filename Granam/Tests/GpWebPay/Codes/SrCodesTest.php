@@ -84,4 +84,15 @@ class SrCodesTest extends TestWithMockery
             [3001, LanguageCodes::FI, 'Authenticated', E_USER_NOTICE, '~\Wfi\W.+\Wen ~'] // unknown language - english will be used instead
         ];
     }
+
+    /**
+     * @test
+     */
+    public function I_can_easily_find_out_if_error_code_means_info_for_customer()
+    {
+        self::assertTrue(SrCodes::isErrorForCustomer(6));
+        self::assertTrue(SrCodes::isErrorForCustomer(1001));
+        self::assertTrue(SrCodes::isErrorForCustomer(PHP_INT_MAX));
+        self::assertFalse(SrCodes::isErrorForCustomer(5));
+    }
 }

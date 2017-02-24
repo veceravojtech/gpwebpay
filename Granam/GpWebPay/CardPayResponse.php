@@ -92,7 +92,7 @@ class CardPayResponse extends StrictObject implements PayResponse
      * @param string|null $resultText
      * @param string|null $userParam1
      * @param string|null $addInfo
-     * @throws \Granam\GpWebPay\Exceptions\GpWebPayErrorResponse::__construct
+     * @throws \Granam\GpWebPay\Exceptions\GpWebPayErrorResponse
      */
     public function __construct(
         string $operation,
@@ -108,7 +108,7 @@ class CardPayResponse extends StrictObject implements PayResponse
         string $addInfo = null
     )
     {
-        if (GpWebPayErrorResponse::isErrorCode($prCode)) {
+        if (GpWebPayErrorResponse::isError($prCode)) {
             throw new Exceptions\GpWebPayErrorResponse($prCode, $srCode, $resultText);
         }
         // keys HAVE TO be exactly in this order to provide correct values for digest calculation
@@ -140,7 +140,7 @@ class CardPayResponse extends StrictObject implements PayResponse
      */
     public function hasError(): bool
     {
-        return GpWebPayErrorResponse::isErrorCode($this->parametersForDigest[ResponseDigestKeys::PRCODE]);
+        return GpWebPayErrorResponse::isError($this->parametersForDigest[ResponseDigestKeys::PRCODE]);
     }
 
     /**

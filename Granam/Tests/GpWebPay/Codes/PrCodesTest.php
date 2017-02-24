@@ -82,4 +82,14 @@ class PrCodesTest extends CodesTest
             [2, LanguageCodes::FI, 'Field too short', E_USER_NOTICE, '~\Wfi\W.+\Wen ~'] // unknown language - english will be used instead
         ];
     }
+
+    /**
+     * @test
+     */
+    public function I_can_easily_find_out_if_error_code_means_info_for_customer()
+    {
+        self::assertTrue(PrCodes::isErrorForCustomer(17));
+        self::assertTrue(PrCodes::isErrorForCustomer(1000));
+        self::assertFalse(PrCodes::isErrorForCustomer(4));
+    }
 }
