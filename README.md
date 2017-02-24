@@ -66,6 +66,11 @@ Almost all possible error cases are covered clearly by many of exceptions, but s
     - probably the URL for response you provided to GP WebPay in URL parameter is not valid int he point of view of GP WebPay
         - ensure that URL exists and there is **NO redirection**, like https://www.github.com to https://github.com/ with trailing slash
         (don't believe your eyes in a browser address bar, the trailing slash is often hidden there)
+        
+### Covered functionality
+
+Just a standard card payment is supported. Therefore the *Payment using digital wallet (MasterPass)* is not
+possible without a fork / classes overload.
 
 ### Installation
 
