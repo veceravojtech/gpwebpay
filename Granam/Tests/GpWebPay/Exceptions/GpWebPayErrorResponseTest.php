@@ -26,8 +26,9 @@ class GpWebPayErrorResponseTest extends TestCase
      * @param string $resultText
      * @param string $expectedEnglishResultText
      * @param string $expectedCzechResultText
-     * @param int $exceptionCode
-     * @param \Exception $previousException
+     * @param int $expectedExceptionCode
+     * @param int|null $exceptionCode
+     * @param \Exception|null $previousException
      */
     public function I_can_throw_this_special_exception_with_detailed_info(
         int $prCode,
@@ -35,6 +36,7 @@ class GpWebPayErrorResponseTest extends TestCase
         string $resultText,
         string $expectedEnglishResultText,
         string $expectedCzechResultText,
+        int $expectedExceptionCode,
         int $exceptionCode = null,
         \Exception $previousException = null
     )
@@ -51,13 +53,13 @@ class GpWebPayErrorResponseTest extends TestCase
             self::assertSame($prCode, $gpWebPayResponseHasAnError->getPrCode());
             self::assertSame($srCode, $gpWebPayResponseHasAnError->getSrCode());
             self::assertSame($resultText, $gpWebPayResponseHasAnError->getResultText());
-            self::assertSame((int)$exceptionCode, $gpWebPayResponseHasAnError->getCode());
+            self::assertSame($expectedExceptionCode, $gpWebPayResponseHasAnError->getCode());
             self::assertSame($previousException, $gpWebPayResponseHasAnError->getPrevious());
             $expectedErrorMessage = $expectedEnglishResultText;
             if ($resultText !== '') {
                 $expectedErrorMessage = $resultText . ' - ' . $expectedErrorMessage;
             }
-            $expectedErrorMessage .= "; error codes $prCode/$srCode";
+            $expectedErrorMessage .= "; error code $prCode($srCode)";
             self::assertSame($expectedErrorMessage, $gpWebPayResponseHasAnError->getMessage());
             self::assertSame($expectedEnglishResultText, $gpWebPayResponseHasAnError->getLocalizedMessage());
             self::assertSame($expectedEnglishResultText, $gpWebPayResponseHasAnError->getLocalizedMessage(LanguageCodes::EN));
@@ -80,9 +82,19 @@ class GpWebPayErrorResponseTest extends TestCase
     public function provideCodesWithTextAndExpectedResult()
     {
         return [
-            [0 /* even OK can be thrown as an exception */, 0, '', 'OK', 'OK'],
-            [1, 0, 'foo', 'Field too long', 'Pole příliš dlouhé', 123, new \Exception()],
-            [4, 8, 'bar', 'Field is null (DEPOSITFLAG)', 'Pole je prázdné (DEPOSITFLAG)'],
+            [0 /* even OK can be thrown as an exception */, 0, '', 'OK', 'OK', 0],
+            [1, 0, 'foo', 'Field too long', 'Pole příliš dlouhé', 123, 123, new \Exception()],
+            [4, 8, 'bar', 'Field is null (DEPOSITFLAG)', 'Pole je prázdné (DEPOSITFLAG)', 4008],
         ];
+    }
+
+    /**
+     * @test
+     */
+    public function I_can_find_out_easily_if_currency_was_refused()
+    {
+        self::assertTrue(GpWebPayErrorResponse::isUnsupportedCurrencyErrorCodes(3, 7));
+        self::assertFalse(GpWebPayErrorResponse::isUnsupportedCurrencyErrorCodes(2, 7));
+        self::assertFalse(GpWebPayErrorResponse::isUnsupportedCurrencyErrorCodes(3, 8));
     }
 }

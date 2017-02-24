@@ -22,7 +22,6 @@ class CardPayResponseTest extends PayResponseTest
      * @param string|null $resultText
      * @param string|null $userParam1
      * @param string|null $addInfo
-     * @param bool $hasError
      */
     public function I_can_use_it(
         string $operation,
@@ -35,8 +34,7 @@ class CardPayResponseTest extends PayResponseTest
         string $md = null,
         string $resultText = null,
         string $userParam1 = null,
-        string $addInfo = null,
-        bool $hasError
+        string $addInfo = null
     )
     {
         $cardPayResponse = new CardPayResponse(
@@ -52,7 +50,7 @@ class CardPayResponseTest extends PayResponseTest
             $userParam1,
             $addInfo
         );
-        self::assertSame($hasError, $cardPayResponse->hasError());
+        self::assertFalse($cardPayResponse->hasError());
         self::assertSame($digest, $cardPayResponse->getDigest());
         self::assertSame($digest1, $cardPayResponse->getDigest1());
         self::assertSame($prCode, $cardPayResponse->getPrCode());
@@ -88,8 +86,18 @@ class CardPayResponseTest extends PayResponseTest
         return [
             ['foo', 1357, 0, 0, 'baz', 'qux', 'FOO', 'BAR', 'BAZ', 'QUX', 'FooBar', false],
             ['foo', 1357, 0, 123, 'baz', 'qux', 'FOO', null, 'BAR', null, 'BAZ', false],
-            ['foo', 1357, 456, 0, 'baz', 'qux', null, null, null, null, null, true],
+            ['foo', 1357, 200, 456, 'baz', 'qux', null, null, null, null, null, true],
         ];
+    }
+
+    /**
+     * @test
+     * @expectedException \Granam\GpWebPay\Exceptions\GpWebPayErrorResponse
+     * @expectedExceptionMessageRegExp ~error code 4\(6\)~
+     */
+    public function I_am_stopped_by_exception_if_error_occurred()
+    {
+        new CardPayResponse('foo', 123, 4, 6, 'bar', 'baz');
     }
 
     /**
@@ -144,16 +152,5 @@ class CardPayResponseTest extends PayResponseTest
                 self::assertRegExp('~' . preg_quote($requiredParameter, '~') . '~', $brokenResponse->getMessage());
             }
         }
-    }
-
-    /**
-     * @test
-     */
-    public function I_can_find_out_easily_if_currency_was_refused()
-    {
-        $cardPayResponse = new CardPayResponse('foo', 123, 3, 7, 'bar', 'baz');
-        self::assertTrue($cardPayResponse->errorCausedByUnsupportedCurrency());
-        $cardPayResponse = new CardPayResponse('foo', 123, 3, 6, 'bar', 'baz');
-        self::assertFalse($cardPayResponse->errorCausedByUnsupportedCurrency());
     }
 }

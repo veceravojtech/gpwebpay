@@ -33,6 +33,7 @@ class CardPayResponse extends StrictObject implements PayResponse
     /**
      * @param array $valuesFromGetOrPost
      * @return CardPayResponse
+     * @throws \Granam\GpWebPay\Exceptions\GpWebPayErrorResponse
      * @throws \Granam\GpWebPay\Exceptions\BrokenResponse
      * @throws \Granam\Integer\Tools\Exceptions\WrongParameterType
      * @throws \Granam\Integer\Tools\Exceptions\ValueLostOnCast
@@ -91,6 +92,7 @@ class CardPayResponse extends StrictObject implements PayResponse
      * @param string|null $resultText
      * @param string|null $userParam1
      * @param string|null $addInfo
+     * @throws \Granam\GpWebPay\Exceptions\GpWebPayErrorResponse::__construct
      */
     public function __construct(
         string $operation,
@@ -106,6 +108,9 @@ class CardPayResponse extends StrictObject implements PayResponse
         string $addInfo = null
     )
     {
+        if (GpWebPayErrorResponse::isErrorCode($prCode)) {
+            throw new Exceptions\GpWebPayErrorResponse($prCode, $srCode, $resultText);
+        }
         // keys HAVE TO be exactly in this order to provide correct values for digest calculation
         $this->parametersForDigest[ResponseDigestKeys::OPERATION] = $operation; // string up to length of 20 (always FINALIZE_ORDER)
         $this->parametersForDigest[ResponseDigestKeys::ORDERNUMBER] = $orderNumber; // numeric up to length of 15
@@ -136,16 +141,6 @@ class CardPayResponse extends StrictObject implements PayResponse
     public function hasError(): bool
     {
         return GpWebPayErrorResponse::isErrorCode($this->parametersForDigest[ResponseDigestKeys::PRCODE]);
-    }
-
-    /**
-     * GPWebPay supports only CZK, EUR, GBP, HUF, PLN, RUB, USD. Every other currency is refused, even if existing.
-     *
-     * @return bool
-     */
-    public function errorCausedByUnsupportedCurrency()
-    {
-        return $this->getPrCode() === 3 && $this->getSrCode() === 7;
     }
 
     /**

@@ -8,6 +8,7 @@ use Granam\GpWebPay\Codes\RequestPayloadKeys;
 use Granam\GpWebPay\Codes\ResponseDigestKeys;
 use Granam\GpWebPay\Codes\ResponsePayloadKeys;
 use Granam\GpWebPay\DigestSignerInterface;
+use Granam\GpWebPay\PayResponse;
 use Granam\GpWebPay\Provider;
 use Granam\GpWebPay\SettingsInterface;
 use Granam\Tests\Tools\TestWithMockery;
@@ -118,8 +119,8 @@ class ProviderTest extends TestWithMockery
         $values = [
             ResponseDigestKeys::OPERATION => 'foo',
             ResponseDigestKeys::ORDERNUMBER => 159,
-            ResponseDigestKeys::PRCODE => 123,
-            ResponseDigestKeys::SRCODE => 456,
+            ResponseDigestKeys::PRCODE => 0,
+            ResponseDigestKeys::SRCODE => 2,
             ResponsePayloadKeys::DIGEST => 'baz',
             ResponsePayloadKeys::DIGEST1 => 'qux',
         ];
@@ -143,8 +144,8 @@ class ProviderTest extends TestWithMockery
             )
         );
         self::assertTrue(
-            $provider->verifyCardPayResponse(
-                $this->createCardPayResponse($parametersForDigest, $digest, $digest1, false)
+            $provider->verifyPayResponse(
+                $this->createPayResponse($parametersForDigest, $digest, $digest1, false)
             )
         );
     }
@@ -157,9 +158,9 @@ class ProviderTest extends TestWithMockery
      * @param int|null $prCode
      * @param int|null $srCode
      * @param string|null $resultText
-     * @return \Mockery\MockInterface|CardPayResponse
+     * @return \Mockery\MockInterface|PayResponse
      */
-    private function createCardPayResponse(
+    private function createPayResponse(
         array $parametersForDigest,
         string $digest,
         string $digest1,
@@ -169,7 +170,7 @@ class ProviderTest extends TestWithMockery
         string $resultText = null
     )
     {
-        $cardPayResponse = $this->mockery(CardPayResponse::class);
+        $cardPayResponse = $this->mockery(PayResponse::class);
         $cardPayResponse->shouldReceive('getParametersForDigest')
             ->andReturn($parametersForDigest);
         $cardPayResponse->shouldReceive('getDigest')
@@ -237,7 +238,7 @@ class ProviderTest extends TestWithMockery
                 true
             )
         );
-        $provider->verifyCardPayResponse($this->createCardPayResponse($parametersForDigest, $digest, $digest1, false));
+        $provider->verifyPayResponse($this->createPayResponse($parametersForDigest, $digest, $digest1, false));
     }
 
     /**
@@ -258,13 +259,13 @@ class ProviderTest extends TestWithMockery
                 false // second digest as invalid
             )
         );
-        $provider->verifyCardPayResponse($this->createCardPayResponse($parametersForDigest, $digest, $digest1, false));
+        $provider->verifyPayResponse($this->createPayResponse($parametersForDigest, $digest, $digest1, false));
     }
 
     /**
      * @test
      * @expectedException \Granam\GpWebPay\Exceptions\GpWebPayErrorResponse
-     * @expectedExceptionMessageRegExp ~^Time for service - .+\D1/2\D*~
+     * @expectedExceptionMessageRegExp ~^Time for service - .+ 1\(2\).*~
      */
     public function I_am_stopped_when_response_reports_error()
     {
@@ -279,8 +280,8 @@ class ProviderTest extends TestWithMockery
                 true
             )
         );
-        $provider->verifyCardPayResponse(
-            $this->createCardPayResponse(
+        $provider->verifyPayResponse(
+            $this->createPayResponse(
                 $parametersForDigest,
                 $digest,
                 $digest1,

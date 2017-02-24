@@ -14,9 +14,23 @@ class GpWebPayErrorResponse extends \RuntimeException implements Runtime
      * @param int $prCode
      * @return bool
      */
-    public static function isErrorCode(int $prCode)
+    public static function isErrorCode(int $prCode): bool
     {
         return $prCode !== self::OK_CODE && $prCode !== self::ADDITIONAL_INFO_REQUEST_CODE;
+    }
+
+    /**
+     * GPWebPay supports only CZK, EUR, GBP, HUF, PLN, RUB, USD (according to @link http://gpwebpay.cz/en/Faq and answer
+     * to "Which ISO currency codes (numerical codes) are accepted via GP webpay?").
+     * Every other currency is refused, even if existing.
+     *
+     * @param int $prCode
+     * @param int $srCode
+     * @return bool
+     */
+    public static function isUnsupportedCurrencyErrorCodes(int $prCode, int $srCode): bool
+    {
+        return $prCode === 3 && $srCode === 7;
     }
 
     /** @var int */
@@ -29,27 +43,30 @@ class GpWebPayErrorResponse extends \RuntimeException implements Runtime
     /**
      * @param int $prCode
      * @param int $srCode
-     * @param string $resultText
+     * @param string|null $resultText
      * @param int $exceptionCode
      * @param \Exception $previousException
      */
     public function __construct(
         int $prCode,
         int $srCode,
-        string $resultText = '',
+        string $resultText = null,
         $exceptionCode = null, // intentionally without scalar type hint
         \Exception $previousException = null
     )
     {
         $this->prCode = $prCode;
         $this->srCode = $srCode;
-        $this->resultText = $resultText ? trim($resultText) : '';
+        $this->resultText = (string)$resultText;
+        if ($exceptionCode === null) { // note: any value will be internally converted to int
+            $exceptionCode = $prCode * 1000 + $srCode;
+        }
         parent::__construct(
-            ($this->resultText
+            ($this->resultText !== ''
                 ? "{$this->resultText} - "
                 : ''
-            ) . $this->getLocalizedMessage(LanguageCodes::EN) . "; error codes {$prCode}/{$srCode}",
-            $exceptionCode, // will be internally converted to int
+            ) . $this->getLocalizedMessage(LanguageCodes::EN) . "; error code {$prCode}({$srCode})",
+            $exceptionCode,
             $previousException
         );
     }
@@ -57,7 +74,7 @@ class GpWebPayErrorResponse extends \RuntimeException implements Runtime
     /**
      * @return int
      */
-    public function getPrCode()
+    public function getPrCode(): int
     {
         return $this->prCode;
     }
@@ -65,7 +82,7 @@ class GpWebPayErrorResponse extends \RuntimeException implements Runtime
     /**
      * @return int
      */
-    public function getSrCode()
+    public function getSrCode(): int
     {
         return $this->srCode;
     }
@@ -82,7 +99,7 @@ class GpWebPayErrorResponse extends \RuntimeException implements Runtime
      * @param string $languageCode
      * @return string
      */
-    public function getLocalizedMessage(string $languageCode = LanguageCodes::EN)
+    public function getLocalizedMessage(string $languageCode = LanguageCodes::EN): string
     {
         $languageCode = strtolower(trim($languageCode));
         if ($languageCode !== LanguageCodes::CS && $languageCode !== LanguageCodes::EN) {

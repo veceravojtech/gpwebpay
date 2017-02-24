@@ -42,6 +42,7 @@ class Provider extends StrictObject implements CardPayProvider
      * @throws \Granam\Integer\Tools\Exceptions\WrongParameterType
      * @throws \Granam\Integer\Tools\Exceptions\ValueLostOnCast
      * @throws \Granam\Scalar\Tools\Exceptions\WrongParameterType
+     * @throws \Granam\GpWebPay\Exceptions\GpWebPayErrorResponse
      */
     public function createCardPayResponse(array $valuesFromGetOrPost): CardPayResponse
     {
@@ -49,7 +50,7 @@ class Provider extends StrictObject implements CardPayProvider
     }
 
     /**
-     * @param CardPayResponse $response
+     * @param PayResponse $response
      * @return bool
      * @throws \Granam\GpWebPay\Exceptions\PrivateKeyFileCanNotBeRead
      * @throws \Granam\GpWebPay\Exceptions\PublicKeyFileCanNotBeRead
@@ -57,7 +58,7 @@ class Provider extends StrictObject implements CardPayProvider
      * @throws \Granam\GpWebPay\Exceptions\DigestCanNotBeVerified
      * @throws \Granam\GpWebPay\Exceptions\GpWebPayErrorResponse
      */
-    public function verifyCardPayResponse(CardPayResponse $response): bool
+    public function verifyPayResponse(PayResponse $response): bool
     {
         // verify digest & digest1
         $parametersForDigest = $response->getParametersForDigest();

@@ -16,10 +16,10 @@ interface CardPayProvider
     public function createCardPayResponse(array $valuesFromGetOrPost): CardPayResponse;
 
     /**
-     * @param CardPayResponse $response
+     * @param PayResponse $response
      * @return bool
      * @throws \Granam\GpWebPay\Exceptions\DigestCanNotBeVerified
      * @throws \Granam\GpWebPay\Exceptions\GpWebPayErrorResponse
      */
-    public function verifyCardPayResponse(CardPayResponse $response): bool;
+    public function verifyPayResponse(PayResponse $response): bool;
 }
