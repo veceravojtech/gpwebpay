@@ -3,3 +3,4 @@ privateKeyPassword: 12345
 publicKeyFile: ./live_test_values/gpe.signing_test.pem
 baseUrlForRequest: https://test.3dsecure.gpwebpay.com/pgw/order.do
 merchantNumber: 123456789
+urlForResponse: https://keeper.jaroslavtyc.com/
