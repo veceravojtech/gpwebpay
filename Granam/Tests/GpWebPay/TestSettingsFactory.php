@@ -20,11 +20,7 @@ class TestSettingsFactory extends Settings
      */
     public static function createTestSettings(): Settings
     {
-        $liveTestConfigFile = __DIR__ . '/../webpay_live_test_config.yml';
-        if (!is_readable($liveTestConfigFile)) {
-            throw new \RuntimeException('Could not read ' . $liveTestConfigFile);
-        }
-        $config = Yaml::parse(file_get_contents($liveTestConfigFile));
+        $config = Yaml::parse(file_get_contents(self::findLiveTestConfigFile()));
 
         foreach ([self::PRIVATE_KEY_FILE_INDEX, self::PUBLIC_KEY_FILE_INDEX, self::BASE_URL_FOR_REQUEST_INDEX,
                      self::MERCHANT_NUMBER_INDEX, self::URL_FOR_RESPONSE_INDEX] as $required) {
@@ -44,6 +40,31 @@ class TestSettingsFactory extends Settings
                 : __DIR__ . '/../' . $config[self::PUBLIC_KEY_FILE_INDEX], // relative to config file
             $config[self::URL_FOR_RESPONSE_INDEX],
             $config[self::MERCHANT_NUMBER_INDEX]
+        );
+    }
+
+    /**
+     * @return string
+     * @throws \RuntimeException
+     */
+    private static function findLiveTestConfigFile(): string
+    {
+        $liveTestConfigFile = __DIR__ . '/../webpay_live_test_config.yml'; // directly in this library, together with dist version
+        if (is_readable($liveTestConfigFile)) {
+            return $liveTestConfigFile;
+        }
+        $maxHierarchySteps = 5;
+        $step = 0;
+        $dirToStartSearchUpward = __DIR__ . '/../../../../'; // one level out of this library
+        do {
+            $liveTestConfigFile = $dirToStartSearchUpward . str_repeat('../', $step) . 'webpay_live_test_config.yml';
+            if (is_readable($liveTestConfigFile)) {
+                return $liveTestConfigFile;
+            }
+        } while (++$step < $maxHierarchySteps || in_array('composer.json', scandir(dirname($liveTestConfigFile)), true));
+
+        throw new \RuntimeException(
+            "Could not find webpay_live_test_config.yml in {$dirToStartSearchUpward} nor in any of its {$step} parents"
         );
     }
 }
