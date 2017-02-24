@@ -1,7 +1,7 @@
 {
   "name": "granam/gpwebpay",
   "type": "library",
-  "description": "GP WepPay orders controller",
+  "description": "GP WepPay payment gateway for a standard card payment",
   "keywords": [
     "gp",
     "gp webpay",
