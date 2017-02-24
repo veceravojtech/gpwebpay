@@ -7,108 +7,72 @@ GPWebPay is a PHP library for online payments via [GPWebPay service](http://www.
 If your are using [Nette framework](https://nette.org/en/), you may want
 [Pixidos/GPWebPay](https://github.com/Pixidos/GPWebPay) Nette extension instead.
 
-# NOT READY - DO NOT USE YET
-
 ## Quickstart
 
-This extension is here to provide [GP WebPay](http://www.gpwebpay.cz) system for Nette Framework.
-
-and setting
-
-```yml
-privateKey: < your private certificate path >
-privateKeyPassword: < private certificate password >
-publicKey: < gateway public certificate path (you will probably get this by email) > //gpe.signing_prod.pem
-url: <url of gpwabpay system gateway > //example: https://test.3dsecure.gpwebpay.com/unicredit/order.do
-merchantNumber: <your merechant number >
-```
-
-or if you need more then one gateway
-```yml
-TODO
-```
-
-## Usage
-
-**TODO**
-
+### Set up & usage
 
 ```php
-use Pixidos\GPWebPay\Exceptions\GPWebPayException;
-use Pixidos\GPWebPay\Request;
-use Pixidos\GPWebPay\Response;
-use Pixidos\GPWebPay\Operation;
+<?php
+namespace Foo\Bar;
 
-class MyPresenter extends Nette\Application\UI\Presenter
-{
+use Granam\GpWebPay\Settings;
+use Granam\GpWebPay\DigestSigner;
+use Granam\GpWebPay\Provider;
+use Granam\GpWebPay\Codes\CurrencyCodes;
+use Alcohol\ISO4217 as IsoCurrencies;
+use Granam\GpWebPay\CardPayRequestValues;
+use Granam\GpWebPay\Exceptions\Exception as GpWebPayException;
 
-	/** @var \Pixidos\GPWebPay\Components\GPWebPayControlFactory @inject */
-	public $gpWebPayFactory;
+// SET UP
+$settings = Settings::createForProduction(
+    __DIR__ . '/foo/bar/your_private_key_downloaded_from_gp_web_pay.pem',
+    'TopSecretPasswordForPrivateKey',
+    __DIR__ . '/foo/bar/gp_web_pay_server_public_key_also_downloaded_from_their_server.pem',
+    'https://your.eshop.url/gp_web_pay_response_catcher.php', // response URL
+    123456789 // you 'merchant number', also taken from GP WebPay
+);
+$digestSigner = new DigestSigner($settings);
+$provider = new Provider($settings, $digestSigner);
+$currencyCodes = new CurrencyCodes(new IsoCurrencies());
 
-	/**
-     * @return GPWebPayControl
-     * @throws InvalidArgumentException
-     */
-    public function createComponentWebPayButton()
-    {
-        $operation = new Operation(int $orderId, int $totalPrice, int $curencyCode);
-        // if you use more than one gateway use gatewayKey - same as in config
-        // $operation = new Operation(int $orderId, int $totalPrice, int $curencyCode, string $gatewayKey);
-
-        // if you need to switch gateway lang
-        // $operation->setLang('cs');
-
-        /**
-         * you can set Response URL. In default will be used handelSuccess() in component
-         * https://github.com/Pixidos/GPWebPay/blob/master/src/Pixidos/GPWebPay/Components/GPWebPayControl.php#L93
-         * $operation->setResponseUrl($url);
-         */
-
-        $control = $this->gpWebPayFactory->create($operation);
-
-        # Run before redirect to webpay gateway
-        $control->onCheckout[] = function (GPWebPayControl $control, Request $request){
-
-            //...
-
-        }
-
-
-        # On success response
-        $control->onSuccess[] = function(GPWebPayControl $control, Response $response) {
-
-            //....
-
-        };
-
-        # On Error
-        $control->onError[] = function(GPWebPayControl $control, GPWebPayException $exception)
-        {
-
-            //...
-
-        };
-
-        return $control;
-
-    }
+// USE
+try {
+    $cardPayRequestValues = CardPayRequestValues::createFromArray($_POST, $currencyCodes);
+    $cardPayRequest = $provider->createCardPayRequest($cardPayRequestValues);
+} catch (GpWebPayException $exception) {
+    // we are sorry, our payment gateway is temporarily unavailable (log it, solve it)
+    exit();
 }
+
+?>
+<html>
+<body>
+    <!-- some pretty recapitulation of the order -->
+    <form method="post" action="<?= $cardPayRequest->getRequestUrl() ?>">
+        <?php foreach ($cardPayRequest as $name => $value) {
+            ?><input type="hidden" name="<?= $name ?>" value="<?= $value ?>"
+        <?php } ?>
+        <input type="submit" value="Confirm order">
+   </form>
+</body>
+</html>
+
 ```
 
-## Templates
+### Troubleshooting
 
-```smarty
-{var $attrs = array(class => 'btn btn-primary')}
-{control webPayButton $attrs, 'text on button'}
-```
+Almost all possible error cases are covered clearly by many of exceptions, but some are so nasty so they can not be:
+ - after sending a request to GP WebPay you see just a logo and HTTP response code is 401
+    - probably the URL for response you provided to GP WebPay in URL parameter is not valid int he point of view of GP WebPay
+        - ensure that URL exists and there is **NO redirection**, like https://www.github.com to https://github.com/ with trailing slash
+        (don't believe your eyes in a browser address bar, the trailing slash is often hidden there)
 
-Installation
-------------
+### Installation
 
 ```sh
 composer require granam/gpwebpay
 ```
-*(requires PHP 5.6+)*
+*(requires PHP **7.0+**)*
 
 ## Credits
 This library originates from [Pixidos/GPWebPay](https://github.com/Pixidos/GPWebPay) library, which has same
