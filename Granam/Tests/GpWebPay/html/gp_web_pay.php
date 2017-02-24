@@ -93,7 +93,8 @@ if (($_GET['price'] ?? null) !== null) {
             <select name="currency">
                 <?php foreach ($currencies as $currencyNumericCode => $currencyName) {
                     ?>
-                    <option value="<?= $currencyNumericCode ?>">
+                    <option value="<?= $currencyNumericCode ?>"
+                            <?php if ($currencyName === 'EUR') { ?>selected<?php } ?>>
                         <?= $currencyName ?>
                     </option>
                 <?php } ?>
