@@ -36,7 +36,6 @@
   },
   "require": {
     "php": ">=7.0",
-    "ext-openssl": "*",
     "ext-intl": "*",
     "roave/security-advisories": "dev-master",
     "granam/strict-object": ">=2.0",
