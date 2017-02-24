@@ -6,8 +6,7 @@ require_once __DIR__ . '/../../tests_bootstrap.php';
 use Alcohol\ISO4217;
 use Granam\GpWebPay\Codes\CurrencyCodes;
 use Granam\GpWebPay\Codes\RequestDigestKeys;
-use Granam\Tests\GpWebPay\LiveTest;
-use Symfony\Component\Yaml\Yaml;
+use Granam\Tests\GpWebPay\TestSettingsFactory;
 
 ?>
 <!DOCTYPE html>
@@ -25,31 +24,7 @@ foreach ($ISO4217->getAll() as $currency) {
 }
 
 if (($_GET['price'] ?? null) !== null) {
-    $liveTestConfigFile = __DIR__ . '/../../webpay_live_test_config.yml';
-    if (!is_readable($liveTestConfigFile)) {
-        throw new \RuntimeException('Can not read ' . $liveTestConfigFile);
-    }
-    $config = Yaml::parse(file_get_contents($liveTestConfigFile));
-    foreach ([LiveTest::PRIVATE_KEY_FILE_INDEX, LiveTest::PUBLIC_KEY_FILE_INDEX,
-                 LiveTest::BASE_URL_FOR_REQUEST_INDEX, LiveTest::MERCHANT_NUMBER_INDEX] as $required
-    ) {
-        if (empty($config[$required])) {
-            throw new \LogicException("Required config entry '{$required}' for live test is missing");
-        }
-    }
-
-    $settings = new Settings(
-        $config[LiveTest::BASE_URL_FOR_REQUEST_INDEX],
-        preg_match('~^\\/~', $config[LiveTest::PRIVATE_KEY_FILE_INDEX])
-            ? $config[LiveTest::PRIVATE_KEY_FILE_INDEX] // absolute path
-            : __DIR__ . '/../../' . $config[LiveTest::PRIVATE_KEY_FILE_INDEX], // relative to config file
-        $config[LiveTest::PRIVATE_KEY_PASSWORD_INDEX],
-        preg_match('~^\\/~', $config[LiveTest::PUBLIC_KEY_FILE_INDEX])
-            ? $config[LiveTest::PUBLIC_KEY_FILE_INDEX] // absolute path
-            : __DIR__ . '/../../' . $config[LiveTest::PUBLIC_KEY_FILE_INDEX], // relative to config file
-        'https://keeper.jaroslavtyc.com/',
-        $config[LiveTest::MERCHANT_NUMBER_INDEX]
-    );
+    $settings = TestSettingsFactory::createTestSettings();
     $provider = new Provider($settings, new DigestSigner($settings));
     $values = $_GET;
     $values[RequestDigestKeys::ORDERNUMBER] = time();
