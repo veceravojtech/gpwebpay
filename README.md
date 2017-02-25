@@ -22,40 +22,53 @@ use Granam\GpWebPay\Codes\CurrencyCodes;
 use Alcohol\ISO4217 as IsoCurrencies;
 use Granam\GpWebPay\CardPayRequestValues;
 use Granam\GpWebPay\Exceptions\Exception as GpWebPayException;
+use Granam\GpWebPay\CardPayResponse;
 
-// SET UP
-$settings = Settings::createForProduction(
-    __DIR__ . '/foo/bar/your_private_key_downloaded_from_gp_web_pay.pem',
-    'TopSecretPasswordForPrivateKey',
-    __DIR__ . '/foo/bar/gp_web_pay_server_public_key_also_downloaded_from_their_server.pem',
-    'https://your.eshop.url/gp_web_pay_response_catcher.php', // response URL
-    123456789 // you 'merchant number', also taken from GP WebPay
-);
-$digestSigner = new DigestSigner($settings);
-$provider = new Provider($settings, $digestSigner);
-$currencyCodes = new CurrencyCodes(new IsoCurrencies());
+// RESPONSE
+if (count($_POST) > 0) {
+    try {
+        $response = CardPayResponse::createFromArray($_POST);
+    } catch(GpWebPayException $exception) {
+        // resolve not OK response, including user mistakes
+    }
+    // its OK, lets process $response->getParametersForDigest();
+} else {
+    // REQUEST SET UP
+    $settings = Settings::createForProduction(
+        __DIR__ . '/foo/bar/your_private_key_downloaded_from_gp_web_pay.pem',
+        'TopSecretPasswordForPrivateKey',
+        __DIR__ . '/foo/bar/gp_web_pay_server_public_key_also_downloaded_from_their_server.pem',
+        'https://your.eshop.url/gp_web_pay_response_catcher.php', // response URL
+        123456789 // your 'merchant number', also taken from GP WebPay
+    );
+    $digestSigner = new DigestSigner($settings);
+    $provider = new Provider($settings, $digestSigner);
+    $currencyCodes = new CurrencyCodes(new IsoCurrencies());
+    
+    // MAKE REQUEST
+    try {
+        $cardPayRequestValues = CardPayRequestValues::createFromArray($_POST, $currencyCodes);
+        $cardPayRequest = $provider->createCardPayRequest($cardPayRequestValues);
+    } catch (GpWebPayException $exception) {
+        // we are sorry, our payment gateway is temporarily unavailable (log it, solve it)
+        exit();
+    }
+    
+    ?>
+    <html>
+    <body>
+        <!-- some pretty recapitulation of the order -->
+        <form method="post" action="<?= $cardPayRequest->getRequestUrl() ?>">
+            <?php foreach ($cardPayRequest as $name => $value) {
+                ?><input type="hidden" name="<?= $name ?>" value="<?= $value ?>"
+            <?php } ?>
+            <input type="submit" value="Confirm order">
+       </form>
+    </body>
+    </html>
 
-// USE
-try {
-    $cardPayRequestValues = CardPayRequestValues::createFromArray($_POST, $currencyCodes);
-    $cardPayRequest = $provider->createCardPayRequest($cardPayRequestValues);
-} catch (GpWebPayException $exception) {
-    // we are sorry, our payment gateway is temporarily unavailable (log it, solve it)
-    exit();
-}
+<?php } ?>
 
-?>
-<html>
-<body>
-    <!-- some pretty recapitulation of the order -->
-    <form method="post" action="<?= $cardPayRequest->getRequestUrl() ?>">
-        <?php foreach ($cardPayRequest as $name => $value) {
-            ?><input type="hidden" name="<?= $name ?>" value="<?= $value ?>"
-        <?php } ?>
-        <input type="submit" value="Confirm order">
-   </form>
-</body>
-</html>
 
 ```
 
