@@ -17,12 +17,12 @@ namespace Foo\Bar;
 
 use Granam\GpWebPay\Settings;
 use Granam\GpWebPay\DigestSigner;
-use Granam\GpWebPay\Provider;
+use Granam\GpWebPay\CardPayResponse;
 use Granam\GpWebPay\Codes\CurrencyCodes;
 use Alcohol\ISO4217 as IsoCurrencies;
 use Granam\GpWebPay\CardPayRequestValues;
+use Granam\GpWebPay\CardPayRequest;
 use Granam\GpWebPay\Exceptions\Exception as GpWebPayException;
-use Granam\GpWebPay\CardPayResponse;
 
 // RESPONSE
 if (count($_POST) > 0) {
@@ -42,13 +42,12 @@ if (count($_POST) > 0) {
         123456789 // your 'merchant number', also taken from GP WebPay
     );
     $digestSigner = new DigestSigner($settings);
-    $provider = new Provider($settings, $digestSigner);
     $currencyCodes = new CurrencyCodes(new IsoCurrencies());
     
     // MAKE REQUEST
     try {
         $cardPayRequestValues = CardPayRequestValues::createFromArray($_POST, $currencyCodes);
-        $cardPayRequest = $provider->createCardPayRequest($cardPayRequestValues);
+        $cardPayRequest = new CardPayRequest($cardPayRequestValues, $settings, $digestSigner);
     } catch (GpWebPayException $exception) {
         // we are sorry, our payment gateway is temporarily unavailable (log it, solve it)
         exit();
