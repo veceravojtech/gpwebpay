@@ -25,6 +25,7 @@ class CardPayRequestTest extends PayRequestTest
     )
     {
         $cardPayRequest = new CardPayRequest($cardPayRequestValues, $settings, $digestSigner);
+        self::assertSame($cardPayRequestValues, $cardPayRequest->getCardPayRequestValues());
         self::assertEquals($expectedParametersForRequest, $cardPayRequest->getParametersForRequest());
         self::assertEquals(
             $settings->getBaseUrlForRequest() . '?' . http_build_query($expectedParametersForRequest),
