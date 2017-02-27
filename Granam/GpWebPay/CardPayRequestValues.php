@@ -499,7 +499,7 @@ class CardPayRequestValues extends StrictObject
     }
 
     /**
-     * Sets allowed pay methods, therefore disable use of non-listed payment methods, even if they are technically possible.
+     * Sets allowed pay methods, therefore disable those non-listed there, even if they are technically possible.
      * If DISABLEPAYMETHOD is set as well than an intersection of both rules is used.
      *
      * @param array|string[] $payMethods supported val: CRD – payment card | MCM – MasterCard Mobile | MPS – MasterPass | BTNCS - PLATBA 24
@@ -525,6 +525,16 @@ class CardPayRequestValues extends StrictObject
                 'Can not set \'' . RequestDigestKeys::PAYMETHODS . '\' by unknown pay method ' . implode(',', $unknownOriginalPayMethods)
                 . '; use only ' . implode(',', PayMethodCodes::getPayMethodCodes())
             );
+        }
+        if (count($upperPayMethods) === 0) {
+            trigger_error(
+                'Empty array of \'' . RequestDigestKeys::PAYMETHODS . '\' provided, which would disable all of them.'
+                . ' That is considered as a mistake and NO restriction to payment methods will be used instead'
+                . ' (via NULL)',
+                E_USER_WARNING
+            );
+
+            return;
         }
         $this->payMethods = implode(',', $upperPayMethods);
     }
