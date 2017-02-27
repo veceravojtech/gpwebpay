@@ -84,7 +84,7 @@ Almost all possible error cases are covered clearly by many of exceptions, but s
 ```sh
 composer require granam/gpwebpay
 ```
-*(requires PHP **7.0+**)*
+(requires PHP **7.0+**)
 
 ## Credits
 This library originates from [Pixidos/GPWebPay](https://github.com/Pixidos/GPWebPay) library, which has same
