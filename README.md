@@ -22,16 +22,24 @@ use Granam\GpWebPay\Codes\CurrencyCodes;
 use Alcohol\ISO4217 as IsoCurrencies;
 use Granam\GpWebPay\CardPayRequestValues;
 use Granam\GpWebPay\CardPayRequest;
+use Granam\GpWebPay\Exceptions\GpWebPayErrorResponse;
 use Granam\GpWebPay\Exceptions\Exception as GpWebPayException;
 
 // RESPONSE
 if (count($_POST) > 0) {
     try {
         $response = CardPayResponse::createFromArray($_POST);
-    } catch(GpWebPayException $exception) {
-        // resolve not OK response, including user mistakes
+    } catch(GpWebPayErrorResponse $gpWebPayErrorResponse) {
+        if ($gpWebPayErrorResponse->isLocalizedMessageForCustomer()) {
+            // some pretty error box for customer information about HIS mistake
+            echo $gpWebPayErrorResponse->getLocalizedMessage();
+        } else {
+            // else GP web pay refuses request by OUR (developer) mistake - show an apology to the customer and log this, solve this            
+        }
+    } catch(GpWebPayException $gpWebPayException) {
+        // some more generic error, show an apology to the customer and log this, solve this
     }
-    // its OK, lets process $response->getParametersForDigest();
+    /** its OK, lets process $response->getParametersForDigest(); @see \Granam\GpWebPay\CardPayResponse::getParametersForDigest */
 } else {
     // REQUEST SET UP
     $settings = Settings::createForProduction(
