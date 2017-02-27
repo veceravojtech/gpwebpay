@@ -37,4 +37,24 @@ class CurrencyCodesTest extends CodesTest
     {
         (new CurrencyCodes(new ISO4217()))->getCurrencyPrecision(0);
     }
+
+    /**
+     * @test
+     */
+    public function I_can_get_currency_numeric_code_by_its_string_code()
+    {
+        $currencyCodes = new CurrencyCodes(new ISO4217());
+        self::assertSame(978, $currencyCodes->getCurrencyNumericCode('EuR'));
+        self::assertSame(48, $currencyCodes->getCurrencyNumericCode('bhD'));
+    }
+
+    /**
+     * @test
+     * @expectedException \Granam\GpWebPay\Exceptions\UnknownCurrency
+     * @expectedExceptionMessageRegExp ~BitCoin~
+     */
+    public function I_can_not_get_currency_numeric_code_by_unknown_string_cod()
+    {
+        (new CurrencyCodes(new ISO4217()))->getCurrencyNumericCode('BitCoin');
+    }
 }

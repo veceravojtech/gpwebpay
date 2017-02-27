@@ -64,4 +64,20 @@ class CurrencyCodes extends StrictObject implements Codes
 
         throw new UnknownCurrency("Given currency of numeric code {$numericCode} is not known");
     }
+
+    /**
+     * @param string $stringCurrencyCode
+     * @return int
+     * @throws \Granam\GpWebPay\Exceptions\UnknownCurrency
+     */
+    public function getCurrencyNumericCode(string $stringCurrencyCode): int
+    {
+        $unifiedCurrencyCode = strtoupper(trim($stringCurrencyCode));
+        foreach ($this->iso4217->getAll() as $currency) {
+            if ($currency['alpha3'] === $unifiedCurrencyCode) {
+                return (int)$currency['numeric'];
+            }
+        }
+        throw new UnknownCurrency("Given currency code {$stringCurrencyCode} does not match any known currency");
+    }
 }
