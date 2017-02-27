@@ -8,6 +8,8 @@ use Granam\Strict\Object\StrictObject;
 
 class CardPayRequest extends StrictObject implements \IteratorAggregate, PayRequest
 {
+    /** @var CardPayRequestValues */
+    private $cardPayRequestValues;
     /** @var string */
     private $requestUrl;
     /** @var array */
@@ -27,9 +29,9 @@ class CardPayRequest extends StrictObject implements \IteratorAggregate, PayRequ
         DigestSignerInterface $digestSigner
     )
     {
-        $parametersForDigest = $this->buildParametersForDigest($cardPayRequestValues, $settings);
+        $this->cardPayRequestValues = $cardPayRequestValues;
         $this->parametersForRequest = $this->buildParametersForRequest(
-            $parametersForDigest,
+            $this->buildParametersForDigest($cardPayRequestValues, $settings),
             $digestSigner,
             $cardPayRequestValues->getLang()
         );
@@ -136,6 +138,14 @@ class CardPayRequest extends StrictObject implements \IteratorAggregate, PayRequ
     }
 
     /**
+     * @return CardPayRequestValues
+     */
+    public function getCardPayRequestValues(): CardPayRequestValues
+    {
+        return $this->cardPayRequestValues;
+    }
+
+    /**
      * To easy create a POST request by using values one by one for hidden inputs.
      *
      * @return \Iterator
@@ -144,5 +154,4 @@ class CardPayRequest extends StrictObject implements \IteratorAggregate, PayRequ
     {
         return new \ArrayIterator($this->getParametersForRequest());
     }
-
 }
