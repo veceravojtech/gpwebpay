@@ -501,6 +501,36 @@ REGEXP
     /**
      * @test
      */
+    public function I_can_not_use_empty_array_as_allowed_pay_method()
+    {
+        $previousErrorReporting = error_reporting(-1 ^ E_USER_WARNING);
+        error_clear_last();
+        $cardPayRequestValues = new CardPayRequestValues(
+            $this->createCurrencyCodes(789, 321),
+            123,
+            456,
+            789,
+            false,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            [] // empty array as allowed pay methods
+        );
+        $lastError = error_get_last();
+        self::assertNotEmpty($lastError);
+        self::assertSame(E_USER_WARNING, $lastError['type']);
+        self::assertContains(RequestDigestKeys::PAYMETHODS, $lastError['message']);
+        self::assertNull($cardPayRequestValues->getPayMethods());
+        error_clear_last();
+        error_reporting($previousErrorReporting);
+    }
+
+    /**
+     * @test
+     */
     public function No_user_email_is_used_at_all_if_invalid_one_provided()
     {
         error_clear_last();
