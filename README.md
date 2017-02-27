@@ -47,7 +47,7 @@ if (count($_POST) > 0) {
         'TopSecretPasswordForPrivateKey',
         __DIR__ . '/foo/bar/gp_web_pay_server_public_key_also_downloaded_from_their_server.pem',
         'https://your.eshop.url/gp_web_pay_response_catcher.php', // response URL
-        123456789 // your 'merchant number', also taken from GP WebPay
+        '123456789' // your 'merchant number', also taken from GP WebPay
     );
     $digestSigner = new DigestSigner($settings);
     $currencyCodes = new CurrencyCodes(new IsoCurrencies());
