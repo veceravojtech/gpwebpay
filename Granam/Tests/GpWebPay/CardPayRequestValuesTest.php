@@ -72,6 +72,13 @@ class CardPayRequestValuesTest extends TestWithMockery
             return $parameter !== null || random_int(0, 1) > 1; // to cover all combinations
         });
         $fromArrayCardPayRequestValues = CardPayRequestValues::createFromArray($arrayParameters, $currencyCodes);
+
+        $arrayParametersWithPrice = $arrayParameters;
+        $arrayParametersWithPrice['price'] = $price; // alternative, more human-friendly name for this parameter
+        unset($arrayParametersWithPrice[RequestDigestKeys::AMOUNT]);
+        $fromArrayWithPriceCardPayRequestValues = CardPayRequestValues::createFromArray($arrayParametersWithPrice, $currencyCodes);
+        self::assertEquals($fromArrayCardPayRequestValues, $fromArrayWithPriceCardPayRequestValues);
+
         $newCardPayRequestValues = new CardPayRequestValues(
             $currencyCodes,
             $orderNumber,
@@ -91,7 +98,46 @@ class CardPayRequestValuesTest extends TestWithMockery
             $lang
         );
         self::assertEquals($fromArrayCardPayRequestValues, $newCardPayRequestValues);
-        self::assertSame((int)round($price * 100), $newCardPayRequestValues->getAmount());
+
+        $expectedValues = [];
+        foreach ($arrayParameters as $key => $parameter) {
+            $expectedValues[strtoupper($key)] = $parameter;
+        }
+        $expectedValues['PRICE'] = $expectedValues[RequestDigestKeys::AMOUNT];
+        $reflection = new \ReflectionClass(CardPayRequestValues::class);
+        $methods = $reflection->getMethods(\ReflectionMethod::IS_PUBLIC ^ \ReflectionMethod::IS_STATIC);
+        foreach ($methods as $method) {
+            $methodName = $method->getName();
+            if (strpos($methodName, 'get') !== 0) {
+                continue; // we are interested in getters only
+            }
+            if ($methodName === 'getAmount') {
+                self::assertSame((int)round($price * 100), $newCardPayRequestValues->getAmount());
+                continue; // amount is calculated by the class
+            }
+            $propertyName = strtoupper(preg_replace('~^get~', '', $methodName));
+            $expectedValue = $expectedValues[$propertyName] ?? null;
+            if ($expectedValue !== null) {
+                self::assertGreaterThan(
+                    0,
+                    preg_match('~@return\s+(?:null\|)?(?<returnType>\w+)(\|?:null)?~', $method->getDocComment(), $matches)
+                );
+                switch ($matches['returnType']) {
+                    case 'int' :
+                        $expectedValue = (int)$expectedValue;
+                        break;
+                    case 'string' :
+                        $expectedValue = is_array($expectedValue) ? implode(',', $expectedValue) : $expectedValue;
+                        break;
+                    default :
+                }
+            }
+            self::assertSame(
+                $expectedValue,
+                $fromArrayCardPayRequestValues->$methodName(),
+                "Getter {$methodName} returns unexpected value"
+            );
+        }
     }
 
     /**
