@@ -175,6 +175,10 @@ class CardPayRequestValues extends StrictObject
     /** @var string|null */
     private $lang;
 
+    // SUPPORTIVE
+    /** @var float */
+    private $price;
+
     /**
      * @param CurrencyCodes $currencyCodes list of supported currencies in ISO 4217
      * @param int $orderNumber with max length of 15
@@ -278,6 +282,7 @@ class CardPayRequestValues extends StrictObject
      */
     private function setAmount(float $price, int $currencyCode, CurrencyCodes $currencyCodes)
     {
+        $this->price = $price;
         $precision = $currencyCodes->getCurrencyPrecision($currencyCode);
         if ($precision > 0) {
             /** @noinspection CallableParameterUseCaseInTypeContextInspection */
@@ -613,6 +618,19 @@ class CardPayRequestValues extends StrictObject
     }
 
     /**
+     * Originally provided price
+     *
+     * @return float
+     */
+    public function getPrice(): float
+    {
+        return $this->price;
+    }
+
+    /**
+     * Price turned to its integer representation according to provided currency
+     * precision, @see CurrencyCodes::getCurrencyPrecision()
+     *
      * @return int
      */
     public function getAmount(): int
