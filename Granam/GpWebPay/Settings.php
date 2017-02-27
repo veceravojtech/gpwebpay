@@ -13,9 +13,10 @@ class Settings extends StrictObject implements SettingsInterface
      * @param string $privateKeyFile
      * @param string $privateKeyPassword
      * @param string $publicKeyFile
-     * @param string $responseUrl
      * @param string $merchantNumber
+     * @param string|null $urlForResponse
      * @return Settings
+     * @throws \Granam\GpWebPay\Exceptions\CanNotDetermineCurrentRequestUrl
      * @throws \Granam\GpWebPay\Exceptions\PrivateKeyFileCanNotBeRead
      * @throws \Granam\GpWebPay\Exceptions\PrivateKeyUsageFailed
      * @throws \Granam\GpWebPay\Exceptions\PublicKeyFileCanNotBeRead
@@ -26,8 +27,8 @@ class Settings extends StrictObject implements SettingsInterface
         string $privateKeyFile,
         string $privateKeyPassword,
         string $publicKeyFile,
-        string $responseUrl,
-        string $merchantNumber
+        string $merchantNumber,
+        string $urlForResponse = null
     )
     {
         return new static(
@@ -35,8 +36,8 @@ class Settings extends StrictObject implements SettingsInterface
             $privateKeyFile,
             $privateKeyPassword,
             $publicKeyFile,
-            $responseUrl,
-            $merchantNumber
+            $merchantNumber,
+            $urlForResponse
         );
     }
 
@@ -44,9 +45,10 @@ class Settings extends StrictObject implements SettingsInterface
      * @param string $privateKeyFile
      * @param string $privateKeyPassword
      * @param string $publicKeyFile
-     * @param string $responseUrl
      * @param string $merchantNumber
+     * @param string|null $urlForResponse
      * @return Settings
+     * @throws \Granam\GpWebPay\Exceptions\CanNotDetermineCurrentRequestUrl
      * @throws \Granam\GpWebPay\Exceptions\PrivateKeyFileCanNotBeRead
      * @throws \Granam\GpWebPay\Exceptions\PrivateKeyUsageFailed
      * @throws \Granam\GpWebPay\Exceptions\PublicKeyFileCanNotBeRead
@@ -57,8 +59,8 @@ class Settings extends StrictObject implements SettingsInterface
         string $privateKeyFile,
         string $privateKeyPassword,
         string $publicKeyFile,
-        string $responseUrl,
-        string $merchantNumber
+        string $merchantNumber,
+        string $urlForResponse = null
     )
     {
         return new static(
@@ -66,8 +68,8 @@ class Settings extends StrictObject implements SettingsInterface
             $privateKeyFile,
             $privateKeyPassword,
             $publicKeyFile,
-            $responseUrl,
-            $merchantNumber
+            $merchantNumber,
+            $urlForResponse
         );
     }
 
@@ -89,8 +91,9 @@ class Settings extends StrictObject implements SettingsInterface
      * @param string $privateKeyFile
      * @param string $privateKeyPassword
      * @param string $publicKeyFile
-     * @param string $urlForResponse
+     * @param string|string $urlForResponse
      * @param string $merchantNumber
+     * @throws \Granam\GpWebPay\Exceptions\CanNotDetermineCurrentRequestUrl
      * @throws \Granam\GpWebPay\Exceptions\PrivateKeyFileCanNotBeRead
      * @throws \Granam\GpWebPay\Exceptions\PrivateKeyUsageFailed
      * @throws \Granam\GpWebPay\Exceptions\PublicKeyFileCanNotBeRead
@@ -102,16 +105,52 @@ class Settings extends StrictObject implements SettingsInterface
         string $privateKeyFile,
         string $privateKeyPassword,
         string $publicKeyFile,
-        string $urlForResponse,
-        string $merchantNumber
+        string $merchantNumber,
+        string $urlForResponse = null
     )
     {
         $this->setBaseUrlForRequest($baseUrlForRequest);
         $this->setPrivateKeyFile($privateKeyFile);
         $this->setPrivateKeyPassword($privateKeyPassword);
         $this->setPublicKeyFile($publicKeyFile);
+        $urlForResponse = $urlForResponse ?? $this->getCurrentRequestUrl();
         $this->setUrlForResponse($urlForResponse);
         $this->merchantNumber = trim($merchantNumber);
+    }
+
+    /**
+     * Gives current request base URL - INCLUDING query string (as part of REQUEST_URI)
+     *
+     * @return string
+     * @throws \Granam\GpWebPay\Exceptions\CanNotDetermineCurrentRequestUrl
+     */
+    private function getCurrentRequestUrl(): string
+    {
+        $protocol = 'http';
+        if (!empty($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
+            $protocol = $_SERVER['HTTP_X_FORWARDED_PROTO'];
+        } else if (!empty($_SERVER['HTTPS'] && $_SERVER['HTTPS'] !== 'off')) {
+            $protocol = 'https';
+        } else if (!empty($_SERVER['REQUES_SCHEME'])) {
+            $protocol = $_SERVER['REQUES_SCHEME'];
+        }
+        if (empty($_SERVER['SERVER_NAME'])) {
+            throw new Exceptions\CanNotDetermineCurrentRequestUrl("Missing 'SERVER_NAME' in \$_SERVER global variable");
+        }
+        $port = 80;
+        if (array_key_exists('SERVER_PORT', $_SERVER) && is_numeric($_SERVER['SERVER_PORT'])
+            && (int)$_SERVER['SERVER_PORT'] !== 80
+        ) {
+            $port = (int)$_SERVER['SERVER_PORT'];
+        }
+        $portString = $port === 80
+            ? ''
+            : (':' . $port);
+        if (empty($_SERVER['REQUEST_URI'])) {
+            throw new Exceptions\CanNotDetermineCurrentRequestUrl("Missing 'REQUEST_URI' in \$_SERVER global variable");
+        }
+
+        return "{$protocol}://{$_SERVER['SERVER_NAME']}{$portString}{$_SERVER['REQUEST_URI']}";
     }
 
     /**

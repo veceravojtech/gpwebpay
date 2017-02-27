@@ -19,8 +19,13 @@ class ConstantsUsageTest extends TestCase
             }
             $reflectionClass = new \ReflectionClass($projectNonCodeClass);
             $classContent = file_get_contents($reflectionClass->getFileName());
-            $constantLikeCount = preg_match_all('~([\'"])(?<CONSTANT_LIKE>[A-Z_]+)\1~', $classContent, $matches);
+            preg_match_all('~([\'"])(?<CONSTANT_LIKE>[A-Z_]+)\1~', $classContent, $matches);
             $constantLikes = array_unique($matches['CONSTANT_LIKE']);
+            $constantLikes = array_diff(
+                $constantLikes,
+                ['HTTP_X_FORWARDED_PROTO', 'HTTPS', 'REQUES_SCHEME', 'SERVER_NAME', 'SERVER_PORT', 'REQUEST_URI']
+            );
+            $constantLikeCount = count($constantLikes);
             self::assertSame(
                 $projectNonCodeClass === CardPayRequestValues::class
                 && current($constantLikes) === CardPayRequestValues::PRICE_INDEX
@@ -34,7 +39,7 @@ class ConstantsUsageTest extends TestCase
                         function (string $constantLike) {
                             return "'{$constantLike}'";
                         },
-                        array_unique($matches['CONSTANT_LIKE'])
+                        $constantLikes
                     )
                 ) . '.'
                 . " Every 'CODE_NAME' should be taken from one of " . implode(', ', $this->getCodeClasses())

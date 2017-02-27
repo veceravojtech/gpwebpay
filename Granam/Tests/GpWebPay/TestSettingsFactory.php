@@ -23,7 +23,7 @@ class TestSettingsFactory extends Settings
         $config = Yaml::parse(file_get_contents(self::findLiveTestConfigFile()));
 
         foreach ([self::PRIVATE_KEY_FILE_INDEX, self::PUBLIC_KEY_FILE_INDEX, self::BASE_URL_FOR_REQUEST_INDEX,
-                     self::MERCHANT_NUMBER_INDEX, self::URL_FOR_RESPONSE_INDEX] as $required) {
+                     self::MERCHANT_NUMBER_INDEX] as $required) {
             if (empty($config[$required])) {
                 throw new \LogicException("Required config entry '{$required}' for live test is missing");
             }
@@ -38,8 +38,8 @@ class TestSettingsFactory extends Settings
             preg_match('~^\\/~', $config[self::PUBLIC_KEY_FILE_INDEX])
                 ? $config[self::PUBLIC_KEY_FILE_INDEX] // absolute path
                 : __DIR__ . '/../' . $config[self::PUBLIC_KEY_FILE_INDEX], // relative to config file
-            $config[self::URL_FOR_RESPONSE_INDEX],
-            $config[self::MERCHANT_NUMBER_INDEX]
+            $config[self::MERCHANT_NUMBER_INDEX],
+            $config[self::URL_FOR_RESPONSE_INDEX] ?? null
         );
     }
 
