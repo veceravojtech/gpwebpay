@@ -103,7 +103,7 @@ class CardPayRequestValuesTest extends TestWithMockery
         foreach ($arrayParameters as $key => $parameter) {
             $expectedValues[strtoupper($key)] = $parameter;
         }
-        $expectedValues['PRICE'] = $expectedValues[RequestDigestKeys::AMOUNT];
+        $expectedValues[CardPayRequestValues::PRICE_INDEX] = $expectedValues[RequestDigestKeys::AMOUNT];
         $reflection = new \ReflectionClass(CardPayRequestValues::class);
         $methods = $reflection->getMethods(\ReflectionMethod::IS_PUBLIC ^ \ReflectionMethod::IS_STATIC);
         foreach ($methods as $method) {

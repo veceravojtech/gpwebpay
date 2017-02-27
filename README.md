@@ -1,6 +1,8 @@
 # GPWebPay interface
 [![Build Status](https://travis-ci.org/jaroslavtyc/granam-gpwebpay.svg?branch=master)](https://travis-ci.org/jaroslavtyc/granam-gpwebpay)
 [![Test Coverage](https://codeclimate.com/github/jaroslavtyc/granam-gpwebpay/badges/coverage.svg)](https://codeclimate.com/github/jaroslavtyc/granam-gpwebpay/coverage)
+[![Latest Stable Version](https://poser.pugx.org/granam/gpwebpay/v/stable)](https://packagist.org/packages/granam/gpwebpay)
+[![License](https://poser.pugx.org/granam/gpwebpay/license)](https://packagist.org/packages/granam/gpwebpay)
 
 GPWebPay is a PHP library for online payments via [GPWebPay service](http://www.gpwebpay.cz/en)
 
@@ -46,8 +48,8 @@ if (count($_POST) > 0) {
         __DIR__ . '/foo/bar/your_private_key_downloaded_from_gp_web_pay.pem',
         'TopSecretPasswordForPrivateKey',
         __DIR__ . '/foo/bar/gp_web_pay_server_public_key_also_downloaded_from_their_server.pem',
-        'https://your.eshop.url/gp_web_pay_response_catcher.php', // response URL
-        123456789 // your 'merchant number', also taken from GP WebPay
+        '123456789' // your 'merchant number', also taken from GP WebPay
+        // without explicit URL for response the current will be used - INCLUDING query string
     );
     $digestSigner = new DigestSigner($settings);
     $currencyCodes = new CurrencyCodes(new IsoCurrencies());
