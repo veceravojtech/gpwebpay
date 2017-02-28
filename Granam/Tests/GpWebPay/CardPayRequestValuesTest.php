@@ -396,12 +396,12 @@ class CardPayRequestValuesTest extends TestWithMockery
     /**
      * @test
      */
-    public function My_description_and_merchant_note_are_sanitized_with_warning_if_out_of_allowed_ascii_range()
+    public function My_description_and_reference_number_and_merchant_note_have_replaced_characters_which_out_of_allowed_range()
     {
         $messageOutOfAllowedAsciiRange = 'こんにちは';
         error_clear_last();
-        foreach ([RequestDigestKeys::DESCRIPTION, RequestDigestKeys::MD] as $index => $name) {
-            $roulette = [0 => null, 1 => null];
+        foreach ([RequestDigestKeys::DESCRIPTION, RequestDigestKeys::MD, RequestDigestKeys::REFERENCENUMBER] as $index => $name) {
+            $roulette = [null, null, null];
             $roulette[$index] = $messageOutOfAllowedAsciiRange;
             $previousErrorReporting = ini_set('error_reporting', -1 ^ E_USER_WARNING);
             new CardPayRequestValues(
@@ -412,7 +412,13 @@ class CardPayRequestValuesTest extends TestWithMockery
                 false,
                 null,
                 $roulette[0], // description
-                $roulette[1] // merchant note (MD)
+                $roulette[1], // merchant note (MD)
+                null,
+                null,
+                null,
+                null,
+                null,
+                $roulette[2] // reference number
             );
             ini_set('error_reporting', $previousErrorReporting);
             $lastError = error_get_last();
@@ -433,12 +439,12 @@ REGEXP
     /**
      * @test
      */
-    public function My_description_and_merchant_note_are_truncated_with_warning_if_contains_character_which_can_not_be_detected_by_regexp()
+    public function My_description_and_reference_number_and_merchant_note_have_replaced_characters_which_can_not_be_detected_by_regexp()
     {
         $nonDetectableCharacter = chr(128) . chr(129);
         error_clear_last();
-        foreach ([RequestDigestKeys::DESCRIPTION, RequestDigestKeys::MD] as $index => $name) {
-            $roulette = [0 => null, 1 => null];
+        foreach ([RequestDigestKeys::DESCRIPTION, RequestDigestKeys::MD, RequestDigestKeys::REFERENCENUMBER] as $index => $name) {
+            $roulette = [null, null, null];
             $roulette[$index] = $nonDetectableCharacter;
             $previousErrorReporting = ini_set('error_reporting', -1 ^ E_USER_WARNING);
             new CardPayRequestValues(
@@ -449,7 +455,13 @@ REGEXP
                 false,
                 null,
                 $roulette[0], // description
-                $roulette[1] // merchant note (MD)
+                $roulette[1], // merchant note (MD)
+                null,
+                null,
+                null,
+                null,
+                null,
+                $roulette[2] // reference number
             );
             ini_set('error_reporting', $previousErrorReporting);
             $lastError = error_get_last();
@@ -460,6 +472,53 @@ REGEXP
             $nameForRegexp = preg_quote($name, '~');
             self::assertRegExp("~{$nameForRegexp}.+128,129~s", $lastError['message']);
         }
+    }
+
+    /**
+     * @test
+     */
+    public function My_reference_number_has_replaced_characters_which_are_out_of_range()
+    {
+        $allowedCharacters = ' #$';
+        for ($ascii = 0x2A; $ascii <= 0x3B; $ascii++) { // *...;
+            $allowedCharacters .= chr($ascii);
+        }
+        $allowedCharacters .= '=';
+        for ($ascii = 0x40; $ascii <= 0x5A; $ascii++) { // @A...Z
+            $allowedCharacters .= chr($ascii);
+        }
+        $allowedCharacters .= '^_';
+        for ($ascii = 0x61; $ascii <= 0x7A; $ascii++) { // a...z
+            $allowedCharacters .= chr($ascii);
+        }
+        $startPosition = random_int(0, strlen($allowedCharacters) - 18); // because of max length of 20
+        $invalidValue = substr($allowedCharacters, $startPosition, 18) . 'ñ'; // ñ takes 2 bytes un UTF-8
+        error_clear_last();
+        $previousErrorReporting = ini_set('error_reporting', -1 ^ E_USER_WARNING);
+        new CardPayRequestValues(
+            $this->createCurrencyCodes(789, 321),
+            123,
+            456,
+            789,
+            false,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            $invalidValue
+        );
+        ini_set('error_reporting', $previousErrorReporting);
+        $lastError = error_get_last();
+        /** @noinspection DisconnectedForeachInstructionInspection */
+        error_clear_last();
+        self::assertNotEmpty($lastError);
+        self::assertSame(E_USER_WARNING, $lastError['type']);
+        $nameForRegexp = preg_quote(RequestDigestKeys::REFERENCENUMBER, '~');
+        self::assertRegExp("~{$nameForRegexp}.+'ñ' => 'n'~s", $lastError['message']);
     }
 
     /**
