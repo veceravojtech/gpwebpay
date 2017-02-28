@@ -58,8 +58,9 @@ class GpWebPayErrorResponse extends \RuntimeException implements Runtime
         if ($exceptionCode === null) { // note: any value will be internally converted to int
             $exceptionCode = $prCode * 1000 + $srCode;
         }
+        $localizedMessage = $this->getLocalizedMessage(LanguageCodes::EN);
         parent::__construct(
-            ($this->resultText !== ''
+            ($this->resultText !== '' && $this->resultText !== $localizedMessage
                 ? "{$this->resultText} - "
                 : ''
             ) . $this->getLocalizedMessage(LanguageCodes::EN) . "; error code {$prCode}({$srCode})",
