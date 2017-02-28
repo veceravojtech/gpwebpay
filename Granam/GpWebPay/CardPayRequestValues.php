@@ -360,22 +360,32 @@ class CardPayRequestValues extends StrictObject
      * @link https://en.wikipedia.org/wiki/ASCII#Printable_characters
      * @param string $value
      * @param string $nameOfParameter
+     * @param array $characterRanges
      * @return string
      */
-    private function sanitizeAsciiRange(string $value, string $nameOfParameter): string
+    private function sanitizeAsciiRange(
+        string $value,
+        string $nameOfParameter,
+        array $characterRanges = [[' ' /* 0x20 = space */, '~' /* 0x7E = tilde */]]
+    ): string
     {
         $changes = [];
+        $regexpWithRange = '~(?<outOfRange>[^';
+        foreach ($characterRanges as $characterRange) {
+            $regexpWithRange .= preg_quote(reset($characterRange), '~') . '-' . preg_quote(end($characterRange), '~');
+        }
+        $regexpWithRange .= '])~';
         $sanitized = preg_replace_callback(
             '~(?<character>\w)~u',
-            function (array $characterMatch) use (&$changes) {
+            function (array $characterMatch) use (&$changes, $regexpWithRange) {
                 $character = $characterMatch['character'];
-                if (!preg_match($this->getAsciiOutOfRangeRegexp(), $character)) {
+                if (!preg_match($regexpWithRange, $character)) {
                     return $character; // character is in the allowed range
                 }
 
                 $withoutDiacritics = StringTools::removeDiacritics($character);
                 $replacement = preg_replace_callback(
-                    $this->getAsciiOutOfRangeRegexp(),
+                    $regexpWithRange,
                     function (string $stillOutOfRange) {
                         return str_repeat('?', mb_strlen($stillOutOfRange));
                     },
@@ -389,16 +399,16 @@ class CardPayRequestValues extends StrictObject
         );
         if (count($changes) > 0) {
             trigger_error("'{$nameOfParameter}' contains " . count($changes)
-                . ' characters out of allowed ASCII range of'
-                . ' 0x20 (\'' . chr(0x20) . '\') – 0x7E (\'' . chr(0x7E) . '\'), replacements have to be made: '
-                . var_export($changes, true),
+                . ' characters out of allowed ASCII range(s) ' . $this->describeAsciiRange($characterRanges)
+                . ' , replacements have to be made: ' . var_export($changes, true),
                 E_USER_WARNING
             );
         }
         if ($sanitized === null) { // like for ASCII 128
-            trigger_error("'{$nameOfParameter}' contains some characters out of allowed ASCII range"
-                . ' 0x20 (\'' . chr(0x20) . '\') – 0x7E (\'' . chr(0x7E) . '\') which was not detected by regexp,'
-                . ' given value as ASCII ' . implode(
+            trigger_error("'{$nameOfParameter}' contains some characters out of allowed ASCII range(s) "
+                . $this->describeAsciiRange($characterRanges)
+                . ' which was not detected by regexp. Given string as ASCII chain: '
+                . implode(
                     ',',
                     array_map(
                         function ($character) {
@@ -417,11 +427,27 @@ class CardPayRequestValues extends StrictObject
     }
 
     /**
+     * @param array $characterRanges
      * @return string
      */
-    private function getAsciiOutOfRangeRegexp()
+    private function describeAsciiRange(array $characterRanges)
     {
-        return '~(?<outOfRange>[^' . preg_quote(chr(0x20), '~') . '-' . preg_quote(chr(0x7E), '~') . '])~';
+        return implode(
+            ',',
+            array_map(
+                function (array $characterRange) {
+                    $start = reset($characterRange);
+                    if (count($characterRange) === 1) {
+                        return "'{$start}'(0x" . dechex(ord($start)) . ')';
+                    }
+                    $end = end($characterRange);
+
+                    return "'{$start}'(0x" . dechex(ord($start)) . ')'
+                        . "-'{$end}'(0x" . dechex(ord($end)) . ')';
+                },
+                $characterRanges
+            )
+        );
     }
 
     const MAXIMAL_LENGTH_OF_MD = 255;
@@ -575,6 +601,14 @@ class CardPayRequestValues extends StrictObject
         }
         $referenceNumber = trim($referenceNumber);
         $this->guardMaximalLength($referenceNumber, self::MAXIMAL_LENGTH_OF_REFERENCENUMBER, RequestDigestKeys::REFERENCENUMBER);
+        $this->sanitizeAsciiRange(
+            $referenceNumber,
+            RequestDigestKeys::REFERENCENUMBER,
+            [
+                [' ' /* 0x20 */], ['#' /* 0x23 */, '$' /* 0x24 */], ['*' /* 0x2A */, ';' /* 0x3B */], ['=' /* 0x3D */],
+                ['@' /* 0x40 */, 'Z' /* 0x5A */], ['^' /* 0x5E */, '_' /* 0x5F */], ['a' /* 0x61 */, 'z' /* 0x7A */],
+            ]
+        );
         $this->referenceNumber = $referenceNumber;
     }
 
