@@ -110,5 +110,7 @@ class GpWebPayErrorResponseTest extends TestCase
         self::assertTrue($gpWebPayErrorResponse->isLocalizedMessageForCustomer());
         $gpWebPayErrorResponse = new GpWebPayErrorResponse(1, 1002);
         self::assertFalse($gpWebPayErrorResponse->isLocalizedMessageForCustomer());
+        $gpWebPayErrorResponse = new GpWebPayErrorResponse(50, 0);
+        self::assertTrue($gpWebPayErrorResponse->isLocalizedMessageForCustomer());
     }
 }
