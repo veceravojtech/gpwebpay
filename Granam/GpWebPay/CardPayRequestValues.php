@@ -352,8 +352,7 @@ class CardPayRequestValues extends StrictObject
         }
         $description = trim($description);
         $this->guardMaximalLength($description, self::MAXIMAL_LENGTH_OF_DESCRIPTION, RequestDigestKeys::DESCRIPTION);
-        $description = $this->sanitizeAsciiRange($description, RequestDigestKeys::DESCRIPTION);
-        $this->description = $description;
+        $this->description = $this->sanitizeAsciiRange($description, RequestDigestKeys::DESCRIPTION);
     }
 
     /**
@@ -463,8 +462,7 @@ class CardPayRequestValues extends StrictObject
         }
         $merchantNote = trim($merchantNote);
         $this->guardMaximalLength($merchantNote, self::MAXIMAL_LENGTH_OF_MD, RequestDigestKeys::MD . ' (merchant note)');
-        $merchantNote = $this->sanitizeAsciiRange($merchantNote, RequestDigestKeys::MD . ' (merchant note)');
-        $this->md = $merchantNote;
+        $this->md = $this->sanitizeAsciiRange($merchantNote, RequestDigestKeys::MD . ' (merchant note)');
     }
 
     const MAXIMAL_LENGTH_OF_FASTPAYID = 15;
@@ -601,7 +599,7 @@ class CardPayRequestValues extends StrictObject
         }
         $referenceNumber = trim($referenceNumber);
         $this->guardMaximalLength($referenceNumber, self::MAXIMAL_LENGTH_OF_REFERENCENUMBER, RequestDigestKeys::REFERENCENUMBER);
-        $this->sanitizeAsciiRange(
+        $this->referenceNumber = $this->sanitizeAsciiRange(
             $referenceNumber,
             RequestDigestKeys::REFERENCENUMBER,
             [
@@ -609,7 +607,6 @@ class CardPayRequestValues extends StrictObject
                 ['@' /* 0x40 */, 'Z' /* 0x5A */], ['^' /* 0x5E */, '_' /* 0x5F */], ['a' /* 0x61 */, 'z' /* 0x7A */],
             ]
         );
-        $this->referenceNumber = $referenceNumber;
     }
 
     const MAXIMAL_LENGTH_OF_ADDINFO = 24000;
