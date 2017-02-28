@@ -56,7 +56,7 @@ class GpWebPayErrorResponseTest extends TestCase
             self::assertSame($expectedExceptionCode, $gpWebPayResponseHasAnError->getCode());
             self::assertSame($previousException, $gpWebPayResponseHasAnError->getPrevious());
             $expectedErrorMessage = $expectedEnglishResultText;
-            if ($resultText !== '') {
+            if ($resultText !== '' && $expectedErrorMessage !== $resultText) {
                 $expectedErrorMessage = $resultText . ' - ' . $expectedErrorMessage;
             }
             $expectedErrorMessage .= "; error code $prCode($srCode)";
@@ -85,6 +85,7 @@ class GpWebPayErrorResponseTest extends TestCase
             [0 /* even OK can be thrown as an exception */, 0, '', 'OK', 'OK', 0],
             [1, 0, 'foo', 'Field too long', 'Pole příliš dlouhé', 123, 123, new \Exception()],
             [4, 8, 'bar', 'Field is null (DEPOSITFLAG)', 'Pole je prázdné (DEPOSITFLAG)', 4008],
+            [50, 0, 'The cardholder canceled the payment', 'The cardholder canceled the payment', 'Držitel karty zrušil platbu', 50000],
         ];
     }
 
