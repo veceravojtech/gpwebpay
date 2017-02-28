@@ -34,20 +34,26 @@ if (count($_POST) > 0) {
         $response = CardPayResponse::createFromArray($_POST);
     } catch(GpWebPayErrorByCustomerResponse $gpWebPayErrorByCustomerResponse) {
         /**
-         * WARNING: do not rely blindly on this detection - for example if YOU (developer) are sending card number in
-         * a hidden field, because the customer provided it to its account before and does not need to enter it again,
-         * but the card number has been refused by GP web pay, you will show to the customer confusing message about an
-         * invalid card number, although he does not enter it.
-         * For Full list of auto-detected customer mistakes @see GpWebPayErrorByCustomerResponse::isErrorCausedByCustomer
+         * WARNING: do not rely blindly on this detection - for example if YOU (developer) are sending
+         * card number in a hidden field, because the customer provided it to its account before and
+         * does not need to enter it again, but the card number has been refused by GP web pay, you will
+         * show to the customer confusing message about an invalid card number, although he does not
+         * enter it.
+         * For Full list of auto-detected customer
+         * mistakes @see GpWebPayErrorByCustomerResponse::isErrorCausedByCustomer
          */
         // some pretty error box for customer information about HIS mistake
         echo $gpWebPayErrorByCustomerResponse->getLocalizedMessage();
     } catch(GpWebPayErrorResponse $gpWebPayErrorResponse) {
-        // GP web pay refuses request by OUR (developer) mistake - show an apology to the customer and log this, solve this            
+        /* GP web pay refuses request by OUR (developer) mistake
+         * - show an apology to the customer and log this, solve this */
     } catch(GpWebPayException $gpWebPayException) {
         // some more generic error, show an apology to the customer and log this, solve this
     }
-    /** its OK, lets process $response->getParametersForDigest(); @see \Granam\GpWebPay\CardPayResponse::getParametersForDigest */
+    /**
+     * its OK, lets process $response->getParametersForDigest();
+     * @see \Granam\GpWebPay\CardPayResponse::getParametersForDigest
+     */
 } else {
     // REQUEST SET UP
     $settings = Settings::createForProduction(
