@@ -34,6 +34,7 @@ class CardPayResponse extends StrictObject implements PayResponse
      * @param array $valuesFromGetOrPost
      * @return CardPayResponse
      * @throws \Granam\GpWebPay\Exceptions\GpWebPayErrorResponse
+     * @throws \Granam\GpWebPay\Exceptions\GpWebPayErrorByCustomerResponse
      * @throws \Granam\GpWebPay\Exceptions\BrokenResponse
      * @throws \Granam\Integer\Tools\Exceptions\WrongParameterType
      * @throws \Granam\Integer\Tools\Exceptions\ValueLostOnCast
@@ -87,7 +88,7 @@ class CardPayResponse extends StrictObject implements PayResponse
      * @param int $srCode
      * @param string $digest
      * @param string $digest1
-     * @param string|null $merOrderNum
+     * @param int|null $merOrderNum
      * @param string|null $md
      * @param string|null $resultText
      * @param string|null $userParam1
@@ -101,7 +102,7 @@ class CardPayResponse extends StrictObject implements PayResponse
         int $srCode,
         string $digest,
         string $digest1,
-        string $merOrderNum = null,
+        int $merOrderNum = null,
         string $md = null,
         string $resultText = null,
         string $userParam1 = null,
@@ -180,7 +181,57 @@ class CardPayResponse extends StrictObject implements PayResponse
      */
     public function getPrCode(): int
     {
-        return $this->parametersForDigest[ResponseDigestKeys::PRCODE];
+        return ToInteger::toInteger($this->parametersForDigest[ResponseDigestKeys::PRCODE]);
+    }
+
+    /**
+     * @return string
+     */
+    public function getOperation(): string
+    {
+        return $this->parametersForDigest[ResponseDigestKeys::OPERATION];
+    }
+
+    /**
+     * @return int
+     */
+    public function getOrderNumber(): int
+    {
+        return ToInteger::toInteger($this->parametersForDigest[ResponseDigestKeys::ORDERNUMBER]);
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getMerchantOrderNumber()
+    {
+        return ($this->parametersForDigest[ResponseDigestKeys::MERORDERNUM] ?? null) !== null
+            ? ToInteger::toInteger($this->parametersForDigest[ResponseDigestKeys::MERORDERNUM])
+            : null;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getMerchantNote()
+    {
+        return $this->parametersForDigest[ResponseDigestKeys::MD] ?? null;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getUserParam1()
+    {
+        return $this->parametersForDigest[ResponseDigestKeys::USERPARAM1] ?? null;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getAdditionalInfo()
+    {
+        return $this->parametersForDigest[ResponseDigestKeys::ADDINFO] ?? null;
     }
 
     /**

@@ -17,7 +17,7 @@ class CardPayResponseTest extends PayResponseTest
      * @param int $srCode
      * @param string $digest
      * @param string $digest1
-     * @param string|null $merOrderNum
+     * @param int|null $merOrderNum
      * @param string|null $md
      * @param string|null $resultText
      * @param string|null $userParam1
@@ -30,7 +30,7 @@ class CardPayResponseTest extends PayResponseTest
         int $srCode,
         string $digest,
         string $digest1,
-        string $merOrderNum = null,
+        int $merOrderNum = null,
         string $md = null,
         string $resultText = null,
         string $userParam1 = null,
@@ -55,6 +55,12 @@ class CardPayResponseTest extends PayResponseTest
         self::assertSame($digest1, $cardPayResponse->getDigest1());
         self::assertSame($prCode, $cardPayResponse->getPrCode());
         self::assertSame($srCode, $cardPayResponse->getSrCode());
+        self::assertSame($operation, $cardPayResponse->getOperation());
+        self::assertSame($orderNumber, $cardPayResponse->getOrderNumber());
+        self::assertSame($merOrderNum, $cardPayResponse->getMerchantOrderNumber());
+        self::assertSame($md, $cardPayResponse->getMerchantNote());
+        self::assertSame($userParam1, $cardPayResponse->getUserParam1());
+        self::assertSame($addInfo, $cardPayResponse->getAdditionalInfo());
         self::assertSame($resultText, $cardPayResponse->getResultText());
         $parameters = [
             ResponseDigestKeys::OPERATION => $operation,
@@ -84,8 +90,8 @@ class CardPayResponseTest extends PayResponseTest
     public function provideValuesForResponse()
     {
         return [
-            ['foo', 1357, 0, 0, 'baz', 'qux', 'FOO', 'BAR', 'BAZ', 'QUX', 'FooBar', false],
-            ['foo', 1357, 0, 123, 'baz', 'qux', 'FOO', null, 'BAR', null, 'BAZ', false],
+            ['foo', 1357, 0, 0, 'baz', 'qux', 987654, 'BAR', 'BAZ', 'QUX', 'FooBar', false],
+            ['foo', 1357, 0, 123, 'baz', 'qux', 987654, null, 'BAR', null, 'BAZ', false],
             ['foo', 1357, 200, 456, 'baz', 'qux', null, null, null, null, null, true],
         ];
     }
