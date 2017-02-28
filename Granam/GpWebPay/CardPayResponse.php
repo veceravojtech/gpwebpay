@@ -3,7 +3,6 @@ namespace Granam\GpWebPay;
 
 use Granam\GpWebPay\Codes\ResponseDigestKeys;
 use Granam\GpWebPay\Codes\ResponsePayloadKeys;
-use Granam\GpWebPay\Exceptions\GpWebPayErrorResponse;
 use Granam\Integer\Tools\ToInteger;
 use Granam\Scalar\Tools\ToString;
 use Granam\Strict\Object\StrictObject;
@@ -93,6 +92,7 @@ class CardPayResponse extends StrictObject implements PayResponse
      * @param string|null $userParam1
      * @param string|null $addInfo
      * @throws \Granam\GpWebPay\Exceptions\GpWebPayErrorResponse
+     * @throws \Granam\GpWebPay\Exceptions\GpWebPayErrorByCustomerResponse
      */
     public function __construct(
         string $operation,
@@ -108,7 +108,10 @@ class CardPayResponse extends StrictObject implements PayResponse
         string $addInfo = null
     )
     {
-        if (GpWebPayErrorResponse::isError($prCode)) {
+        if (Exceptions\GpWebPayErrorResponse::isError($prCode)) {
+            if (Exceptions\GpWebPayErrorByCustomerResponse::isErrorCausedByCustomer($prCode, $srCode)) {
+                throw new Exceptions\GpWebPayErrorByCustomerResponse($prCode, $srCode, $resultText);
+            }
             throw new Exceptions\GpWebPayErrorResponse($prCode, $srCode, $resultText);
         }
         // keys HAVE TO be exactly in this order to provide correct values for digest calculation
@@ -140,7 +143,7 @@ class CardPayResponse extends StrictObject implements PayResponse
      */
     public function hasError(): bool
     {
-        return GpWebPayErrorResponse::isError($this->parametersForDigest[ResponseDigestKeys::PRCODE]);
+        return Exceptions\GpWebPayErrorResponse::isError($this->parametersForDigest[ResponseDigestKeys::PRCODE]);
     }
 
     /**

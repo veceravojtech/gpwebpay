@@ -41,7 +41,7 @@ class GpWebPayErrorResponse extends \RuntimeException implements Runtime
      * @param int $prCode
      * @param int $srCode
      * @param string|null $resultText
-     * @param int $exceptionCode
+     * @param int|null $exceptionCode
      * @param \Exception $previousException
      */
     public function __construct(
@@ -121,7 +121,7 @@ class GpWebPayErrorResponse extends \RuntimeException implements Runtime
      *
      * @return bool
      */
-    public function isLocalizedMessageForCustomer()
+    public function isLocalizedMessageForCustomer(): bool
     {
         return PrCodes::isErrorForCustomer($this->getPrCode()) && SrCodes::isErrorForCustomer($this->getSrCode());
     }
