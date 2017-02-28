@@ -8,6 +8,7 @@ use Granam\GpWebPay\Codes\RequestDigestKeys;
 use Granam\GpWebPay\Codes\RequestPayloadKeys;
 use Granam\GpWebPay\Exceptions\UnsupportedPayMethod;
 use Granam\GpWebPay\Exceptions\ValueTooLong;
+use Granam\String\StringTools;
 use Granam\Tests\Tools\TestWithMockery;
 
 class CardPayRequestValuesTest extends TestWithMockery
@@ -495,7 +496,7 @@ REGEXP
         $invalidValue = substr($allowedCharacters, $startPosition, 18) . 'ñ'; // ñ takes 2 bytes un UTF-8
         error_clear_last();
         $previousErrorReporting = ini_set('error_reporting', -1 ^ E_USER_WARNING);
-        new CardPayRequestValues(
+        $cardPayRequestValues = new CardPayRequestValues(
             $this->createCurrencyCodes(789, 321),
             123,
             456,
@@ -519,6 +520,7 @@ REGEXP
         self::assertSame(E_USER_WARNING, $lastError['type']);
         $nameForRegexp = preg_quote(RequestDigestKeys::REFERENCENUMBER, '~');
         self::assertRegExp("~{$nameForRegexp}.+'ñ' => 'n'~s", $lastError['message']);
+        self::assertSame(StringTools::removeDiacritics($invalidValue), $cardPayRequestValues->getReferenceNumber());
     }
 
     /**
