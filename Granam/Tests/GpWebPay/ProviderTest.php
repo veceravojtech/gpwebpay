@@ -292,4 +292,35 @@ class ProviderTest extends TestWithMockery
             )
         );
     }
+
+    /**
+     * @test
+     * @expectedException \Granam\GpWebPay\Exceptions\GpWebPayErrorByCustomerResponse
+     * @expectedExceptionMessageRegExp ~^Time for service - .+ 17\(1002\).*~
+     */
+    public function I_am_stopped_when_response_reports_customer_error()
+    {
+        $provider = new Provider(
+            $this->createSettings(null /* URL is not needed */, $merchantNumber = 'qux'),
+            $this->createDigestSignerForVerification(
+                $digest = 'bar',
+                $parametersForDigest = ['foo'],
+                true,
+                $digest1 = 'baz',
+                $merchantNumber,
+                true
+            )
+        );
+        $provider->verifyPayResponse(
+            $this->createPayResponse(
+                $parametersForDigest,
+                $digest,
+                $digest1,
+                true, /* response has error */
+                17, // response error code PRCODE
+                1002, // response detail error code SRCODE
+                'Time for service' // error message from GPWebPay
+            )
+        );
+    }
 }

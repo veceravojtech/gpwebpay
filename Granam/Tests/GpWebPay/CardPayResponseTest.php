@@ -102,6 +102,16 @@ class CardPayResponseTest extends PayResponseTest
 
     /**
      * @test
+     * @expectedException \Granam\GpWebPay\Exceptions\GpWebPayErrorByCustomerResponse
+     * @expectedExceptionMessageRegExp ~error code 1000\(1005\)~
+     */
+    public function I_am_stopped_by_customer_exception_if_error_caused_by_him()
+    {
+        new CardPayResponse('foo', 123, 1000, 1005, 'bar', 'baz');
+    }
+
+    /**
+     * @test
      * @dataProvider provideValuesForResponse
      * @param string $operation
      * @param string $orderNumber
