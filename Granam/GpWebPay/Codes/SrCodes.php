@@ -111,6 +111,6 @@ class SrCodes extends StrictObject implements Codes
      */
     public static function isErrorForCustomer(int $srCode): bool
     {
-        return in_array($srCode, [6, 11], true) || $srCode >= 1001;
+        return in_array($srCode, [0 /* just means no details available */, 6, 11], true) || $srCode >= 1001;
     }
 }

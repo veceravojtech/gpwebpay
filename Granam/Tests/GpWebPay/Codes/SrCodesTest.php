@@ -90,6 +90,7 @@ class SrCodesTest extends TestWithMockery
      */
     public function I_can_easily_find_out_if_error_code_means_info_for_customer()
     {
+        self::assertTrue(SrCodes::isErrorForCustomer(0));
         self::assertTrue(SrCodes::isErrorForCustomer(6));
         self::assertTrue(SrCodes::isErrorForCustomer(1001));
         self::assertTrue(SrCodes::isErrorForCustomer(PHP_INT_MAX));
