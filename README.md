@@ -33,6 +33,12 @@ if (count($_POST) > 0) {
     try {
         $response = CardPayResponse::createFromArray($_POST);
     } catch(GpWebPayErrorByCustomerResponse $gpWebPayErrorByCustomerResponse) {
+        /*
+         * WARNING: do not rely blindly on this detection - for example if YOU (developer) are sending email in
+         * a hidden field, because the customer is logged in and does not need to enter it again, but the email has been
+         * refused by GP web pay, you will show to the customer confusing message about an invalid email,
+         * although he does not enter it.
+         */
         // some pretty error box for customer information about HIS mistake
         echo $gpWebPayErrorByCustomerResponse->getLocalizedMessage();
     } catch(GpWebPayErrorResponse $gpWebPayErrorResponse) {
