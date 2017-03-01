@@ -1,11 +1,13 @@
 <?php
 namespace Granam\GpWebPay;
 
+use Granam\GpWebPay\Codes\RequestDigestKeys;
 use Granam\GpWebPay\Codes\ResponseDigestKeys;
 use Granam\GpWebPay\Codes\ResponsePayloadKeys;
 use Granam\Integer\Tools\ToInteger;
 use Granam\Scalar\Tools\ToString;
 use Granam\Strict\Object\StrictObject;
+use Granam\Scalar\Tools\Exceptions\Exception as ConversionException;
 
 class CardPayResponse extends StrictObject implements PayResponse
 {
@@ -31,15 +33,20 @@ class CardPayResponse extends StrictObject implements PayResponse
 
     /**
      * @param array $valuesFromGetOrPost
+     * @param SettingsInterface $settings
+     * @param DigestSignerInterface $digestSigner
      * @return CardPayResponse
      * @throws \Granam\GpWebPay\Exceptions\GpWebPayErrorResponse
      * @throws \Granam\GpWebPay\Exceptions\GpWebPayErrorByCustomerResponse
+     * @throws \Granam\GpWebPay\Exceptions\ResponseDigestCanNotBeVerified
      * @throws \Granam\GpWebPay\Exceptions\BrokenResponse
-     * @throws \Granam\Integer\Tools\Exceptions\WrongParameterType
-     * @throws \Granam\Integer\Tools\Exceptions\ValueLostOnCast
-     * @throws \Granam\Scalar\Tools\Exceptions\WrongParameterType
+     * @throws \Granam\GpWebPay\Exceptions\PublicKeyUsageFailed
      */
-    public static function createFromArray(array $valuesFromGetOrPost)
+    public static function createFromArray(
+        array $valuesFromGetOrPost,
+        SettingsInterface $settings,
+        DigestSignerInterface $digestSigner
+    )
     {
         $normalizedValues = [];
         foreach (self::$expectedKeys as $key => $required) {
@@ -49,16 +56,24 @@ class CardPayResponse extends StrictObject implements PayResponse
                     'Values to create ' . static::class . " are missing required '{$key}'"
                 );
             }
-            if ($valuesFromGetOrPost[$key] === null) {
-                $normalizedValues[$key] = null;
-            } else if (in_array($key, self::$integerValues, true)) {
-                $normalizedValues[$key] = ToInteger::toInteger($valuesFromGetOrPost[$key]);
-            } else {
-                $normalizedValues[$key] = ToString::toString($valuesFromGetOrPost[$key]);
+            try {
+                if ($valuesFromGetOrPost[$key] === null) {
+                    $normalizedValues[$key] = null;
+                } else if (in_array($key, self::$integerValues, true)) {
+                    $normalizedValues[$key] = ToInteger::toInteger($valuesFromGetOrPost[$key]);
+                } else {
+                    $normalizedValues[$key] = ToString::toString($valuesFromGetOrPost[$key]);
+                }
+            } catch (ConversionException $conversionException) {
+                throw new Exceptions\BrokenResponse(
+                    "Value of '{$key}' has invalid format: " . $conversionException->getMessage()
+                );
             }
         }
 
         return new static(
+            $settings,
+            $digestSigner,
             $normalizedValues[ResponseDigestKeys::OPERATION],
             $normalizedValues[ResponseDigestKeys::ORDERNUMBER],
             $normalizedValues[ResponseDigestKeys::PRCODE],
@@ -81,6 +96,8 @@ class CardPayResponse extends StrictObject implements PayResponse
     private $digest1;
 
     /**
+     * @param SettingsInterface $settings
+     * @param DigestSignerInterface $digestSigner
      * @param string $operation
      * @param int $orderNumber
      * @param int $prCode
@@ -94,8 +111,12 @@ class CardPayResponse extends StrictObject implements PayResponse
      * @param string|null $addInfo
      * @throws \Granam\GpWebPay\Exceptions\GpWebPayErrorResponse
      * @throws \Granam\GpWebPay\Exceptions\GpWebPayErrorByCustomerResponse
+     * @throws \Granam\GpWebPay\Exceptions\ResponseDigestCanNotBeVerified
+     * @throws \Granam\GpWebPay\Exceptions\PublicKeyUsageFailed
      */
     public function __construct(
+        SettingsInterface $settings,
+        DigestSignerInterface $digestSigner,
         string $operation,
         int $orderNumber,
         int $prCode,
@@ -137,6 +158,40 @@ class CardPayResponse extends StrictObject implements PayResponse
         }
         $this->digest = $digest; // string up to length of 2000
         $this->digest1 = $digest1; // string up to length of 2000
+
+        $this->verifyResponseDigests($digestSigner, $settings->getMerchantNumber());
+    }
+
+    /**
+     * @param DigestSignerInterface $digestSigner
+     * @param string $merchantNumber
+     * @return bool
+     * @throws \Granam\GpWebPay\Exceptions\ResponseDigestCanNotBeVerified
+     * @throws \Granam\GpWebPay\Exceptions\PublicKeyUsageFailed
+     */
+    private function verifyResponseDigests(DigestSignerInterface $digestSigner, string $merchantNumber): bool
+    {
+        // verify digest & digest1
+        $parametersForDigest = $this->getParametersForDigest();
+        if (!$digestSigner->verifySignedDigest($this->getDigest(), $parametersForDigest)) {
+            throw new Exceptions\ResponseDigestCanNotBeVerified(
+                'Given \'' . ResponsePayloadKeys::DIGEST . '\' does not match expected one calculated from values '
+                . var_export($parametersForDigest, true)
+            );
+        }
+        // merchant number is not part of the response to provide additional security
+        $parametersForDigest1 = $parametersForDigest;
+        $parametersForDigest1[RequestDigestKeys::MERCHANTNUMBER] = $merchantNumber;
+        if (!$digestSigner->verifySignedDigest($this->getDigest1(), $parametersForDigest1)) {
+            throw new Exceptions\ResponseDigestCanNotBeVerified(
+                'Given \'' . ResponsePayloadKeys::DIGEST1 . '\' does not match expected one'
+                . ' (\'' . ResponsePayloadKeys::DIGEST1 . '\' has been modified).'
+                . ' \'' . ResponsePayloadKeys::DIGEST1 . '\' was calculated from values '
+                . var_export($parametersForDigest1, true)
+            );
+        }
+
+        return true;
     }
 
     /**
@@ -184,7 +239,7 @@ class CardPayResponse extends StrictObject implements PayResponse
      */
     public function getPrCode(): int
     {
-        return ToInteger::toInteger($this->parametersForDigest[ResponseDigestKeys::PRCODE]);
+        return $this->parametersForDigest[ResponseDigestKeys::PRCODE];
     }
 
     /**
@@ -200,7 +255,7 @@ class CardPayResponse extends StrictObject implements PayResponse
      */
     public function getOrderNumber(): int
     {
-        return ToInteger::toInteger($this->parametersForDigest[ResponseDigestKeys::ORDERNUMBER]);
+        return $this->parametersForDigest[ResponseDigestKeys::ORDERNUMBER];
     }
 
     /**
@@ -209,7 +264,7 @@ class CardPayResponse extends StrictObject implements PayResponse
     public function getMerchantOrderNumber()
     {
         return ($this->parametersForDigest[ResponseDigestKeys::MERORDERNUM] ?? null) !== null
-            ? ToInteger::toInteger($this->parametersForDigest[ResponseDigestKeys::MERORDERNUM])
+            ? $this->parametersForDigest[ResponseDigestKeys::MERORDERNUM]
             : null;
     }
 

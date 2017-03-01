@@ -9,7 +9,6 @@ use Granam\GpWebPay\Codes\LanguageCodes;
 use Granam\GpWebPay\Codes\RequestDigestKeys;
 use Granam\GpWebPay\Codes\RequestPayloadKeys;
 use Granam\GpWebPay\DigestSigner;
-use Granam\GpWebPay\Provider;
 use Granam\GpWebPay\Settings;
 use Granam\Tests\Tools\TestWithMockery;
 use PHPHtmlParser\Dom;
@@ -38,7 +37,6 @@ class LiveTest extends TestWithMockery
      */
     public function I_can_create_order()
     {
-        $provider = new Provider($this->settings, new DigestSigner($this->settings));
         $ISO4217 = new ISO4217();
         $_POSTLIKE = [
             RequestDigestKeys::ORDERNUMBER => (string)time(),
@@ -47,8 +45,11 @@ class LiveTest extends TestWithMockery
             RequestDigestKeys::DEPOSITFLAG => '1',
             RequestPayloadKeys::LANG => LanguageCodes::EN,
         ];
-        $cardPayRequest = $provider->createCardPayRequest(
-            CardPayRequestValues::createFromArray($_POSTLIKE, new CurrencyCodes($ISO4217))
+        $cardPayRequestValues = CardPayRequestValues::createFromArray($_POSTLIKE, new CurrencyCodes($ISO4217));
+        $cardPayRequest = new CardPayRequest(
+            $cardPayRequestValues,
+            $this->settings,
+            new DigestSigner($this->settings)
         );
         self::assertInstanceOf(CardPayRequest::class, $cardPayRequest);
 

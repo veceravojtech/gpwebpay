@@ -64,15 +64,15 @@ class DigestSigner extends StrictObject implements DigestSignerInterface
      * @param array|string[] $expectedPartsOfDigest
      * @param string $digestToVerify
      * @return bool
+     * @throws \Granam\GpWebPay\Exceptions\ResponseDigestCanNotBeVerified
      * @throws \Granam\GpWebPay\Exceptions\PublicKeyUsageFailed
-     * @throws \Granam\GpWebPay\Exceptions\DigestCanNotBeVerified
      */
     public function verifySignedDigest(string $digestToVerify, array $expectedPartsOfDigest): bool
     {
         $expectedDigest = implode('|', $expectedPartsOfDigest);
         $digestToVerify = base64_decode($digestToVerify);
         if (openssl_verify($expectedDigest, $digestToVerify, $this->getPublicKeyResource()) !== 1) {
-            throw new Exceptions\DigestCanNotBeVerified('Given digest does not match expected ' . $expectedDigest);
+            throw new Exceptions\ResponseDigestCanNotBeVerified('Given digest does not match expected ' . $expectedDigest);
         }
 
         return true;

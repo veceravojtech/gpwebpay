@@ -46,7 +46,7 @@ class DigestSignerTest extends TestCase
 
     /**
      * @test
-     * @expectedException \Granam\GpWebPay\Exceptions\DigestCanNotBeVerified
+     * @expectedException \Granam\GpWebPay\Exceptions\ResponseDigestCanNotBeVerified
      * @expectedExceptionMessageRegExp ~baz|qux~
      */
     public function I_am_stopped_by_exception_if_digest_can_not_be_verified()

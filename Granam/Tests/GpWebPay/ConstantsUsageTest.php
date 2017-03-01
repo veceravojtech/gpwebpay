@@ -3,7 +3,7 @@ namespace Granam\Tests\GpWebPay;
 
 use Granam\GpWebPay\CardPayRequestValues;
 use Granam\GpWebPay\Codes\Codes;
-use Granam\GpWebPay\Provider;
+use Granam\GpWebPay\SettingsInterface;
 use PHPUnit\Framework\TestCase;
 
 class ConstantsUsageTest extends TestCase
@@ -77,7 +77,7 @@ class ConstantsUsageTest extends TestCase
 
         return $getClassesFromDir(
             __DIR__ . '/../../GpWebPay',
-            (new \ReflectionClass(Provider::class))->getNamespaceName()
+            (new \ReflectionClass(SettingsInterface::class))->getNamespaceName()
         );
     }
 

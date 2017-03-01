@@ -26,12 +26,23 @@ use Granam\GpWebPay\CardPayRequestValues;
 use Granam\GpWebPay\CardPayRequest;
 use Granam\GpWebPay\Exceptions\GpWebPayErrorByCustomerResponse;
 use Granam\GpWebPay\Exceptions\GpWebPayErrorResponse;
+use Granam\GpWebPay\Exceptions\ResponseDigestCanNotBeVerified;
 use Granam\GpWebPay\Exceptions\Exception as GpWebPayException;
+
+// SET UP
+$settings = Settings::createForProduction(
+    __DIR__ . '/foo/bar/your_private_key_downloaded_from_gp_web_pay.pem',
+    'TopSecretPasswordForPrivateKey',
+    __DIR__ . '/foo/bar/gp_web_pay_server_public_key_also_downloaded_from_gp_web_pay.pem',
+    '123456789' // your 'merchant number' given to you by GP WebPay
+    // without explicit URL for response the current will be used - INCLUDING query string
+);
+$digestSigner = new DigestSigner($settings);
 
 // RESPONSE
 if (count($_POST) > 0) {
     try {
-        $response = CardPayResponse::createFromArray($_POST);
+        $response = CardPayResponse::createFromArray($_POST, $settings, $digestSigner);
     } catch(GpWebPayErrorByCustomerResponse $gpWebPayErrorByCustomerResponse) {
         // some pretty error box for customer information about HIS mistake like invalid card number
         /**
@@ -47,7 +58,10 @@ if (count($_POST) > 0) {
     } catch(GpWebPayErrorResponse $gpWebPayErrorResponse) {
         /* GP WebPay refuses request by OUR (developer) mistake like duplicate order number
          * - show an apology to the customer and log this, solve this */
-    } catch(GpWebPayException $gpWebPayException) {
+    } catch(ResponseDigestCanNotBeVerified $responseDigestCanNotBeVerified) {
+        /* values in response have been changed(!),
+         * show an apology (or a warning?) to the customer and probably log this for evidence */
+    } catch(GpWebPayException $gpWebPayException) { // EVERY exception share this interface
         /* some generic error like processing error on GP WebPay server,
          * show an apology to the customer and log this, solve this */
     }
@@ -55,19 +69,8 @@ if (count($_POST) > 0) {
      * its OK, lets process $response->getParametersForDigest();
      * @see \Granam\GpWebPay\CardPayResponse::getParametersForDigest
      */
-} else {
-    // REQUEST SET UP
-    $settings = Settings::createForProduction(
-        __DIR__ . '/foo/bar/your_private_key_downloaded_from_gp_web_pay.pem',
-        'TopSecretPasswordForPrivateKey',
-        __DIR__ . '/foo/bar/gp_web_pay_server_public_key_also_downloaded_from_gp_web_pay.pem',
-        '123456789' // your 'merchant number' given to you by GP WebPay
-        // without explicit URL for response the current will be used - INCLUDING query string
-    );
-    $digestSigner = new DigestSigner($settings);
+} else { // REQUEST
     $currencyCodes = new CurrencyCodes(new IsoCurrencies());
-    
-    // MAKE REQUEST
     try {
         $cardPayRequestValues = CardPayRequestValues::createFromArray($_POST, $currencyCodes);
         $cardPayRequest = new CardPayRequest($cardPayRequestValues, $settings, $digestSigner);
@@ -75,9 +78,7 @@ if (count($_POST) > 0) {
         /* show an apology to the customer
          * like "we are sorry, our payment gateway is temporarily unavailable" and log it, solve it */
         exit();
-    }
-    
-    ?>
+    } ?>
     <html>
     <body>
         <!-- some pretty recapitulation of the order -->
@@ -89,10 +90,7 @@ if (count($_POST) > 0) {
        </form>
     </body>
     </html>
-
 <?php } ?>
-
-
 ```
 
 ### Troubleshooting

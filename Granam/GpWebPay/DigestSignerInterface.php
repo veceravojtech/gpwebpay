@@ -13,7 +13,8 @@ interface DigestSignerInterface
      * @param string $digestToVerify
      * @param array $expectedPartsOfDigest
      * @return bool
-     * @throws \Granam\GpWebPay\Exceptions\DigestCanNotBeVerified
+     * @throws \Granam\GpWebPay\Exceptions\ResponseDigestCanNotBeVerified
+     * @throws \Granam\GpWebPay\Exceptions\PublicKeyUsageFailed
      */
     public function verifySignedDigest(string $digestToVerify, array $expectedPartsOfDigest): bool;
 }
