@@ -33,22 +33,23 @@ if (count($_POST) > 0) {
     try {
         $response = CardPayResponse::createFromArray($_POST);
     } catch(GpWebPayErrorByCustomerResponse $gpWebPayErrorByCustomerResponse) {
+        // some pretty error box for customer information about HIS mistake like invalid card number
         /**
          * WARNING: do not rely blindly on this detection - for example if YOU (developer) are sending
          * card number in a hidden field, because the customer provided it to its account before and
-         * does not need to enter it again, but the card number has been refused by GP web pay, you will
-         * show to the customer confusing message about an invalid card number, although he does not
-         * enter it.
-         * For Full list of auto-detected customer
+         * does not need to enter it again, but the card number has been refused by GP WebPay,
+         * you will show to the customer confusing message about an invalid card number,
+         * although he does not enter it.
+         * For full list of auto-detected customer
          * mistakes @see GpWebPayErrorByCustomerResponse::isErrorCausedByCustomer
          */
-        // some pretty error box for customer information about HIS mistake
         echo $gpWebPayErrorByCustomerResponse->getLocalizedMessage();
     } catch(GpWebPayErrorResponse $gpWebPayErrorResponse) {
-        /* GP web pay refuses request by OUR (developer) mistake
+        /* GP WebPay refuses request by OUR (developer) mistake like duplicate order number
          * - show an apology to the customer and log this, solve this */
     } catch(GpWebPayException $gpWebPayException) {
-        // some more generic error, show an apology to the customer and log this, solve this
+        /* some generic error like processing error on GP WebPay server,
+         * show an apology to the customer and log this, solve this */
     }
     /**
      * its OK, lets process $response->getParametersForDigest();
@@ -59,8 +60,8 @@ if (count($_POST) > 0) {
     $settings = Settings::createForProduction(
         __DIR__ . '/foo/bar/your_private_key_downloaded_from_gp_web_pay.pem',
         'TopSecretPasswordForPrivateKey',
-        __DIR__ . '/foo/bar/gp_web_pay_server_public_key_also_downloaded_from_their_server.pem',
-        '123456789' // your 'merchant number', also taken from GP WebPay
+        __DIR__ . '/foo/bar/gp_web_pay_server_public_key_also_downloaded_from_gp_web_pay.pem',
+        '123456789' // your 'merchant number' given to you by GP WebPay
         // without explicit URL for response the current will be used - INCLUDING query string
     );
     $digestSigner = new DigestSigner($settings);
@@ -71,7 +72,8 @@ if (count($_POST) > 0) {
         $cardPayRequestValues = CardPayRequestValues::createFromArray($_POST, $currencyCodes);
         $cardPayRequest = new CardPayRequest($cardPayRequestValues, $settings, $digestSigner);
     } catch (GpWebPayException $exception) {
-        // we are sorry, our payment gateway is temporarily unavailable (log it, solve it)
+        /* show an apology to the customer
+         * like "we are sorry, our payment gateway is temporarily unavailable" and log it, solve it */
         exit();
     }
     
