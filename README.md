@@ -101,6 +101,13 @@ Almost all possible error cases are covered clearly by many of exceptions, but s
         - ensure that URL exists and there is **NO redirection**, like https://www.github.com to https://github.com/ with trailing slash
         (don't believe your eyes in a browser address bar, the trailing slash is often hidden there)
 
+For tests against [testing payment gateway](https://test.3dsecure.gpwebpay.com/pgw/order.do) you can use payment card
+- Card number: `4056070000000008`
+- Card valdity: `12/2020`
+- CVC2: `200`
+- 3D Secure password: `password`
+
+
 ### Installation
 
 ```sh
