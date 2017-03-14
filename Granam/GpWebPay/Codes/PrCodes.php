@@ -7,6 +7,7 @@ class PrCodes extends StrictObject implements Codes
 {
     // NON-ERROR CODES
     const OK_CODE = 0;
+    const INVALID_FIELD_CONTENT_CODE = 3;
     const ADDITIONAL_INFO_REQUEST_CODE = 200;
 
     private static $prCodes = [
@@ -15,7 +16,7 @@ class PrCodes extends StrictObject implements Codes
             self::OK_CODE => 'OK',
             1 => 'Pole příliš dlouhé',
             2 => 'Pole příliš krátké',
-            3 => 'Chybný obsah pole',
+            self::INVALID_FIELD_CONTENT_CODE => 'Chybný obsah pole',
             4 => 'Pole je prázdné',
             5 => 'Chybí povinné pole',
             11 => 'Neznámý obchodník',
@@ -43,7 +44,7 @@ vytvoření objednávky již proběhlo a objednávka je v určitém stavu
             self::OK_CODE => 'OK',
             1 => 'Field too long',
             2 => 'Field too short',
-            3 => 'Incorrect content of field',
+            self::INVALID_FIELD_CONTENT_CODE => 'Incorrect content of field',
             4 => 'Field is null',
             5 => 'Missing required field',
             11 => 'Unknown merchant',
