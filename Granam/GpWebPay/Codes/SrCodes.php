@@ -5,13 +5,15 @@ use Granam\Strict\Object\StrictObject;
 
 class SrCodes extends StrictObject implements Codes
 {
+    const CURRENCY_CODE = 7;
+
     private static $srCodes = [
         LanguageCodes::CS => [
             0 => '',
             1 => 'ORDERNUMBER',
             2 => 'MERCHANTNUMBER',
             6 => 'AMOUNT',
-            7 => 'CURRENCY',
+            self::CURRENCY_CODE => 'CURRENCY',
             8 => 'DEPOSITFLAG',
             10 => 'MERORDERNUM',
             11 => 'CREDITNUMBER',
@@ -41,7 +43,7 @@ class SrCodes extends StrictObject implements Codes
             1 => 'ORDERNUMBER',
             2 => 'MERCHANTNUMBER',
             6 => 'AMOUNT',
-            7 => 'CURRENCY',
+            self::CURRENCY_CODE => 'CURRENCY',
             8 => 'DEPOSITFLAG',
             10 => 'MERORDERNUM',
             11 => 'CREDITNUMBER',

@@ -27,7 +27,17 @@ class GpWebPayErrorResponse extends \RuntimeException implements Runtime
      */
     public static function isUnsupportedCurrencyError(int $prCode, int $srCode): bool
     {
-        return $prCode === 3 && $srCode === 7;
+        return $prCode === PrCodes::INVALID_FIELD_CONTENT_CODE && $srCode === SrCodes::CURRENCY_CODE;
+    }
+
+    /**
+     * Gives array of language codes in format of ISO 639-1 @link https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
+     *
+     * @return array|string[]
+     */
+    public static function getSupportedLanguagesForLocalization(): array
+    {
+        return [LanguageCodes::CS, LanguageCodes::EN];
     }
 
     /** @var int */
@@ -100,7 +110,7 @@ class GpWebPayErrorResponse extends \RuntimeException implements Runtime
     public function getLocalizedMessage(string $languageCode = LanguageCodes::EN): string
     {
         $languageCode = strtolower(trim($languageCode));
-        if ($languageCode !== LanguageCodes::CS && $languageCode !== LanguageCodes::EN) {
+        if (!in_array($languageCode, self::getSupportedLanguagesForLocalization(), true)) {
             trigger_error(
                 "Unsupported language for error message requested: '$languageCode'"
                 . ', \'' . LanguageCodes::EN . '\' is used instead',

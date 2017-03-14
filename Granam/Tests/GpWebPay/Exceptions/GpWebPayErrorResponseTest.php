@@ -20,6 +20,27 @@ class GpWebPayErrorResponseTest extends TestCase
 
     /**
      * @test
+     */
+    public function I_can_find_out_easily_if_currency_was_refused()
+    {
+        self::assertTrue(GpWebPayErrorResponse::isUnsupportedCurrencyError(3, 7));
+        self::assertFalse(GpWebPayErrorResponse::isUnsupportedCurrencyError(2, 7));
+        self::assertFalse(GpWebPayErrorResponse::isUnsupportedCurrencyError(3, 8));
+    }
+
+    /**
+     * @test
+     */
+    public function I_can_get_languages_usable_for_message_localization()
+    {
+        self::assertEquals(
+            [LanguageCodes::CS, LanguageCodes::EN],
+            GpWebPayErrorResponse::getSupportedLanguagesForLocalization()
+        );
+    }
+
+    /**
+     * @test
      * @dataProvider provideCodesWithTextAndExpectedResult
      * @param int $prCode
      * @param int $srCode
@@ -87,16 +108,6 @@ class GpWebPayErrorResponseTest extends TestCase
             [4, 8, 'bar', 'Field is null (DEPOSITFLAG)', 'Pole je prázdné (DEPOSITFLAG)', 4008],
             [50, 0, 'The cardholder canceled the payment', 'The cardholder canceled the payment', 'Držitel karty zrušil platbu', 50000],
         ];
-    }
-
-    /**
-     * @test
-     */
-    public function I_can_find_out_easily_if_currency_was_refused()
-    {
-        self::assertTrue(GpWebPayErrorResponse::isUnsupportedCurrencyError(3, 7));
-        self::assertFalse(GpWebPayErrorResponse::isUnsupportedCurrencyError(2, 7));
-        self::assertFalse(GpWebPayErrorResponse::isUnsupportedCurrencyError(3, 8));
     }
 
     /**
