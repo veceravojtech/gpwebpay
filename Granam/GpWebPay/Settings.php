@@ -30,7 +30,7 @@ class Settings extends StrictObject implements SettingsInterface
         string $publicKeyFile,
         string $merchantNumber,
         string $urlForResponse = null
-    )
+    ): Settings
     {
         return new static(
             self::PRODUCTION_REQUEST_URL,
@@ -63,7 +63,7 @@ class Settings extends StrictObject implements SettingsInterface
         string $publicKeyFile,
         string $merchantNumber,
         string $urlForResponse = null
-    )
+    ): Settings
     {
         return new static(
             self::TEST_REQUEST_URL,

@@ -1,4 +1,5 @@
 <?php
+
 namespace Granam\GpWebPay;
 
 use Granam\GpWebPay\Codes\OperationCodes;
@@ -43,8 +44,9 @@ class CardPayRequest extends StrictObject implements \IteratorAggregate, PayRequ
      * @param SettingsInterface $settings
      * @return array
      */
-    private function buildParametersForDigest(CardPayRequestValues $requestValues, SettingsInterface $settings)
+    private function buildParametersForDigest(CardPayRequestValues $requestValues, SettingsInterface $settings): array
     {
+        $parametersWithoutDigest = [];
         // parameters HAVE TO be in this order, see GP_webpay_HTTP_EN.pdf / GP_webpay_HTTP.pdf
         $parametersWithoutDigest[RequestDigestKeys::MERCHANTNUMBER] = $settings->getMerchantNumber();
         $parametersWithoutDigest[RequestDigestKeys::OPERATION] = OperationCodes::CREATE_ORDER; // the only operation currently available
@@ -97,7 +99,7 @@ class CardPayRequest extends StrictObject implements \IteratorAggregate, PayRequ
         array $parametersForDigest,
         DigestSignerInterface $digestSigner,
         string $lang = null
-    )
+    ): array
     {
         $parametersForRequest = $parametersForDigest;
         // digest HAS TO be calculated after parameters population

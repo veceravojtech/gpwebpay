@@ -70,9 +70,11 @@ class DigestSigner extends StrictObject implements DigestSignerInterface
     public function verifySignedDigest(string $digestToVerify, array $expectedPartsOfDigest): bool
     {
         $expectedDigest = implode('|', $expectedPartsOfDigest);
-        $digestToVerify = base64_decode($digestToVerify);
-        if (openssl_verify($expectedDigest, $digestToVerify, $this->getPublicKeyResource()) !== 1) {
-            throw new Exceptions\ResponseDigestCanNotBeVerified('Given digest does not match expected ' . $expectedDigest);
+        $decodedDigestToVerify = base64_decode($digestToVerify);
+        if (openssl_verify($expectedDigest, $decodedDigestToVerify, $this->getPublicKeyResource()) !== 1) {
+            throw new Exceptions\ResponseDigestCanNotBeVerified(
+                'Given digest does not match expected ' . $expectedDigest
+            );
         }
 
         return true;

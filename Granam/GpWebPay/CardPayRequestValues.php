@@ -1,4 +1,5 @@
 <?php
+
 namespace Granam\GpWebPay;
 
 use Granam\Float\Tools\ToFloat;
@@ -63,7 +64,7 @@ class CardPayRequestValues extends StrictObject
      * @throws \Granam\GpWebPay\Exceptions\UnsupportedPayMethod
      * @throws \Granam\GpWebPay\Exceptions\ValueTooLong
      */
-    public static function createFromArray(array $valuesFromGetOrPost, CurrencyCodes $currencyCodes)
+    public static function createFromArray(array $valuesFromGetOrPost, CurrencyCodes $currencyCodes): CardPayRequestValues
     {
         $withUpperCasedKeys = [];
         foreach ($valuesFromGetOrPost as $key => $value) {
@@ -102,7 +103,7 @@ class CardPayRequestValues extends StrictObject
      * @throws \Granam\GpWebPay\Exceptions\InvalidArgumentException
      * @throws \Granam\GpWebPay\Exceptions\InvalidRequest
      */
-    private static function normalizeValues(array $withUpperCasedKeys)
+    private static function normalizeValues(array $withUpperCasedKeys): array
     {
         $normalizedValues = [];
         foreach (self::$keysExpectedInArray as $key => $required) {
@@ -126,9 +127,8 @@ class CardPayRequestValues extends StrictObject
                         throw new Exceptions\InvalidRequest(
                             "Given '{$key}' should be an array, got " . gettype($subArray)
                         );
-                    } else {
-                        $normalizedValues[$key] = $subArray;
                     }
+                    $normalizedValues[$key] = $subArray;
                 } else {
                     $normalizedValues[$key] = ToString::toString($withUpperCasedKeys[$key]);
                 }
@@ -143,6 +143,7 @@ class CardPayRequestValues extends StrictObject
     }
 
     // REQUIRED VALUES
+
     /** @var int */
     private $orderNumber;
     /** @var int */
@@ -429,7 +430,7 @@ class CardPayRequestValues extends StrictObject
      * @param array $characterRanges
      * @return string
      */
-    private function describeAsciiRange(array $characterRanges)
+    private function describeAsciiRange(array $characterRanges): string
     {
         return implode(
             ',',

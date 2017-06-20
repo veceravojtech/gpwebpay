@@ -46,7 +46,7 @@ class CardPayResponse extends StrictObject implements PayResponse
         array $valuesFromGetOrPost,
         SettingsInterface $settings,
         DigestSignerInterface $digestSigner
-    )
+    ): CardPayResponse
     {
         $normalizedValues = [];
         foreach (self::$expectedKeys as $key => $required) {
