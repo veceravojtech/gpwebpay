@@ -68,7 +68,10 @@ class LiveTest extends TestWithMockery
             'Unexpected response content from GpWebPay'
         );
         $buttonSend = $this->getSingleNode('button#send', $parser);
-        self::assertSame('Pay 123.45 EUR', $buttonSend->text(true));
+        self::assertSame('Pay', $buttonSend->text(true));
+        $orderAmount = $this->getSingleNode('#orderAmount', $parser);
+        // the price may contains decoded &nbsp;, which results into some UTF-8 space-like character
+        self::assertRegExp('~^123\.45\s+EUR$~u', html_entity_decode($orderAmount->text(true)));
     }
 
     private function fetchResponse(CardPayRequest $cardPayRequest): string
