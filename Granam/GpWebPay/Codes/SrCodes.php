@@ -73,7 +73,7 @@ class SrCodes extends StrictObject implements Codes
     /**
      * @return array|string[][][]
      */
-    public static function getSrCodes()
+    public static function getSrCodes(): array
     {
         return self::$srCodes;
     }
@@ -86,7 +86,7 @@ class SrCodes extends StrictObject implements Codes
      * @param string $languageCode
      * @return string
      */
-    public static function getLocalizedDetailMessage(int $srCode, string $languageCode = self::LANGUAGE_EN)
+    public static function getLocalizedDetailMessage(int $srCode, string $languageCode = self::LANGUAGE_EN): string
     {
         $languageCode = strtolower($languageCode);
         if (array_key_exists($languageCode, self::$srCodes) && array_key_exists($srCode, self::$srCodes[$languageCode])) {

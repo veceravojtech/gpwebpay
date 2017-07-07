@@ -35,6 +35,7 @@ vytvoření objednávky již proběhlo a objednávka je v určitém stavu
             30 => 'Zamítnuto v autorizačním centru',
             31 => 'Chybný podpis (digest)',
             35 => 'Expirovaná session (nastává při vypršení webové session při zadávání karty)',
+            40 => 'Zamítnuto z podezření na neoprávněné použití platební karty',
             50 => 'Držitel karty zrušil platbu',
             self::ADDITIONAL_INFO_REQUEST_CODE => 'Žádost o doplňující informace',
             1000 => 'Technický problém',
@@ -60,6 +61,7 @@ vytvoření objednávky již proběhlo a objednávka je v určitém stavu
             30 => 'Declined in authorization centre',
             31 => 'Wrong digest',
             35 => 'Session expired (happens on web session expiration when entering a card)',
+            40 => 'Declined due to suspicion of unauthorized use of a card',
             50 => 'The cardholder canceled the payment',
             self::ADDITIONAL_INFO_REQUEST_CODE => 'Additional info request',
             1000 => 'Technical problem',
@@ -82,7 +84,7 @@ vytvoření objednávky již proběhlo a objednávka je v určitém stavu
      * @param string $languageCode
      * @return string
      */
-    public static function getLocalizedMainMessage(int $prCode, string $languageCode = self::LANGUAGE_EN)
+    public static function getLocalizedMainMessage(int $prCode, string $languageCode = self::LANGUAGE_EN): string
     {
         $languageCode = strtolower($languageCode);
         if (array_key_exists($languageCode, self::$prCodes) && array_key_exists($prCode, self::$prCodes[$languageCode])) {
@@ -110,6 +112,6 @@ vytvoření objednávky již proběhlo a objednávka je v určitém stavu
      */
     public static function isErrorForCustomer(int $prCode): bool
     {
-        return in_array($prCode, [17, 25, 26, 28, 30, 35, 50, 1000], true);
+        return in_array($prCode, [17, 25, 26, 28, 30, 35, 50, 40, 1000], true);
     }
 }
