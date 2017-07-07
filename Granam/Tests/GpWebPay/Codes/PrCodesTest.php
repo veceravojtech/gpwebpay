@@ -69,7 +69,7 @@ class PrCodesTest extends CodesTest
         }
     }
 
-    public function provideValuesToTestMessageLocalization()
+    public function provideValuesToTestMessageLocalization(): array
     {
         return [
             [0, LanguageCodes::CS, 'OK'],
