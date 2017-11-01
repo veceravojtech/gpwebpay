@@ -3,6 +3,7 @@ namespace Granam\Tests\GpWebPay;
 
 use Granam\GpWebPay\CardPayRequestValues;
 use Granam\GpWebPay\Codes\Codes;
+use Granam\GpWebPay\FlatReportParser;
 use Granam\GpWebPay\SettingsInterface;
 use PHPUnit\Framework\TestCase;
 
@@ -50,11 +51,11 @@ class ConstantsUsageTest extends TestCase
     /**
      * @return array|string[]
      */
-    private function getProjectClasses()
+    private function getProjectClasses(): array
     {
         $getClassesFromDir = function (string $directory, string $rootNamespace) use (&$getClassesFromDir) {
             $classes = [];
-            foreach (scandir($directory) as $folder) {
+            foreach (scandir($directory, SCANDIR_SORT_NONE) as $folder) {
                 if (in_array($folder, ['.', '..'], true)) {
                     continue;
                 }
@@ -84,17 +85,17 @@ class ConstantsUsageTest extends TestCase
     /**
      * @return array|string[]
      */
-    private function getProjectNonCodeClasses()
+    private function getProjectNonCodeClasses(): array
     {
         return array_filter($this->getProjectClasses(), function (string $projectClass) {
-            return !is_a($projectClass, Codes::class);
+            return !is_a($projectClass, Codes::class) && $projectClass !== FlatReportParser::class;
         });
     }
 
     /**
      * @return array|string[]
      */
-    private function getCodeClasses()
+    private function getCodeClasses(): array
     {
         $codeClasses = [];
         foreach ($this->getProjectClasses() as $projectClass) {
