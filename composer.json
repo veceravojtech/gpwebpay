@@ -57,5 +57,8 @@
     "psr-4": {
       "Granam\\": "Granam/"
     }
+  },
+  "suggest": {
+    "granam/gpwebpay-flat": "Let's check accepted payments via GPWebPay report on daily basis"
   }
 }
