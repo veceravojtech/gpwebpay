@@ -76,21 +76,21 @@ class LiveTest extends TestWithMockery
 
     private function fetchResponse(CardPayRequest $cardPayRequest): string
     {
-        $curl = \curl_init($cardPayRequest->getRequestUrlWithGetParameters());
-        \curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
-        \curl_setopt($curl, CURLOPT_MAXREDIRS, 5);
-        \curl_setopt($curl, CURLOPT_SSL_VERIFYSTATUS, true);
-        \curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 5);
-        \curl_setopt($curl, CURLOPT_TIMEOUT, 30);
-        \curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        $response = \curl_exec($curl);
+        $curl = curl_init($cardPayRequest->getRequestUrlWithGetParameters());
+        curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($curl, CURLOPT_MAXREDIRS, 5);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYSTATUS, true);
+        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 5);
+        curl_setopt($curl, CURLOPT_TIMEOUT, 30);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        $response = curl_exec($curl);
         if ($response) {
-            \curl_close($curl);
+            curl_close($curl);
 
             return (string)$response;
         }
-        $curlError = \curl_error($curl);
-        \curl_close($curl);
+        $curlError = curl_error($curl);
+        curl_close($curl);
         if ($curlError !== 'No OCSP response received') {
             self::fail(
                 'Requesting a new order via GET fails, got CURL error ' . $curlError
