@@ -27,7 +27,7 @@ class CurrencyCodes extends StrictObject implements Codes
      * @param int $numericCode
      * @return bool
      */
-    public function isCurrencyNumericCode(int $numericCode)
+    public function isCurrencyNumericCode(int $numericCode): bool
     {
         $formattedCode = $this->formatNumericCode($numericCode);
         foreach ($this->iso4217->getAll() as $currency) {
@@ -45,7 +45,7 @@ class CurrencyCodes extends StrictObject implements Codes
      */
     private function formatNumericCode(int $numericCode): string
     {
-        return sprintf("%'03d", $numericCode);
+        return \sprintf("%'03d", $numericCode);
     }
 
     /**
@@ -53,7 +53,7 @@ class CurrencyCodes extends StrictObject implements Codes
      * @return int
      * @throws \Granam\GpWebPay\Exceptions\UnknownCurrency
      */
-    public function getCurrencyPrecision(int $numericCode)
+    public function getCurrencyPrecision(int $numericCode): int
     {
         $formattedCode = $this->formatNumericCode($numericCode);
         foreach ($this->iso4217->getAll() as $currency) {

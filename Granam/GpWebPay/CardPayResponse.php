@@ -59,7 +59,7 @@ class CardPayResponse extends StrictObject implements PayResponse
             try {
                 if ($valuesFromGetOrPost[$key] === null) {
                     $normalizedValues[$key] = null;
-                } else if (in_array($key, self::$integerValues, true)) {
+                } elseif (\in_array($key, self::$integerValues, true)) {
                     $normalizedValues[$key] = ToInteger::toInteger($valuesFromGetOrPost[$key]);
                 } else {
                     $normalizedValues[$key] = ToString::toString($valuesFromGetOrPost[$key]);
@@ -176,7 +176,7 @@ class CardPayResponse extends StrictObject implements PayResponse
         if (!$digestSigner->verifySignedDigest($this->getDigest(), $parametersForDigest)) {
             throw new Exceptions\ResponseDigestCanNotBeVerified(
                 'Given \'' . ResponsePayloadKeys::DIGEST . '\' does not match expected one calculated from values '
-                . var_export($parametersForDigest, true)
+                . \var_export($parametersForDigest, true)
             );
         }
         // merchant number is not part of the response to provide additional security
@@ -187,7 +187,7 @@ class CardPayResponse extends StrictObject implements PayResponse
                 'Given \'' . ResponsePayloadKeys::DIGEST1 . '\' does not match expected one'
                 . ' (\'' . ResponsePayloadKeys::DIGEST1 . '\' has been modified).'
                 . ' \'' . ResponsePayloadKeys::DIGEST1 . '\' was calculated from values '
-                . var_export($parametersForDigest1, true)
+                . \var_export($parametersForDigest1, true)
             );
         }
 

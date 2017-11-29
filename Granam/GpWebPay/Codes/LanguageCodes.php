@@ -38,7 +38,7 @@ class LanguageCodes extends StrictObject implements Codes
     /**
      * @return array|string[]
      */
-    public static function getLanguageCodes()
+    public static function getLanguageCodes(): array
     {
         return [
             self::AR,
@@ -71,8 +71,8 @@ class LanguageCodes extends StrictObject implements Codes
      * @param string $languageCode
      * @return bool
      */
-    public static function isLanguageSupported(string $languageCode)
+    public static function isLanguageSupported(string $languageCode): bool
     {
-        return in_array($languageCode, self::getLanguageCodes(), true);
+        return \in_array($languageCode, self::getLanguageCodes(), true);
     }
 }

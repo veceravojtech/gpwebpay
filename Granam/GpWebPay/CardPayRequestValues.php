@@ -1,5 +1,4 @@
 <?php
-
 namespace Granam\GpWebPay;
 
 use Granam\Float\Tools\ToFloat;
@@ -68,7 +67,7 @@ class CardPayRequestValues extends StrictObject
     {
         $withUpperCasedKeys = [];
         foreach ($valuesFromGetOrPost as $key => $value) {
-            $withUpperCasedKeys[strtoupper(trim($key))] = $value;
+            $withUpperCasedKeys[\strtoupper(\trim($key))] = $value;
         }
         if (($withUpperCasedKeys[RequestDigestKeys::AMOUNT] ?? null) === null
             && ($withUpperCasedKeys[self::PRICE_INDEX] ?? null) !== null
@@ -117,15 +116,15 @@ class CardPayRequestValues extends StrictObject
                 );
             }
             try {
-                if (in_array($key, self::$integerKeysExpectedInArray, true)) {
+                if (\in_array($key, self::$integerKeysExpectedInArray, true)) {
                     $normalizedValues[$key] = ToInteger::toInteger($withUpperCasedKeys[$key]);
-                } elseif (in_array($key, self::$floatKeysExpectedInArray, true)) {
+                } elseif (\in_array($key, self::$floatKeysExpectedInArray, true)) {
                     $normalizedValues[$key] = ToFloat::toFloat($withUpperCasedKeys[$key]);
-                } elseif (in_array($key, self::$arrayWithStringKeysExpectedInArray, true)) {
+                } elseif (\in_array($key, self::$arrayWithStringKeysExpectedInArray, true)) {
                     $subArray = $withUpperCasedKeys[$key];
-                    if (!is_array($subArray)) {
+                    if (!\is_array($subArray)) {
                         throw new Exceptions\InvalidRequest(
-                            "Given '{$key}' should be an array, got " . gettype($subArray)
+                            "Given '{$key}' should be an array, got " . \gettype($subArray)
                         );
                     }
                     $normalizedValues[$key] = $subArray;
@@ -264,10 +263,10 @@ class CardPayRequestValues extends StrictObject
      */
     private function guardMaximalLength($value, int $maximalLength, string $name)
     {
-        if (strlen((string)$value) > $maximalLength) {
+        if (\strlen((string)$value) > $maximalLength) {
             throw new Exceptions\ValueTooLong(
                 "Maximal length of '{$name}' is {$maximalLength}, got one with length of "
-                . strlen((string)$value) . " and value '{$value}'"
+                . \strlen((string)$value) . " and value '{$value}'"
             );
         }
     }
@@ -289,7 +288,7 @@ class CardPayRequestValues extends StrictObject
             /** @noinspection CallableParameterUseCaseInTypeContextInspection */
             $price *= 10 ** $precision;
         }
-        $amount = (int)round($price);
+        $amount = (int)\round($price);
         $this->guardMaximalLength($amount, self::MAXIMAL_LENGTH_OF_AMOUNT, RequestDigestKeys::AMOUNT);
         $this->amount = $amount;
     }
@@ -351,7 +350,7 @@ class CardPayRequestValues extends StrictObject
         if ($description === null) {
             return;
         }
-        $description = trim($description);
+        $description = \trim($description);
         $this->guardMaximalLength($description, self::MAXIMAL_LENGTH_OF_DESCRIPTION, RequestDigestKeys::DESCRIPTION);
         $this->description = $this->sanitizeAsciiRange($description, RequestDigestKeys::DESCRIPTION);
     }
@@ -372,22 +371,22 @@ class CardPayRequestValues extends StrictObject
         $changes = [];
         $regexpWithRange = '~(?<outOfRange>[^';
         foreach ($characterRanges as $characterRange) {
-            $regexpWithRange .= preg_quote(reset($characterRange), '~') . '-' . preg_quote(end($characterRange), '~');
+            $regexpWithRange .= \preg_quote(\reset($characterRange), '~') . '-' . \preg_quote(\end($characterRange), '~');
         }
         $regexpWithRange .= '])~';
-        $sanitized = preg_replace_callback(
+        $sanitized = \preg_replace_callback(
             '~(?<character>\w)~u',
             function (array $characterMatch) use (&$changes, $regexpWithRange) {
                 $character = $characterMatch['character'];
-                if (!preg_match($regexpWithRange, $character)) {
+                if (!\preg_match($regexpWithRange, $character)) {
                     return $character; // character is in the allowed range
                 }
 
                 $withoutDiacritics = StringTools::removeDiacritics($character);
-                $replacement = preg_replace_callback(
+                $replacement = \preg_replace_callback(
                     $regexpWithRange,
                     function (string $stillOutOfRange) {
-                        return str_repeat('?', mb_strlen($stillOutOfRange));
+                        return \str_repeat('?', \mb_strlen($stillOutOfRange));
                     },
                     $withoutDiacritics
                 );
@@ -397,24 +396,24 @@ class CardPayRequestValues extends StrictObject
             },
             $value
         );
-        if (count($changes) > 0) {
-            trigger_error("'{$nameOfParameter}' contains " . count($changes)
+        if (\count($changes) > 0) {
+            \trigger_error("'{$nameOfParameter}' contains " . \count($changes)
                 . ' characters out of allowed ASCII range(s) ' . $this->describeAsciiRange($characterRanges)
-                . ' , replacements have to be made: ' . var_export($changes, true),
+                . ' , replacements have to be made: ' . \var_export($changes, true),
                 E_USER_WARNING
             );
         }
         if ($sanitized === null) { // like for ASCII 128
-            trigger_error("'{$nameOfParameter}' contains some characters out of allowed ASCII range(s) "
+            \trigger_error("'{$nameOfParameter}' contains some characters out of allowed ASCII range(s) "
                 . $this->describeAsciiRange($characterRanges)
                 . ' which was not detected by regexp. Given string as ASCII chain: '
-                . implode(
+                . \implode(
                     ',',
-                    array_map(
+                    \array_map(
                         function ($character) {
-                            return ord($character);
+                            return \ord($character);
                         },
-                        str_split($value)
+                        \str_split($value)
                     )
                 ),
                 E_USER_WARNING
@@ -432,18 +431,18 @@ class CardPayRequestValues extends StrictObject
      */
     private function describeAsciiRange(array $characterRanges): string
     {
-        return implode(
+        return \implode(
             ',',
-            array_map(
+            \array_map(
                 function (array $characterRange) {
-                    $start = reset($characterRange);
-                    if (count($characterRange) === 1) {
-                        return "'{$start}'(0x" . dechex(ord($start)) . ')';
+                    $start = \reset($characterRange);
+                    if (\count($characterRange) === 1) {
+                        return "'{$start}'(0x" . \dechex(\ord($start)) . ')';
                     }
-                    $end = end($characterRange);
+                    $end = \end($characterRange);
 
-                    return "'{$start}'(0x" . dechex(ord($start)) . ')'
-                        . "-'{$end}'(0x" . dechex(ord($end)) . ')';
+                    return "'{$start}'(0x" . \dechex(\ord($start)) . ')'
+                        . "-'{$end}'(0x" . \dechex(\ord($end)) . ')';
                 },
                 $characterRanges
             )
@@ -461,7 +460,7 @@ class CardPayRequestValues extends StrictObject
         if ($merchantNote === null) {
             return;
         }
-        $merchantNote = trim($merchantNote);
+        $merchantNote = \trim($merchantNote);
         $this->guardMaximalLength($merchantNote, self::MAXIMAL_LENGTH_OF_MD, RequestDigestKeys::MD . ' (merchant note)');
         $this->md = $this->sanitizeAsciiRange($merchantNote, RequestDigestKeys::MD . ' (merchant note)');
     }
@@ -490,12 +489,12 @@ class CardPayRequestValues extends StrictObject
         if ($payMethod === null) {
             return;
         }
-        $payMethod = trim($payMethod);
-        $upperPayMethod = strtoupper($payMethod);
+        $payMethod = \trim($payMethod);
+        $upperPayMethod = \strtoupper($payMethod);
         if (!PayMethodCodes::isSupportedPaymentMethod($upperPayMethod)) {
             throw new Exceptions\UnsupportedPayMethod(
                 'Given ' . RequestDigestKeys::PAYMETHOD . " '{$payMethod}' is not supported, use one of "
-                . implode(',', PayMethodCodes::getPayMethodCodes())
+                . \implode(',', PayMethodCodes::getPayMethodCodes())
             );
         }
         $this->payMethod = $upperPayMethod;
@@ -512,12 +511,12 @@ class CardPayRequestValues extends StrictObject
         if ($disabledPayMethod === null) {
             return;
         }
-        $disabledPayMethod = trim($disabledPayMethod);
-        $upperDisabledPayMethod = strtoupper($disabledPayMethod);
+        $disabledPayMethod = \trim($disabledPayMethod);
+        $upperDisabledPayMethod = \strtoupper($disabledPayMethod);
         if (!PayMethodCodes::isSupportedPaymentMethod($upperDisabledPayMethod)) {
             throw new Exceptions\UnsupportedPayMethod(
                 'Can not disable ' . RequestDigestKeys::DISABLEPAYMETHOD . " by unknown pay method '{$disabledPayMethod}',"
-                . ' use one of ' . implode(',', PayMethodCodes::getPayMethodCodes())
+                . ' use one of ' . \implode(',', PayMethodCodes::getPayMethodCodes())
             );
         }
         $this->disablePayMethod = $upperDisabledPayMethod;
@@ -538,20 +537,20 @@ class CardPayRequestValues extends StrictObject
         }
         $upperPayMethods = [];
         foreach ($payMethods as $payMethod) {
-            $upperPayMethods[$payMethod] = strtoupper(trim(ToString::toString($payMethod)));
+            $upperPayMethods[$payMethod] = \strtoupper(\trim(ToString::toString($payMethod)));
         }
         $unknownPayMethods = array_diff($upperPayMethods, PayMethodCodes::getPayMethodCodes());
-        if (count($unknownPayMethods) > 0) {
+        if (\count($unknownPayMethods) > 0) {
             $unknownOriginalPayMethods = [];
             foreach ($unknownPayMethods as $unknownPayMethod) {
                 $unknownOriginalPayMethods[] = array_search($unknownPayMethod, $upperPayMethods, true);
             }
             throw new Exceptions\UnsupportedPayMethod(
-                'Can not set \'' . RequestDigestKeys::PAYMETHODS . '\' by unknown pay method ' . implode(',', $unknownOriginalPayMethods)
-                . '; use only ' . implode(',', PayMethodCodes::getPayMethodCodes())
+                'Can not set \'' . RequestDigestKeys::PAYMETHODS . '\' by unknown pay method ' . \implode(',', $unknownOriginalPayMethods)
+                . '; use only ' . \implode(',', PayMethodCodes::getPayMethodCodes())
             );
         }
-        if (count($upperPayMethods) === 0) {
+        if (\count($upperPayMethods) === 0) {
             trigger_error(
                 'Empty array of \'' . RequestDigestKeys::PAYMETHODS . '\' provided, which would disable all of them.'
                 . ' That is considered as a mistake and NO restriction to payment methods will be used instead'
@@ -561,7 +560,7 @@ class CardPayRequestValues extends StrictObject
 
             return;
         }
-        $this->payMethods = implode(',', $upperPayMethods);
+        $this->payMethods = \implode(',', $upperPayMethods);
     }
 
     const MAXIMAL_LENGTH_OF_EMAIL = 255;
@@ -575,7 +574,7 @@ class CardPayRequestValues extends StrictObject
         if ($email === null) {
             return;
         }
-        $email = trim($email);
+        $email = \trim($email);
         $this->guardMaximalLength($email, self::MAXIMAL_LENGTH_OF_EMAIL, RequestDigestKeys::EMAIL);
         if (filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
             trigger_error("Given user email '{$email}' has invalid format, email will not be used", E_USER_WARNING);
@@ -598,7 +597,7 @@ class CardPayRequestValues extends StrictObject
         if ($referenceNumber === null) {
             return;
         }
-        $referenceNumber = trim($referenceNumber);
+        $referenceNumber = \trim($referenceNumber);
         $this->guardMaximalLength($referenceNumber, self::MAXIMAL_LENGTH_OF_REFERENCENUMBER, RequestDigestKeys::REFERENCENUMBER);
         $this->referenceNumber = $this->sanitizeAsciiRange(
             $referenceNumber,
@@ -623,7 +622,7 @@ class CardPayRequestValues extends StrictObject
         if ($addInfo === null) {
             return;
         }
-        $addInfo = trim($addInfo);
+        $addInfo = \trim($addInfo);
         $this->guardMaximalLength($addInfo, self::MAXIMAL_LENGTH_OF_ADDINFO, RequestDigestKeys::ADDINFO);
         $this->addInfo = $addInfo;
     }
@@ -638,11 +637,11 @@ class CardPayRequestValues extends StrictObject
         if ($lang === null) {
             return;
         }
-        $lang = trim($lang);
+        $lang = \trim($lang);
         if (!LanguageCodes::isLanguageSupported($lang)) {
             trigger_error(
                 "Unsupported language code '{$lang}', GPWebPay auto-detection of a language will be used."
-                . ' Supported languages are ' . implode(',', LanguageCodes::getLanguageCodes()),
+                . ' Supported languages are ' . \implode(',', LanguageCodes::getLanguageCodes()),
                 E_USER_WARNING
             );
 

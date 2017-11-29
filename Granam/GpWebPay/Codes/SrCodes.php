@@ -88,19 +88,19 @@ class SrCodes extends StrictObject implements Codes
      */
     public static function getLocalizedDetailMessage(int $srCode, string $languageCode = self::LANGUAGE_EN): string
     {
-        $languageCode = strtolower($languageCode);
-        if (array_key_exists($languageCode, self::$srCodes) && array_key_exists($srCode, self::$srCodes[$languageCode])) {
+        $languageCode = \strtolower($languageCode);
+        if (\array_key_exists($languageCode, self::$srCodes) && \array_key_exists($srCode, self::$srCodes[$languageCode])) {
             return self::$srCodes[$languageCode][$srCode];
         }
-        if ($languageCode !== self::LANGUAGE_EN && array_key_exists($srCode, self::$srCodes[self::LANGUAGE_EN])) {
-            trigger_error(
+        if ($languageCode !== self::LANGUAGE_EN && \array_key_exists($srCode, self::$srCodes[self::LANGUAGE_EN])) {
+            \trigger_error(
                 "Unsupported language for error detail code requested: '{$languageCode}', " . self::LANGUAGE_EN . ' used instead',
                 E_USER_NOTICE
             );
 
             return self::$srCodes[self::LANGUAGE_EN][$srCode]; // fallback
         }
-        trigger_error("Unknown SR error code: '{$srCode}', no message about detail used", E_USER_WARNING);
+        \trigger_error("Unknown SR error code: '{$srCode}', no message about detail used", E_USER_WARNING);
 
         return '';
     }
@@ -113,6 +113,6 @@ class SrCodes extends StrictObject implements Codes
      */
     public static function isErrorForCustomer(int $srCode): bool
     {
-        return in_array($srCode, [0 /* just means no details available */, 6, 11], true) || $srCode >= 1001;
+        return \in_array($srCode, [0 /* just means no details available */, 6, 11], true) || $srCode >= 1001;
     }
 }

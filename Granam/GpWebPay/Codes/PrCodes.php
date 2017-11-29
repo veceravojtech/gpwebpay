@@ -71,7 +71,7 @@ vytvoření objednávky již proběhlo a objednávka je v určitém stavu
     /**
      * @return array|string[][][]
      */
-    public static function getPrCodes()
+    public static function getPrCodes(): array
     {
         return self::$prCodes;
     }
@@ -86,12 +86,12 @@ vytvoření objednávky již proběhlo a objednávka je v určitém stavu
      */
     public static function getLocalizedMainMessage(int $prCode, string $languageCode = self::LANGUAGE_EN): string
     {
-        $languageCode = strtolower($languageCode);
-        if (array_key_exists($languageCode, self::$prCodes) && array_key_exists($prCode, self::$prCodes[$languageCode])) {
+        $languageCode = \strtolower($languageCode);
+        if (\array_key_exists($languageCode, self::$prCodes) && \array_key_exists($prCode, self::$prCodes[$languageCode])) {
             return self::$prCodes[$languageCode][$prCode];
         }
-        if ($languageCode !== self::LANGUAGE_EN && array_key_exists($prCode, self::$prCodes[self::LANGUAGE_EN])) {
-            trigger_error(
+        if ($languageCode !== self::LANGUAGE_EN && \array_key_exists($prCode, self::$prCodes[self::LANGUAGE_EN])) {
+            \trigger_error(
                 "Unsupported language for main error code requested: '{$languageCode}', " . self::LANGUAGE_EN . ' used instead',
                 E_USER_NOTICE
             );
@@ -99,7 +99,7 @@ vytvoření objednávky již proběhlo a objednávka je v určitém stavu
             return self::$prCodes[self::LANGUAGE_EN][$prCode]; // fallback
         }
 
-        trigger_error("Unknown PR error code: '{$prCode}', a generic text used instead", E_USER_WARNING);
+        \trigger_error("Unknown PR error code: '{$prCode}', a generic text used instead", E_USER_WARNING);
 
         return self::$prCodes[$languageCode]['genericProblem'];
     }
@@ -112,6 +112,6 @@ vytvoření objednávky již proběhlo a objednávka je v určitém stavu
      */
     public static function isErrorForCustomer(int $prCode): bool
     {
-        return in_array($prCode, [17, 25, 26, 28, 30, 35, 50, 40, 1000], true);
+        return \in_array($prCode, [17, 25, 26, 28, 30, 35, 50, 40, 1000], true);
     }
 }

@@ -26,7 +26,7 @@ class GpWebPayErrorByCustomerResponse extends GpWebPayErrorResponse
     )
     {
         if (!static::isErrorCausedByCustomer($prCode, $srCode)) {
-            trigger_error("PR code {$prCode} and SR code {$srCode} do not mean a customer error", E_USER_WARNING);
+            \trigger_error("PR code {$prCode} and SR code {$srCode} do not mean a customer error", E_USER_WARNING);
         }
         parent::__construct($prCode, $srCode, $resultText, $exceptionCode, $previousException);
     }

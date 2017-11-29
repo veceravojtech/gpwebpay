@@ -31,12 +31,12 @@ class DigestSigner extends StrictObject implements DigestSignerInterface
      */
     public function createSignedDigest(array $partsOfDigest): string
     {
-        $digestText = implode('|', $partsOfDigest);
-        if (!openssl_sign($digestText, $digest, $this->getPrivateKeyResource())) {
+        $digestText = \implode('|', $partsOfDigest);
+        if (!\openssl_sign($digestText, $digest, $this->getPrivateKeyResource())) {
             throw new Exceptions\CanNotSignDigest('Can not sign ' . $digestText);
         }
 
-        return base64_encode($digest);
+        return \base64_encode($digest);
     }
 
     /**
@@ -45,11 +45,11 @@ class DigestSigner extends StrictObject implements DigestSignerInterface
      */
     private function getPrivateKeyResource()
     {
-        if (is_resource($this->privateKeyResource)) {
+        if (\is_resource($this->privateKeyResource)) {
             return $this->privateKeyResource;
         }
-        $key = file_get_contents($this->settings->getPrivateKeyFile());
-        if (!($this->privateKeyResource = openssl_pkey_get_private($key, $this->settings->getPrivateKeyPassword()))) {
+        $key = \file_get_contents($this->settings->getPrivateKeyFile());
+        if (!($this->privateKeyResource = \openssl_pkey_get_private($key, $this->settings->getPrivateKeyPassword()))) {
             $errorMessage = "'{$this->settings->getPrivateKeyFile()}' is not valid PEM private key";
             if ($this->settings->getPrivateKeyPassword() !== '') {
                 $errorMessage = "Password for private key is incorrect (or $errorMessage)";
@@ -69,9 +69,9 @@ class DigestSigner extends StrictObject implements DigestSignerInterface
      */
     public function verifySignedDigest(string $digestToVerify, array $expectedPartsOfDigest): bool
     {
-        $expectedDigest = implode('|', $expectedPartsOfDigest);
+        $expectedDigest = \implode('|', $expectedPartsOfDigest);
         $decodedDigestToVerify = base64_decode($digestToVerify);
-        if (openssl_verify($expectedDigest, $decodedDigestToVerify, $this->getPublicKeyResource()) !== 1) {
+        if (\openssl_verify($expectedDigest, $decodedDigestToVerify, $this->getPublicKeyResource()) !== 1) {
             throw new Exceptions\ResponseDigestCanNotBeVerified(
                 'Given digest does not match expected ' . $expectedDigest
             );
@@ -86,11 +86,11 @@ class DigestSigner extends StrictObject implements DigestSignerInterface
      */
     private function getPublicKeyResource()
     {
-        if (is_resource($this->publicKeyResource)) {
+        if (\is_resource($this->publicKeyResource)) {
             return $this->publicKeyResource;
         }
-        $publicKey = file_get_contents($this->settings->getPublicKeyFile());
-        if (!($this->publicKeyResource = openssl_pkey_get_public($publicKey))) {
+        $publicKey = \file_get_contents($this->settings->getPublicKeyFile());
+        if (!($this->publicKeyResource = \openssl_pkey_get_public($publicKey))) {
             throw new Exceptions\PublicKeyUsageFailed(
                 "'{$this->settings->getPublicKeyFile()}' is not valid PEM public key."
             );

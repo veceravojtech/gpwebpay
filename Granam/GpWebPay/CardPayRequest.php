@@ -1,5 +1,4 @@
 <?php
-
 namespace Granam\GpWebPay;
 
 use Granam\GpWebPay\Codes\OperationCodes;
@@ -126,7 +125,7 @@ class CardPayRequest extends StrictObject implements \IteratorAggregate, PayRequ
      */
     public function getRequestUrlWithGetParameters(): string
     {
-        return $this->getRequestUrl() . '?' . http_build_query($this->parametersForRequest);
+        return $this->getRequestUrl() . '?' . \http_build_query($this->parametersForRequest);
     }
 
     /**

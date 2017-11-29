@@ -127,8 +127,8 @@ class Settings extends StrictObject implements SettingsInterface
      */
     private function setBaseUrlForRequest(string $baseUrlForRequest)
     {
-        $baseUrlForRequest = trim($baseUrlForRequest);
-        if (!filter_var($baseUrlForRequest, FILTER_VALIDATE_URL)) {
+        $baseUrlForRequest = \trim($baseUrlForRequest);
+        if (!\filter_var($baseUrlForRequest, FILTER_VALIDATE_URL)) {
             throw new Exceptions\InvalidUrl("Given URL for request is not valid: '{$baseUrlForRequest}'");
         }
 
@@ -141,8 +141,8 @@ class Settings extends StrictObject implements SettingsInterface
      */
     private function setPrivateKeyFile(string $privateKeyFile)
     {
-        $privateKeyFile = trim($privateKeyFile);
-        if (!is_readable($privateKeyFile)) {
+        $privateKeyFile = \trim($privateKeyFile);
+        if (!\is_readable($privateKeyFile)) {
             throw new Exceptions\PrivateKeyFileCanNotBeRead(
                 "Private key '{$privateKeyFile} 'can not be read. Ensure that it exists and with correct rights."
             );
@@ -156,7 +156,7 @@ class Settings extends StrictObject implements SettingsInterface
      */
     private function setPrivateKeyPassword(string $privateKeyPassword)
     {
-        if (!openssl_pkey_get_private(file_get_contents($this->privateKeyFile), $privateKeyPassword)) {
+        if (!\openssl_pkey_get_private(\file_get_contents($this->privateKeyFile), $privateKeyPassword)) {
             $errorMessage = "'{$this->privateKeyFile}' is not valid PEM private key";
             if ($privateKeyPassword !== '') {
                 $errorMessage = "Password for private key is incorrect (or $errorMessage)";
@@ -172,8 +172,8 @@ class Settings extends StrictObject implements SettingsInterface
      */
     private function setPublicKeyFile(string $publicKeyFile)
     {
-        $publicKeyFile = trim($publicKeyFile);
-        if (!is_readable($publicKeyFile)) {
+        $publicKeyFile = \trim($publicKeyFile);
+        if (!\is_readable($publicKeyFile)) {
             throw new Exceptions\PublicKeyFileCanNotBeRead(
                 "Public key '{$publicKeyFile}' can not be read. Ensure that it exists and with correct rights."
             );
@@ -187,7 +187,7 @@ class Settings extends StrictObject implements SettingsInterface
      */
     private function setMerchantNumber(string $merchantNumber)
     {
-        $merchantNumber = trim($merchantNumber);
+        $merchantNumber = \trim($merchantNumber);
         if ($merchantNumber === '') {
             throw new Exceptions\MerchantNumberCanNotBeEmpty('Merchant number is required');
         }
@@ -205,14 +205,14 @@ class Settings extends StrictObject implements SettingsInterface
     private function setUrlForResponse(string $urlForResponse = null)
     {
         $urlForResponse = $urlForResponse ?? $this->getCurrentRequestUrl();
-        $urlForResponse = trim($urlForResponse);
-        if (!filter_var($urlForResponse, FILTER_VALIDATE_URL)) {
+        $urlForResponse = \trim($urlForResponse);
+        if (!\filter_var($urlForResponse, FILTER_VALIDATE_URL)) {
             throw new Exceptions\InvalidUrl('Given ' . RequestDigestKeys::URL . " is not valid: '{$urlForResponse}'");
         }
-        if (strlen($urlForResponse) > self::MAXIMAL_LENGTH_OF_URL) {
+        if (\strlen($urlForResponse) > self::MAXIMAL_LENGTH_OF_URL) {
             throw new Exceptions\ValueTooLong(
                 "Maximal length of '" . RequestDigestKeys::URL . '\' is ' . self::MAXIMAL_LENGTH_OF_URL
-                . ', got one with length of ' . strlen($urlForResponse) . " and value '{$urlForResponse}'"
+                . ', got one with length of ' . \strlen($urlForResponse) . " and value '{$urlForResponse}'"
             );
         }
 
@@ -247,7 +247,7 @@ class Settings extends StrictObject implements SettingsInterface
         $portString = $port === 80
             ? ''
             : (':' . $port);
-        if (!array_key_exists('REQUEST_URI', $_SERVER)) {
+        if (!\array_key_exists('REQUEST_URI', $_SERVER)) {
             throw new Exceptions\CanNotDetermineCurrentRequestUrl(
                 "Missing 'REQUEST_URI' key in \$_SERVER global variable"
             );

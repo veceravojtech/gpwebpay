@@ -13,7 +13,7 @@ class PayMethodCodes extends StrictObject implements Codes
     /**
      * @return array|string[]
      */
-    public static function getPayMethodCodes()
+    public static function getPayMethodCodes(): array
     {
         return [
             self::CRD,
@@ -27,8 +27,8 @@ class PayMethodCodes extends StrictObject implements Codes
      * @param string $payMethod
      * @return bool
      */
-    public static function isSupportedPaymentMethod(string $payMethod)
+    public static function isSupportedPaymentMethod(string $payMethod): bool
     {
-        return in_array($payMethod, self::getPayMethodCodes(), true);
+        return \in_array($payMethod, self::getPayMethodCodes(), true);
     }
 }

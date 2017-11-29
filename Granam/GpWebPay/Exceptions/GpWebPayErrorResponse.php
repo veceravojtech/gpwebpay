@@ -109,9 +109,9 @@ class GpWebPayErrorResponse extends \RuntimeException implements Runtime
      */
     public function getLocalizedMessage(string $languageCode = LanguageCodes::EN): string
     {
-        $languageCode = strtolower(trim($languageCode));
-        if (!in_array($languageCode, self::getSupportedLanguagesForLocalization(), true)) {
-            trigger_error(
+        $languageCode = \strtolower(trim($languageCode));
+        if (!\in_array($languageCode, self::getSupportedLanguagesForLocalization(), true)) {
+            \trigger_error(
                 "Unsupported language for error message requested: '$languageCode'"
                 . ', \'' . LanguageCodes::EN . '\' is used instead',
                 E_USER_WARNING
