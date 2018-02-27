@@ -136,4 +136,9 @@ class GpWebPayErrorResponse extends \RuntimeException implements Runtime
     {
         return PrCodes::isErrorForCustomer($this->getPrCode()) && SrCodes::isErrorForCustomer($this->getSrCode());
     }
+
+    public function isDuplicateOrderNumber(): bool
+    {
+        return $this->prCode === PrCodes::DUPLICATE_ORDER_NUMBER;
+    }
 }
