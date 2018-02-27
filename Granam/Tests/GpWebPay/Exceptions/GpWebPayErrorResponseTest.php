@@ -2,6 +2,7 @@
 namespace Granam\Tests\GpWebPay\Exceptions;
 
 use Granam\GpWebPay\Codes\LanguageCodes;
+use Granam\GpWebPay\Codes\PrCodes;
 use Granam\GpWebPay\Exceptions\GpWebPayErrorResponse;
 use PHPUnit\Framework\TestCase;
 
@@ -100,7 +101,7 @@ class GpWebPayErrorResponseTest extends TestCase
         }
     }
 
-    public function provideCodesWithTextAndExpectedResult()
+    public function provideCodesWithTextAndExpectedResult(): array
     {
         return [
             [0 /* even OK can be thrown as an exception */, 0, '', 'OK', 'OK', 0],
@@ -123,5 +124,16 @@ class GpWebPayErrorResponseTest extends TestCase
         self::assertFalse($gpWebPayErrorResponse->isLocalizedMessageForCustomer());
         $gpWebPayErrorResponse = new GpWebPayErrorResponse(50, 0);
         self::assertTrue($gpWebPayErrorResponse->isLocalizedMessageForCustomer());
+    }
+
+    /**
+     * @test
+     */
+    public function I_can_easily_detect_duplicate_order_number_error()
+    {
+        $gpWebPayErrorResponse = new GpWebPayErrorResponse(PrCodes::TECHNICAL_PROBLEM, 0);
+        self::assertFalse($gpWebPayErrorResponse->isDuplicateOrderNumber());
+        $gpWebPayErrorResponse = new GpWebPayErrorResponse(PrCodes::DUPLICATE_ORDER_NUMBER, 0);
+        self::assertTrue($gpWebPayErrorResponse->isDuplicateOrderNumber());
     }
 }
