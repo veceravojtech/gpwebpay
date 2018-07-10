@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace Granam\Tests\GpWebPay;
 
 use Alcohol\ISO4217;
@@ -11,7 +13,7 @@ use Granam\GpWebPay\Codes\RequestPayloadKeys;
 use Granam\GpWebPay\DigestSigner;
 use Granam\GpWebPay\Settings;
 use Granam\Tests\Tools\TestWithMockery;
-use PHPHtmlParser\Dom;
+use Gt\Dom\HTMLDocument;
 
 /**
  * @group online
@@ -54,43 +56,36 @@ class LiveTest extends TestWithMockery
         self::assertInstanceOf(CardPayRequest::class, $cardPayRequest);
 
         $response = $this->fetchResponse($cardPayRequest);
-        $parser = (new Dom())->loadStr($response, []);
-        $htmlNode = $this->getSingleNode('html', $parser);
-        self::assertSame(
-            'http://gpe.cz/gpwebpay/functions',
-            $htmlNode->getTag()->getAttribute('xmlns:f')['value'] ?? '',
-            'Unexpected response content from GpWebPay'
-        );
-        $headTitleNode = $this->getSingleNode('head title', $parser);
+        $document = new HTMLDocument($response);
         self::assertSame(
             '3D Secure payment gateway',
-            $headTitleNode->text(),
+            $document->title,
             'Unexpected response content from GpWebPay'
         );
-        $buttonSend = $this->getSingleNode('button#send', $parser);
-        self::assertSame('Pay', $buttonSend->text(true));
-        $orderAmount = $this->getSingleNode('#orderAmount', $parser);
+        $buttonSend = $document->getElementById('send');
+        self::assertSame('Pay', $buttonSend->textContent);
+        $orderAmount = $document->getElementById('orderAmount');
         // the price may contains decoded &nbsp;, which results into some UTF-8 space-like character
-        self::assertRegExp('~^123\.45\s+EUR$~u', html_entity_decode($orderAmount->text(true)));
+        self::assertRegExp('~^123\.45\s+EUR$~u', \html_entity_decode($orderAmount->textContent));
     }
 
     private function fetchResponse(CardPayRequest $cardPayRequest): string
     {
-        $curl = curl_init($cardPayRequest->getRequestUrlWithGetParameters());
-        curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
-        curl_setopt($curl, CURLOPT_MAXREDIRS, 5);
-        curl_setopt($curl, CURLOPT_SSL_VERIFYSTATUS, true);
-        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 5);
-        curl_setopt($curl, CURLOPT_TIMEOUT, 30);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        $response = curl_exec($curl);
+        $curl = \curl_init($cardPayRequest->getRequestUrlWithGetParameters());
+        \curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
+        \curl_setopt($curl, CURLOPT_MAXREDIRS, 5);
+        \curl_setopt($curl, CURLOPT_SSL_VERIFYSTATUS, true);
+        \curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 5);
+        \curl_setopt($curl, CURLOPT_TIMEOUT, 30);
+        \curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        $response = \curl_exec($curl);
         if ($response) {
-            curl_close($curl);
+            \curl_close($curl);
 
             return (string)$response;
         }
-        $curlError = curl_error($curl);
-        curl_close($curl);
+        $curlError = \curl_error($curl);
+        \curl_close($curl);
         if ($curlError !== 'No OCSP response received') {
             self::fail(
                 'Requesting a new order via GET fails, got CURL error ' . $curlError
@@ -100,7 +95,7 @@ class LiveTest extends TestWithMockery
             return '';
         }
 
-        if (!is_callable('shell_exec') || strpos(ini_get('disable_functions'), 'shell_exec') !== false) {
+        if (!\is_callable('shell_exec') || \strpos(\ini_get('disable_functions'), 'shell_exec') !== false) {
             self::fail(
                 'Requesting a new order via GET fails because of by CURL used openssl with bug'
                 . ', see @link https://github.com/curl/curl/issues/219'
@@ -109,29 +104,12 @@ class LiveTest extends TestWithMockery
 
             return '';
         }
-        $response = shell_exec(
+        $response = \shell_exec(
             'curl --connect-timeout 15 --max-redirs 5 --location 2>/dev/null '
-            . escapeshellarg($cardPayRequest->getRequestUrlWithGetParameters())
+            . \escapeshellarg($cardPayRequest->getRequestUrlWithGetParameters())
         );
         self::assertNotEmpty($response);
 
         return (string)$response;
-    }
-
-    /**
-     * @param string $selector
-     * @param Dom $parser
-     * @return Dom\HtmlNode
-     */
-    private function getSingleNode(string $selector, Dom $parser): Dom\HtmlNode
-    {
-        $wrappedTag = $parser->find($selector);
-        self::assertCount(1, $wrappedTag, $selector . ' has not been found');
-        $stillWrappedTag = current($wrappedTag);
-        self::assertCount(1, $stillWrappedTag, $selector . ' has not been found');
-        $tag = current($stillWrappedTag);
-        self::assertInstanceOf(Dom\HtmlNode::class, $tag, $selector . ' has not been found');
-
-        return $tag;
     }
 }

@@ -97,7 +97,7 @@ if (count($_POST) > 0) {
 
 Almost all possible error cases are covered clearly by many of exceptions, but some are so nasty so they can not be:
  - after sending a request to GP WebPay you see just a logo and HTTP response code is 401
-    - probably the URL for response you provided to GP WebPay in URL parameter is not valid int he point of view of GP WebPay
+    - probably the URL for response you provided to GP WebPay in URL parameter is not valid in the point of view of GP WebPay
         - ensure that URL exists and there is **NO redirection**, like https://www.github.com to https://github.com/ with trailing slash
         (don't believe your eyes in a browser address bar, the trailing slash is often hidden there)
 
