@@ -25,7 +25,7 @@ class LiveTest extends TestWithMockery
      */
     private $settings;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         try {
             $this->settings = TestSettingsFactory::createTestSettings();
@@ -37,7 +37,7 @@ class LiveTest extends TestWithMockery
     /**
      * @test
      */
-    public function I_can_create_order()
+    public function I_can_create_order(): void
     {
         $ISO4217 = new ISO4217();
         $_POSTLIKE = [
@@ -110,6 +110,6 @@ class LiveTest extends TestWithMockery
         );
         self::assertNotEmpty($response);
 
-        return (string)$response;
+        return $response;
     }
 }
