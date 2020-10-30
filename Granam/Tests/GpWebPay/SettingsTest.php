@@ -63,10 +63,10 @@ class SettingsTest extends TestCase
 
     /**
      * @test
-     * @expectedException \Granam\GpWebPay\Exceptions\MerchantNumberCanNotBeEmpty
      */
     public function I_can_not_create_settings_without_merchant_number()
     {
+        $this->expectException(\Granam\GpWebPay\Exceptions\MerchantNumberCanNotBeEmpty::class);
         new Settings(
             'http://localhost',
             __DIR__ . '/files/testing_private_key.pem',
@@ -79,11 +79,11 @@ class SettingsTest extends TestCase
 
     /**
      * @test
-     * @expectedException \Granam\GpWebPay\Exceptions\InvalidUrl
-     * @expectedExceptionMessageRegExp ~localhost~
      */
     public function I_can_not_create_settings_with_invalid_request_base_url()
     {
+        $this->expectException(\Granam\GpWebPay\Exceptions\InvalidUrl::class);
+        $this->expectExceptionMessageMatches('~localhost~');
         new Settings(
             'localhost', // protocol missing
             __DIR__ . '/files/testing_private_key.pem',
@@ -96,11 +96,11 @@ class SettingsTest extends TestCase
 
     /**
      * @test
-     * @expectedException \Granam\GpWebPay\Exceptions\PrivateKeyFileCanNotBeRead
-     * @expectedExceptionMessageRegExp ~on keychain~
      */
     public function I_can_not_create_settings_with_unreachable_private_key_file()
     {
+        $this->expectException(\Granam\GpWebPay\Exceptions\PrivateKeyFileCanNotBeRead::class);
+        $this->expectExceptionMessageMatches('~on keychain~');
         new Settings(
             'http://example.com',
             'on keychain',
@@ -113,10 +113,10 @@ class SettingsTest extends TestCase
 
     /**
      * @test
-     * @expectedException \Granam\GpWebPay\Exceptions\PrivateKeyUsageFailed
      */
     public function I_can_not_create_settings_with_invalid_private_key_password()
     {
+        $this->expectException(\Granam\GpWebPay\Exceptions\PrivateKeyUsageFailed::class);
         new Settings(
             'http://example.com',
             __DIR__ . '/files/testing_private_key.pem',
@@ -129,11 +129,11 @@ class SettingsTest extends TestCase
 
     /**
      * @test
-     * @expectedException \Granam\GpWebPay\Exceptions\PublicKeyFileCanNotBeRead
-     * @expectedExceptionMessageRegExp ~in a cloud~
      */
     public function I_can_not_create_settings_with_unreachable_public_key_file()
     {
+        $this->expectException(\Granam\GpWebPay\Exceptions\PublicKeyFileCanNotBeRead::class);
+        $this->expectExceptionMessageMatches('~in a cloud~');
         new Settings(
             'http://example.com',
             __DIR__ . '/files/testing_private_key.pem',
@@ -146,11 +146,11 @@ class SettingsTest extends TestCase
 
     /**
      * @test
-     * @expectedException \Granam\GpWebPay\Exceptions\InvalidUrl
-     * @expectedExceptionMessageRegExp ~/dev/null~
      */
     public function I_can_not_create_settings_with_invalid_response_url()
     {
+        $this->expectException(\Granam\GpWebPay\Exceptions\InvalidUrl::class);
+        $this->expectExceptionMessageMatches('~/dev/null~');
         new Settings(
             'http://example.com',
             __DIR__ . '/files/testing_private_key.pem',
@@ -163,11 +163,11 @@ class SettingsTest extends TestCase
 
     /**
      * @test
-     * @expectedException \Granam\GpWebPay\Exceptions\ValueTooLong
-     * @expectedExceptionMessageRegExp ~300~
      */
     public function I_can_not_create_settings_with_too_long_response_url()
     {
+        $this->expectException(\Granam\GpWebPay\Exceptions\ValueTooLong::class);
+        $this->expectExceptionMessageMatches('~300~');
         new Settings(
             'http://example.com',
             __DIR__ . '/files/testing_private_key.pem',
@@ -218,7 +218,7 @@ class SettingsTest extends TestCase
         self::assertSame($expectedUrlForResponse, $settings->getUrlForResponse());
     }
 
-    public function provideGlobalsForCurrentRequestUrlBuild()
+    public function provideGlobalsForCurrentRequestUrlBuild(): array
     {
         // $httpXForwardedProto, $https, $requestScheme, $serverName, $serverPort, $requestUri, $expectedUrlForResponse
         return [
@@ -238,7 +238,6 @@ class SettingsTest extends TestCase
 
     /**
      * @test
-     * @expectedException \Granam\GpWebPay\Exceptions\CanNotDetermineCurrentRequestUrl
      * @backupGlobals enabled
      * @dataProvider provideMissingGlobalsForCurrentRequestUrlBuild
      * @param $serverName
@@ -252,6 +251,7 @@ class SettingsTest extends TestCase
         } else {
             unset($_SERVER['REQUEST_URI']);
         }
+        $this->expectException(\Granam\GpWebPay\Exceptions\CanNotDetermineCurrentRequestUrl::class);
         new Settings(
             'http://example.com',
             __DIR__ . '/files/testing_private_key.pem',
@@ -262,13 +262,13 @@ class SettingsTest extends TestCase
         );
     }
 
-    public function provideMissingGlobalsForCurrentRequestUrlBuild()
+    public function provideMissingGlobalsForCurrentRequestUrlBuild(): array
     {
         // $serverName, $requestUri
         return [
-            [null, ''], // missing server name
-            ['', ''], // missing server name (can not be even empty string unlike request URI)
-            ['example.com', null], // missing request URI
+            'missing server name' => [null, ''],
+            'missing server name (can not be even empty string unlike request URI)' => ['', ''],
+            'missing request URI' => ['example.com', null],
         ];
     }
 }

@@ -8,11 +8,11 @@ class GpWebPayErrorByCustomerResponseTest extends TestWithMockery
 {
     /**
      * @test
-     * @expectedException \Granam\GpWebPay\Exceptions\GpWebPayErrorByCustomerResponse
-     * @expectedExceptionMessageRegExp ~foo.+17\(6\)~
      */
     public function I_can_use_it_as_exception()
     {
+        $this->expectException(\Granam\GpWebPay\Exceptions\GpWebPayErrorByCustomerResponse::class);
+        $this->expectExceptionMessageMatches('~foo.+17\(6\)~');
         throw new GpWebPayErrorByCustomerResponse(17, 6, 'foo');
     }
 
@@ -29,6 +29,6 @@ class GpWebPayErrorByCustomerResponseTest extends TestWithMockery
         error_reporting($previousErrorReporting);
         self::assertNotEmpty($lastError);
         self::assertSame(E_USER_WARNING, $lastError['type']);
-        self::assertRegExp('~PR code 1.+SR code 2~', $lastError['message']);
+        self::assertMatchesRegularExpression('~PR code 1.+SR code 2~', $lastError['message']);
     }
 }

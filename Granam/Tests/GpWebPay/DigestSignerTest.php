@@ -31,7 +31,7 @@ class DigestSignerTest extends TestCase
      * @param string $publicKeyFile
      * @return Settings|\Mockery\MockInterface
      */
-    private function createSettings($privateKeyFile, $privateKeyPassword, $publicKeyFile)
+    private function createSettings(string $privateKeyFile, string $privateKeyPassword, string $publicKeyFile)
     {
         $settings = \Mockery::mock(Settings::class);
         $settings->shouldReceive('getPrivateKeyFile')
@@ -46,8 +46,6 @@ class DigestSignerTest extends TestCase
 
     /**
      * @test
-     * @expectedException \Granam\GpWebPay\Exceptions\ResponseDigestCanNotBeVerified
-     * @expectedExceptionMessageRegExp ~baz|qux~
      */
     public function I_am_stopped_by_exception_if_digest_can_not_be_verified()
     {
@@ -58,12 +56,13 @@ class DigestSignerTest extends TestCase
                 __DIR__ . '/files/testing_public_key.pub'
             )
         );
+        $this->expectException(\Granam\GpWebPay\Exceptions\ResponseDigestCanNotBeVerified::class);
+        $this->expectExceptionMessageMatches('~baz|qux~');
         $digestSigner->verifySignedDigest('SignedInBottomRight', ['foo' => 'bar', 'baz' => 'qux']);
     }
 
     /**
      * @test
-     * @expectedException \Granam\GpWebPay\Exceptions\PrivateKeyUsageFailed
      */
     public function I_can_not_create_signer_with_invalid_private_key_password()
     {
@@ -75,6 +74,8 @@ class DigestSignerTest extends TestCase
             )
         );
         $valuesForDigest = ['foo' => 'bar', 'baz' => 'qux', 123 => 456];
+
+        $this->expectException(\Granam\GpWebPay\Exceptions\PrivateKeyUsageFailed::class);
         $signedDigest = $digestSigner->createSignedDigest($valuesForDigest);
         self::assertNotEmpty($signedDigest);
         self::assertTrue($digestSigner->verifySignedDigest($signedDigest, $valuesForDigest));

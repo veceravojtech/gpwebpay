@@ -61,7 +61,7 @@ class SrCodesTest extends TestWithMockery
             self::assertNotEmpty($lastError);
             self::assertSame($expectedErrorType, $lastError['type']);
             if ($expectedWarningMessageRegExp !== null) {
-                self::assertRegExp($expectedWarningMessageRegExp, $lastError['message']);
+                self::assertMatchesRegularExpression($expectedWarningMessageRegExp, $lastError['message']);
             }
             error_clear_last();
         }

@@ -30,11 +30,11 @@ class CurrencyCodesTest extends CodesTest
 
     /**
      * @test
-     * @expectedException \Granam\GpWebPay\Exceptions\UnknownCurrency
-     * @expectedExceptionMessageRegExp ~0~
      */
     public function I_can_not_get_precision_for_unknown_currency()
     {
+        $this->expectException(\Granam\GpWebPay\Exceptions\UnknownCurrency::class);
+        $this->expectExceptionMessageMatches('~0~');
         (new CurrencyCodes(new ISO4217()))->getCurrencyPrecision(0);
     }
 
@@ -50,11 +50,11 @@ class CurrencyCodesTest extends CodesTest
 
     /**
      * @test
-     * @expectedException \Granam\GpWebPay\Exceptions\UnknownCurrency
-     * @expectedExceptionMessageRegExp ~BitCoin~
      */
     public function I_can_not_get_currency_numeric_code_by_unknown_string_cod()
     {
+        $this->expectException(\Granam\GpWebPay\Exceptions\UnknownCurrency::class);
+        $this->expectExceptionMessageMatches('~BitCoin~');
         (new CurrencyCodes(new ISO4217()))->getCurrencyNumericCode('BitCoin');
     }
 }

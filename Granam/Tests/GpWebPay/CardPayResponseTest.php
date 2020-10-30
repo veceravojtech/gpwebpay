@@ -53,7 +53,7 @@ class CardPayResponseTest extends PayResponseTest
                 ResponseDigestKeys::USERPARAM1 => $userParam1,
                 ResponseDigestKeys::ADDINFO => $addInfo,
             ],
-            function ($value) {
+            static function ($value) {
                 return $value !== null;
             }
         );
@@ -99,7 +99,7 @@ class CardPayResponseTest extends PayResponseTest
         self::assertSame(
             array_filter(
                 $parameters,
-                function ($value) {
+                static function ($value) {
                     return $value !== null;
                 }
             ),
@@ -113,7 +113,7 @@ class CardPayResponseTest extends PayResponseTest
         );
     }
 
-    public function provideValuesForResponse()
+    public function provideValuesForResponse(): array
     {
         return [
             ['foo', 1357, 0, 0, 'baz', 'qux', 987654, 'BAR', 'BAZ', 'QUX', 'FooBar'],
@@ -168,29 +168,26 @@ class CardPayResponseTest extends PayResponseTest
 
     /**
      * @test
-     * @expectedException \Granam\GpWebPay\Exceptions\GpWebPayErrorResponse
-     * @expectedExceptionMessageRegExp ~error code 4\(6\)~
      */
     public function I_am_stopped_by_exception_if_error_occurred()
     {
+        $this->expectException(\Granam\GpWebPay\Exceptions\GpWebPayErrorResponse::class);
+        $this->expectExceptionMessageMatches('~error code 4\(6\)~');
         new CardPayResponse($this->createSomeSettings(), $this->createSomeDigestSigner(), 'foo', 123, 4, 6, 'bar', 'baz');
     }
 
     /**
      * @test
-     * @expectedException \Granam\GpWebPay\Exceptions\GpWebPayErrorByCustomerResponse
-     * @expectedExceptionMessageRegExp ~error code 1000\(1005\)~
      */
     public function I_am_stopped_by_customer_exception_if_error_caused_by_him()
     {
+        $this->expectException(\Granam\GpWebPay\Exceptions\GpWebPayErrorByCustomerResponse::class);
+        $this->expectExceptionMessageMatches('~error code 1000\(1005\)~');
         new CardPayResponse($this->createSomeSettings(), $this->createSomeDigestSigner(), 'foo', 123, 1000, 1005, 'bar', 'baz');
     }
 
-
     /**
      * @test
-     * @expectedException \Granam\GpWebPay\Exceptions\BrokenResponse
-     * @expectedExceptionMessageRegExp ~has invalid format~
      * @dataProvider provideValuesWithInvalidTypes
      * @param $operation
      * @param $orderNumber
@@ -225,10 +222,12 @@ class CardPayResponseTest extends PayResponseTest
             ResponseDigestKeys::USERPARAM1 => $userParam1,
             ResponseDigestKeys::ADDINFO => $addInfo,
         ];
+        $this->expectException(\Granam\GpWebPay\Exceptions\BrokenResponse::class);
+        $this->expectExceptionMessageMatches('~has invalid format~');
         CardPayResponse::createFromArray($parameters, $this->createSomeSettings(), $this->createSomeDigestSigner());
     }
 
-    public function provideValuesWithInvalidTypes()
+    public function provideValuesWithInvalidTypes(): array
     {
         // string, int, int, int, string, string, int, string, string, string, string, string
         return [
@@ -241,12 +240,12 @@ class CardPayResponseTest extends PayResponseTest
      * @test
      * @dataProvider provideValuesForResponse
      * @param string $operation
-     * @param string $orderNumber
+     * @param int $orderNumber
      * @param int $prCode
      * @param int $srCode
      * @param string $digest
      * @param string $digest1
-     * @param string|null $merOrderNum
+     * @param int|null $merOrderNum
      * @param string|null $md
      * @param string|null $resultText
      * @param string|null $userParam1
@@ -254,12 +253,12 @@ class CardPayResponseTest extends PayResponseTest
      */
     public function I_can_not_create_it_from_array_with_missing_required_value(
         string $operation,
-        string $orderNumber,
+        int $orderNumber,
         int $prCode,
         int $srCode,
         string $digest,
         string $digest1,
-        string $merOrderNum = null,
+        int $merOrderNum = null,
         string $md = null,
         string $resultText = null,
         string $userParam1 = null,
@@ -286,7 +285,7 @@ class CardPayResponseTest extends PayResponseTest
                 CardPayResponse::createFromArray($invalidParameters, $this->createSomeSettings(), $this->createSomeDigestSigner());
                 self::fail('Expected ' . BrokenResponse::class . ' has not been thrown');
             } catch (BrokenResponse $brokenResponse) {
-                self::assertRegExp('~' . preg_quote($requiredParameter, '~') . '~', $brokenResponse->getMessage());
+                self::assertMatchesRegularExpression('~' . preg_quote($requiredParameter, '~') . '~', $brokenResponse->getMessage());
             }
         }
     }
@@ -309,8 +308,6 @@ class CardPayResponseTest extends PayResponseTest
 
     /**
      * @test
-     * @expectedException \Granam\GpWebPay\Exceptions\ResponseDigestCanNotBeVerified
-     * @expectedExceptionMessageRegExp ~'DIGEST' does not match~
      * @dataProvider provideValuesForResponse
      * @param string $operation
      * @param int $orderNumber
@@ -351,11 +348,13 @@ class CardPayResponseTest extends PayResponseTest
                 ResponseDigestKeys::USERPARAM1 => $userParam1,
                 ResponseDigestKeys::ADDINFO => $addInfo,
             ],
-            function ($value) {
+            static function ($value) {
                 return $value !== null;
             }
         );
         $digestSigner = $this->createDigestSigner($digest, $parametersForDigest, false, $digest1, $merchantNumber, true);
+        $this->expectException(\Granam\GpWebPay\Exceptions\ResponseDigestCanNotBeVerified::class);
+        $this->expectExceptionMessageMatches("~'DIGEST' does not match~");
         new CardPayResponse(
             $settings,
             $digestSigner,
@@ -375,8 +374,6 @@ class CardPayResponseTest extends PayResponseTest
 
     /**
      * @test
-     * @expectedException \Granam\GpWebPay\Exceptions\ResponseDigestCanNotBeVerified
-     * @expectedExceptionMessageRegExp ~'DIGEST1' has been modified~
      * @dataProvider provideValuesForResponse
      * @param string $operation
      * @param int $orderNumber
@@ -417,11 +414,13 @@ class CardPayResponseTest extends PayResponseTest
                 ResponseDigestKeys::USERPARAM1 => $userParam1,
                 ResponseDigestKeys::ADDINFO => $addInfo,
             ],
-            function ($value) {
+            static function ($value) {
                 return $value !== null;
             }
         );
         $digestSigner = $this->createDigestSigner($digest, $parametersForDigest, true, $digest1, $merchantNumber, false);
+        $this->expectException(\Granam\GpWebPay\Exceptions\ResponseDigestCanNotBeVerified::class);
+        $this->expectExceptionMessageMatches("~'DIGEST1' has been modified~");
         new CardPayResponse(
             $settings,
             $digestSigner,

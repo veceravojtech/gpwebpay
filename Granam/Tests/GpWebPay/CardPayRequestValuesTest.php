@@ -69,7 +69,7 @@ class CardPayRequestValuesTest extends TestWithMockery
             RequestDigestKeys::ADDINFO => $addInfo,
             RequestPayloadKeys::LANG => $lang,
         ];
-        $arrayParameters = array_filter($arrayParameters, function ($parameter) {
+        $arrayParameters = array_filter($arrayParameters, static function ($parameter) {
             return $parameter !== null || random_int(0, 1) > 1; // to cover all combinations
         });
         $fromArrayCardPayRequestValues = CardPayRequestValues::createFromArray($arrayParameters, $currencyCodes);
@@ -175,18 +175,17 @@ class CardPayRequestValuesTest extends TestWithMockery
         $merchantOrderIdentification = 135;
         $description = 'Bought happiness';
         $merchantNote = 'Just a note';
-        $fastPayId = 1470;
+        $fastPayId = '1470';
         $payMethod = PayMethodCodes::CRD;
         $disabledPayMethod = PayMethodCodes::BTNCS;
         $payMethods = PayMethodCodes::getPayMethodCodes();
         $cardHolderEmail = 'someone@example.com';
-        $referenceNumber = 246;
+        $referenceNumber = '246';
         $addInfo = '<?xml ?>';
         $lang = 'cs';
 
         return [
-            // all values
-            [
+            'all values' => [
                 $orderNumber,
                 $price,
                 $currencyNumericCode,
@@ -203,8 +202,7 @@ class CardPayRequestValuesTest extends TestWithMockery
                 $addInfo,
                 $lang,
             ],
-            // only required
-            [
+            'only required' => [
                 $orderNumber,
                 $price,
                 $currencyNumericCode,
@@ -215,11 +213,11 @@ class CardPayRequestValuesTest extends TestWithMockery
 
     /**
      * @test
-     * @expectedException \Granam\GpWebPay\Exceptions\InvalidRequest
-     * @expectedExceptionMessageRegExp ~DEPOSITFLAG~
      */
     public function I_can_not_create_it_from_array_without_all_required_parameters()
     {
+        $this->expectException(\Granam\GpWebPay\Exceptions\InvalidRequest::class);
+        $this->expectExceptionMessageMatches('~DEPOSITFLAG~');
         CardPayRequestValues::createFromArray(
             [
                 RequestDigestKeys::ORDERNUMBER => 123,
@@ -233,11 +231,11 @@ class CardPayRequestValuesTest extends TestWithMockery
 
     /**
      * @test
-     * @expectedException \Granam\GpWebPay\Exceptions\InvalidRequest
-     * @expectedExceptionMessageRegExp ~PAYMETHODS.+string~
      */
     public function I_can_not_create_it_from_array_with_invalid_list_of_payment_methods()
     {
+        $this->expectException(\Granam\GpWebPay\Exceptions\InvalidRequest::class);
+        $this->expectExceptionMessageMatches('~PAYMETHODS.+string~');
         CardPayRequestValues::createFromArray(
             [
                 RequestDigestKeys::ORDERNUMBER => 123,
@@ -253,7 +251,6 @@ class CardPayRequestValuesTest extends TestWithMockery
     /**
      * @test
      * @dataProvider provideTooLongParameters
-     * @expectedExceptionMessageRegExp ~~
      * @param int $orderNumber
      * @param float $price
      * @param int $currencyNumericCode
@@ -337,7 +334,7 @@ class CardPayRequestValuesTest extends TestWithMockery
         }
     }
 
-    public function provideTooLongParameters()
+    public function provideTooLongParameters(): array
     {
         $orderNumber = 1234567891234567;
         $price = 1234567891234567;
@@ -347,7 +344,7 @@ class CardPayRequestValuesTest extends TestWithMockery
         $merchantOrderIdentification = null;
         $description = str_repeat('b', 256);
         $merchantNote = str_repeat('a', 256);
-        $fastPayId = (int)str_repeat('4', 16);
+        $fastPayId = str_repeat('4', 16);
         $payMethod = null;
         $disabledPayMethod = null;
         $payMethods = null;
@@ -380,11 +377,11 @@ class CardPayRequestValuesTest extends TestWithMockery
 
     /**
      * @test
-     * @expectedException \Granam\GpWebPay\Exceptions\UnknownCurrency
-     * @expectedExceptionMessageRegExp ~789~
      */
     public function I_can_not_use_unsupported_currency_code()
     {
+        $this->expectException(\Granam\GpWebPay\Exceptions\UnknownCurrency::class);
+        $this->expectExceptionMessageMatches('~789~');
         new CardPayRequestValues(
             $this->createCurrencyCodes(789, 321, false /* unsupported/unknown currency code */),
             123,
@@ -423,12 +420,11 @@ class CardPayRequestValuesTest extends TestWithMockery
             );
             ini_set('error_reporting', $previousErrorReporting);
             $lastError = error_get_last();
-            /** @noinspection DisconnectedForeachInstructionInspection */
             error_clear_last();
             self::assertNotEmpty($lastError);
             self::assertSame(E_USER_WARNING, $lastError['type']);
             $nameForRegexp = preg_quote($name, '~');
-            self::assertRegExp(<<<REGEXP
+            self::assertMatchesRegularExpression(<<<REGEXP
 ~{$nameForRegexp}.+\D5\D.+'こ'.+'ko'.+'ん'.+'n'.+'に'.+'ni'.+'ち'.+'chi'.+'は'.+'ha'~s
 REGEXP
                 ,
@@ -466,12 +462,11 @@ REGEXP
             );
             ini_set('error_reporting', $previousErrorReporting);
             $lastError = error_get_last();
-            /** @noinspection DisconnectedForeachInstructionInspection */
             error_clear_last();
             self::assertNotEmpty($lastError);
             self::assertSame(E_USER_WARNING, $lastError['type']);
             $nameForRegexp = preg_quote($name, '~');
-            self::assertRegExp("~{$nameForRegexp}.+128,129~s", $lastError['message']);
+            self::assertMatchesRegularExpression("~{$nameForRegexp}.+128,129~s", $lastError['message']);
         }
     }
 
@@ -514,12 +509,11 @@ REGEXP
         );
         ini_set('error_reporting', $previousErrorReporting);
         $lastError = error_get_last();
-        /** @noinspection DisconnectedForeachInstructionInspection */
         error_clear_last();
         self::assertNotEmpty($lastError);
         self::assertSame(E_USER_WARNING, $lastError['type']);
         $nameForRegexp = preg_quote(RequestDigestKeys::REFERENCENUMBER, '~');
-        self::assertRegExp("~{$nameForRegexp}.+'ñ' => 'n'~s", $lastError['message']);
+        self::assertMatchesRegularExpression("~{$nameForRegexp}.+'ñ' => 'n'~s", $lastError['message']);
         self::assertSame(StringTools::removeDiacritics($invalidValue), $cardPayRequestValues->getReferenceNumber());
     }
 
@@ -551,7 +545,7 @@ REGEXP
             } catch (UnsupportedPayMethod $unsupportedPayMethod) {
                 $nameForRegexp = preg_quote($name, '~');
                 $rouletteForRegexp = preg_quote($roulette[$index], '~');
-                self::assertRegExp(
+                self::assertMatchesRegularExpression(
                     '~' . $nameForRegexp . '.+' . $rouletteForRegexp . '~',
                     $unsupportedPayMethod->getMessage()
                 );
@@ -583,7 +577,7 @@ REGEXP
         $lastError = error_get_last();
         self::assertNotEmpty($lastError);
         self::assertSame(E_USER_WARNING, $lastError['type']);
-        self::assertContains(RequestDigestKeys::PAYMETHODS, $lastError['message']);
+        self::assertStringContainsString(RequestDigestKeys::PAYMETHODS, $lastError['message']);
         self::assertNull($cardPayRequestValues->getPayMethods());
         error_clear_last();
         error_reporting($previousErrorReporting);
@@ -616,7 +610,7 @@ REGEXP
         error_clear_last();
         self::assertNotEmpty($lastError);
         self::assertSame(E_USER_WARNING, $lastError['type']);
-        self::assertRegExp('~email.+local post~', $lastError['message']);
+        self::assertMatchesRegularExpression('~email.+local post~', $lastError['message']);
     }
 
     /**
@@ -649,6 +643,6 @@ REGEXP
         error_clear_last();
         self::assertNotEmpty($lastError);
         self::assertSame(E_USER_WARNING, $lastError['type']);
-        self::assertRegExp('~language.+aboriginal~', $lastError['message']);
+        self::assertMatchesRegularExpression('~language.+aboriginal~', $lastError['message']);
     }
 }

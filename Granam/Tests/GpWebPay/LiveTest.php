@@ -66,7 +66,7 @@ class LiveTest extends TestWithMockery
         self::assertSame('Pay', $buttonSend->textContent);
         $orderAmount = $document->getElementById('orderAmount');
         // the price may contains decoded &nbsp;, which results into some UTF-8 space-like character
-        self::assertRegExp('~^123\.45\s+EUR$~u', \html_entity_decode($orderAmount->textContent));
+        self::assertMatchesRegularExpression('~^123\.45\s+EUR$~u', \html_entity_decode($orderAmount->textContent));
     }
 
     private function fetchResponse(CardPayRequest $cardPayRequest): string
