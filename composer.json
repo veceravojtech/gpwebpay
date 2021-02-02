@@ -38,7 +38,7 @@
     "php": ">=7.1",
     "ext-intl": "*",
     "alcohol/iso4217": "^3.1",
-    "phpgt/dom": "^1.0",
+    "phpgt/dom": "*",
     "granam/strict-object": ">=3.0",
     "granam/integer": ">=6.1",
     "granam/float": ">=5.0",
