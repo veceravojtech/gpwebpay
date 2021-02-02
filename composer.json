@@ -1,5 +1,5 @@
 {
-  "name": "granam/gpwebpay",
+  "name": "vecera/gpwebpay",
   "type": "library",
   "description": "GP WepPay payment gateway for a standard card payment",
   "keywords": [
